@@ -1,3 +1,7 @@
+"use client"
+
+import { useCallback } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 
@@ -15,6 +19,16 @@ const faqs = [
 ]
 
 export default function AdminSupportPage() {
+  const router = useRouter()
+
+  const handleNewTicket = useCallback(() => {
+    router.push('/admin/support/new')
+  }, [router])
+
+  const handleOpenTicket = useCallback((id: string) => {
+    router.push(`/admin/support/${id}`)
+  }, [router])
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -22,8 +36,8 @@ export default function AdminSupportPage() {
           <h2 className="text-2xl font-bold tracking-tight">Support Center</h2>
           <p className="text-slate-500 dark:text-slate-400">Manage customer tickets and help resources.</p>
         </div>
-        <Button className="btn-accent">
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <Button className="btn-accent" onClick={handleNewTicket}>
+          <svg className="w-4 h-4 mr-2" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
           </svg>
           New Ticket
@@ -80,7 +94,14 @@ export default function AdminSupportPage() {
           <CardContent>
             <div className="space-y-3">
               {tickets.map((ticket) => (
-                <div key={ticket.id} className="flex items-center justify-between p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer">
+                <div
+                  key={ticket.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => handleOpenTicket(ticket.id)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleOpenTicket(ticket.id) } }}
+                  className="flex items-center justify-between p-4 rounded-lg bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                >
                   <div className="flex items-center gap-3">
                     <div className={`flex h-10 w-10 rounded-full items-center justify-center ${
                       ticket.status === 'Open' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30' :
@@ -96,7 +117,7 @@ export default function AdminSupportPage() {
                       <p className="text-sm text-slate-500">{ticket.id} • {ticket.customer}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2">
                     <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
                       ticket.priority === 'High' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' :
                       ticket.priority === 'Medium' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400' :
@@ -104,7 +125,7 @@ export default function AdminSupportPage() {
                     }`}>
                       {ticket.priority}
                     </span>
-                    <Button variant="ghost" size="sm">View</Button>
+                    <Button variant="ghost" size="sm" aria-label={`View ticket ${ticket.id}`}>View</Button>
                   </div>
                 </div>
               ))}

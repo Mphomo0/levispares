@@ -5,6 +5,12 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function LoginPage() {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    // TODO: Implement login logic
+    console.log('Login submitted')
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-accent/5 p-4">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-accent/10 via-transparent to-transparent pointer-events-none" />
@@ -20,14 +26,18 @@ export default function LoginPage() {
           <CardDescription>Enter your credentials to access your account</CardDescription>
         </CardHeader>
         
+        <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4 pt-4">
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input 
               id="email" 
+              name="email"
               type="email" 
+              autoComplete="email"
               placeholder="name@example.com" 
               className="input-styled"
+              required
             />
           </div>
           
@@ -40,9 +50,12 @@ export default function LoginPage() {
             </div>
             <Input 
               id="password" 
+              name="password"
               type="password" 
+              autoComplete="current-password"
               placeholder="Enter your password" 
               className="input-styled"
+              required
             />
           </div>
 
@@ -50,6 +63,7 @@ export default function LoginPage() {
             <input 
               type="checkbox" 
               id="remember" 
+              name="remember"
               className="w-4 h-4 rounded border-input text-accent focus:ring-accent"
             />
             <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
@@ -57,7 +71,7 @@ export default function LoginPage() {
             </Label>
           </div>
           
-          <Button className="w-full btn-accent mt-2">
+          <Button type="submit" className="w-full btn-accent mt-2">
             Sign In
           </Button>
           
@@ -88,6 +102,7 @@ export default function LoginPage() {
             </Button>
           </div>
         </CardContent>
+        </form>
         
         <CardFooter className="flex flex-col gap-4 pt-2">
           <p className="text-center text-sm text-muted-foreground">

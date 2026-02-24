@@ -46,8 +46,8 @@ export default function UserProfilePage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Date of Birth</Label>
-                <Input type="date" defaultValue="1990-01-15" className="input-styled" />
+                <Label htmlFor="date-of-birth">Date of Birth</Label>
+                <Input id="date-of-birth" type="date" defaultValue="1990-01-15" className="input-styled" />
               </div>
 
               <div className="flex justify-end pt-4">

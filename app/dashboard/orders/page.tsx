@@ -1,6 +1,16 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 
+const formatDate = (dateString: string) => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  }).format(date)
+}
+
 const orders = [
   { 
     id: "ORD-001", 
@@ -64,7 +74,7 @@ export default function UserOrdersPage() {
                 <div className="flex items-center gap-4">
                   <div>
                     <CardTitle className="text-base">{order.id}</CardTitle>
-                    <CardDescription>Ordered on {order.date}</CardDescription>
+                    <CardDescription>Ordered on {formatDate(order.date)}</CardDescription>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">

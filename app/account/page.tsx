@@ -1,7 +1,5 @@
 'use client'
 
-'use client'
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
@@ -16,7 +14,7 @@ const statsCards = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
       </svg>
     ),
-    href: '/dashboard/orders',
+    href: '/account/orders',
     color: 'bg-blue-500/10 text-blue-600',
   },
   {
@@ -28,7 +26,7 @@ const statsCards = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
       </svg>
     ),
-    href: '/dashboard/wishlist',
+    href: '/account/wishlist',
     color: 'bg-red-500/10 text-red-600',
   },
   {
@@ -41,7 +39,7 @@ const statsCards = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
       </svg>
     ),
-    href: '/dashboard/addresses',
+    href: '/account/addresses',
     color: 'bg-green-500/10 text-green-600',
   },
   {
@@ -53,7 +51,7 @@ const statsCards = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
       </svg>
     ),
-    href: '/dashboard/reviews',
+    href: '/account/reviews',
     color: 'bg-yellow-500/10 text-yellow-600',
   },
 ]
@@ -79,7 +77,7 @@ const accountLinks = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
       </svg>
     ),
-    href: '/dashboard/orders',
+    href: '/account/orders',
   },
   {
     title: 'Wishlist',
@@ -89,18 +87,18 @@ const accountLinks = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
       </svg>
     ),
-    href: '/dashboard/wishlist',
+    href: '/account/wishlist',
   },
   {
     title: 'Addresses',
     description: 'Manage delivery addresses',
     icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg className="w-5 h-5" fill="none" stroke="customerColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
       </svg>
     ),
-    href: '/dashboard/addresses',
+    href: '/account/addresses',
   },
   {
     title: 'Profile Details',
@@ -110,7 +108,7 @@ const accountLinks = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
       </svg>
     ),
-    href: '/dashboard/profile',
+    href: '/account/profile',
   },
   {
     title: 'Payment Methods',
@@ -120,7 +118,7 @@ const accountLinks = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
       </svg>
     ),
-    href: '/dashboard/payment',
+    href: '/account/payment',
   },
   {
     title: 'Settings',
@@ -131,11 +129,11 @@ const accountLinks = [
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
       </svg>
     ),
-    href: '/dashboard/settings',
+    href: '/account/settings',
   },
 ]
 
-export default function UserDashboardPage() {
+export default function UserAccountPage() {
   return (
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -180,7 +178,7 @@ export default function UserDashboardPage() {
                 <CardTitle>Recent Orders</CardTitle>
                 <CardDescription>Your latest order activity</CardDescription>
               </div>
-              <Link href="/dashboard/orders">
+              <Link href="/account/orders">
                 <Button variant="outline" size="sm">
                   View All
                   <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -226,7 +224,7 @@ export default function UserDashboardPage() {
                 <CardTitle>Wishlist</CardTitle>
                 <CardDescription>Your saved items</CardDescription>
               </div>
-              <Link href="/dashboard/wishlist">
+              <Link href="/account/wishlist">
                 <Button variant="ghost" size="sm">
                   View All
                 </Button>

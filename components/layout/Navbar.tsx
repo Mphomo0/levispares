@@ -2,13 +2,15 @@
 
 import React, { useState } from 'react'
 import Link from 'next/link'
-import { ShoppingBag, Search, User } from 'lucide-react'
+import Image from 'next/image'
+import { ShoppingBag, Search, User, Menu, X } from 'lucide-react'
 import { useCart } from '@/lib/CartContext'
 
 export default function Navbar() {
   const { totalItems } = useCart()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   const navLinks = [
     { path: '/', label: 'Home' },
@@ -29,18 +31,26 @@ export default function Navbar() {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
           <Link href="/">
-            <div className="flex items-center gap-2 group cursor-pointer">
-              <div className="w-10 h-10 rounded-xl bg-accent flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
-                <svg className="w-5 h-5 text-accent-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-              </div>
-              <span className="font-display text-2xl font-bold tracking-wide text-foreground">
-                LEVI<span className="text-accent">SPARES</span>
-              </span>
-            </div>
+            <Image
+              src="/images/logo/logo.webp"
+              alt="Levi's Spares Logo"
+              width={150}
+              height={90}
+              className="w-full h-full object-contain"
+            />
           </Link>
+
+          <button
+            className="lg:hidden p-2 rounded-md hover:bg-secondary transition-colors"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+          >
+            {isMenuOpen ? (
+              <X className="w-6 h-6 text-foreground" />
+            ) : (
+              <Menu className="w-6 h-6 text-foreground" />
+            )}
+          </button>
 
           <div className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => (
@@ -54,10 +64,13 @@ export default function Navbar() {
             ))}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="hidden lg:flex items-center gap-2">
             <div className="relative">
               {isSearchOpen ? (
-                <form onSubmit={handleSearch} className="absolute right-10 top-1/2 -translate-y-1/2">
+                <form
+                  onSubmit={handleSearch}
+                  className="absolute right-10 top-1/2 -translate-y-1/2"
+                >
                   <input
                     type="text"
                     value={searchQuery}
@@ -101,6 +114,47 @@ export default function Navbar() {
             </Link>
           </div>
         </div>
+
+        {isMenuOpen && (
+          <div className="lg:hidden border-t border-border bg-background">
+            <div className="container mx-auto px-4 py-4 flex flex-col gap-2">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.path}
+                  href={link.path}
+                  className="px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors font-medium"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {link.label}
+                </Link>
+              ))}
+              <Link
+                href="/search"
+                className="px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors font-medium flex items-center gap-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <Search className="w-5 h-5" />
+                Search
+              </Link>
+              <Link
+                href="/account"
+                className="px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors font-medium sm:hidden flex items-center gap-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <User className="w-5 h-5" />
+                Account
+              </Link>
+              <Link
+                href="/cart"
+                className="px-4 py-3 rounded-lg text-foreground hover:bg-secondary transition-colors font-medium flex items-center gap-2"
+                onClick={() => setIsMenuOpen(false)}
+              >
+                <ShoppingBag className="w-5 h-5" />
+                Cart {totalItems > 0 && `(${totalItems})`}
+              </Link>
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   )

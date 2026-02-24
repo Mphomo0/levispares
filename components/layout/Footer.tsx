@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { Wrench, MapPin, Phone, Mail } from 'lucide-react'
+import { MapPin, Phone, Mail } from 'lucide-react'
+import Image from 'next/image'
 
 export default function Footer() {
   return (
@@ -11,12 +12,13 @@ export default function Footer() {
           {/* Brand */}
           <div className="space-y-4">
             <Link href="/" className="flex items-center gap-2">
-              <div className="w-10 h-10 rounded-lg bg-accent flex items-center justify-center">
-                <Wrench className="w-5 h-5 text-accent-foreground" />
-              </div>
-              <span className="font-display text-2xl tracking-wide">
-                AUTO<span className="text-accent">PARTS</span>
-              </span>
+              <Image
+                src="/images/logo/logo.webp"
+                alt="Levi Truck Spares Logo"
+                width={150}
+                height={90}
+                className="w-full h-full object-contain"
+              />
             </Link>
             <p className="text-primary-foreground/70 text-sm leading-relaxed">
               Your trusted source for quality car spare parts. We deliver

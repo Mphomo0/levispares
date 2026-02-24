@@ -1,10 +1,25 @@
+"use client"
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState } from "react"
 
 export default function RegisterPage() {
+  const [agreedToTerms, setAgreedToTerms] = useState(false)
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!agreedToTerms) {
+      alert('Please agree to the Terms of Service and Privacy Policy')
+      return
+    }
+    // TODO: Implement registration logic
+    console.log('Registration submitted')
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-accent/5 p-4">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-accent/10 via-transparent to-transparent pointer-events-none" />
@@ -20,22 +35,27 @@ export default function RegisterPage() {
           <CardDescription>Enter your information to get started</CardDescription>
         </CardHeader>
         
+        <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4 pt-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <Label htmlFor="firstName">First name</Label>
               <Input 
                 id="firstName" 
+                name="firstName"
                 placeholder="John" 
                 className="input-styled"
+                required
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="lastName">Last name</Label>
               <Input 
                 id="lastName" 
+                name="lastName"
                 placeholder="Doe" 
                 className="input-styled"
+                required
               />
             </div>
           </div>
@@ -44,9 +64,11 @@ export default function RegisterPage() {
             <Label htmlFor="email">Email</Label>
             <Input 
               id="email" 
+              name="email"
               type="email" 
               placeholder="name@example.com" 
               className="input-styled"
+              required
             />
           </div>
           
@@ -54,6 +76,7 @@ export default function RegisterPage() {
             <Label htmlFor="phone">Phone Number</Label>
             <Input 
               id="phone" 
+              name="phone"
               type="tel" 
               placeholder="+1 (555) 000-0000" 
               className="input-styled"
@@ -64,9 +87,11 @@ export default function RegisterPage() {
             <Label htmlFor="password">Password</Label>
             <Input 
               id="password" 
+              name="password"
               type="password" 
               placeholder="Create a strong password" 
               className="input-styled"
+              required
             />
             <p className="text-xs text-muted-foreground">Must be at least 8 characters with 1 number & 1 special character</p>
           </div>
@@ -75,9 +100,11 @@ export default function RegisterPage() {
             <Label htmlFor="confirmPassword">Confirm Password</Label>
             <Input 
               id="confirmPassword" 
+              name="confirmPassword"
               type="password" 
               placeholder="Confirm your password" 
               className="input-styled"
+              required
             />
           </div>
           
@@ -85,6 +112,9 @@ export default function RegisterPage() {
             <input 
               type="checkbox" 
               id="terms" 
+              name="terms"
+              checked={agreedToTerms}
+              onChange={(e) => setAgreedToTerms(e.target.checked)}
               className="w-4 h-4 mt-0.5 rounded border-input text-accent focus:ring-accent"
             />
             <Label htmlFor="terms" className="text-sm text-muted-foreground cursor-pointer leading-5">
@@ -99,7 +129,7 @@ export default function RegisterPage() {
             </Label>
           </div>
           
-          <Button className="w-full btn-accent mt-2">
+          <Button type="submit" className="w-full btn-accent mt-2">
             Create Account
           </Button>
           
@@ -130,6 +160,7 @@ export default function RegisterPage() {
             </Button>
           </div>
         </CardContent>
+        </form>
         
         <CardFooter className="flex flex-col gap-4 pt-2">
           <p className="text-center text-sm text-muted-foreground">

@@ -1,7 +1,25 @@
+"use client"
+
+import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 
 export default function UserSettingsPage() {
+  const [orderUpdates, setOrderUpdates] = useState(true)
+  const [promotionalEmails, setPromotionalEmails] = useState(false)
+  const [newsletter, setNewsletter] = useState(true)
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false)
+  const [loginNotifications, setLoginNotifications] = useState(true)
+  const [profileVisibility, setProfileVisibility] = useState(false)
+  const [activityTracking, setActivityTracking] = useState(true)
+
+  const handleDeleteAccount = () => {
+    // TODO: Implement account deletion
+    console.log('Account deletion confirmed')
+    alert('Account deletion is not yet implemented')
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -21,8 +39,14 @@ export default function UserSettingsPage() {
                 <p className="font-medium">Order Updates</p>
                 <p className="text-sm text-muted-foreground">Receive emails about your order status</p>
               </div>
-              <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-accent transition-colors">
-                <span className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform" />
+              <button 
+                role="switch" 
+                aria-checked={orderUpdates}
+                aria-label="Toggle order updates"
+                onClick={() => setOrderUpdates(!orderUpdates)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${orderUpdates ? 'bg-accent' : 'bg-muted'}`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${orderUpdates ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
             </div>
             <div className="flex items-center justify-between">
@@ -30,8 +54,14 @@ export default function UserSettingsPage() {
                 <p className="font-medium">Promotional Emails</p>
                 <p className="text-sm text-muted-foreground">Receive emails about sales and new products</p>
               </div>
-              <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-muted transition-colors">
-                <span className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1" />
+              <button 
+                role="switch" 
+                aria-checked={promotionalEmails}
+                aria-label="Toggle promotional emails"
+                onClick={() => setPromotionalEmails(!promotionalEmails)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${promotionalEmails ? 'bg-accent' : 'bg-muted'}`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${promotionalEmails ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
             </div>
             <div className="flex items-center justify-between">
@@ -39,8 +69,14 @@ export default function UserSettingsPage() {
                 <p className="font-medium">Newsletter</p>
                 <p className="text-sm text-muted-foreground">Subscribe to our monthly newsletter</p>
               </div>
-              <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-accent transition-colors">
-                <span className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-6" />
+              <button 
+                role="switch" 
+                aria-checked={newsletter}
+                aria-label="Toggle newsletter"
+                onClick={() => setNewsletter(!newsletter)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${newsletter ? 'bg-accent' : 'bg-muted'}`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${newsletter ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
             </div>
           </CardContent>
@@ -64,8 +100,14 @@ export default function UserSettingsPage() {
                 <p className="font-medium">Login Notifications</p>
                 <p className="text-sm text-muted-foreground">Get notified of new login attempts</p>
               </div>
-              <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-accent transition-colors">
-                <span className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-6" />
+              <button 
+                role="switch" 
+                aria-checked={loginNotifications}
+                aria-label="Toggle login notifications"
+                onClick={() => setLoginNotifications(!loginNotifications)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${loginNotifications ? 'bg-accent' : 'bg-muted'}`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${loginNotifications ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
             </div>
             <div className="flex items-center justify-between">
@@ -89,8 +131,14 @@ export default function UserSettingsPage() {
                 <p className="font-medium">Profile Visibility</p>
                 <p className="text-sm text-muted-foreground">Allow others to see your profile</p>
               </div>
-              <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-muted transition-colors">
-                <span className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1" />
+              <button 
+                role="switch" 
+                aria-checked={profileVisibility}
+                aria-label="Toggle profile visibility"
+                onClick={() => setProfileVisibility(!profileVisibility)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${profileVisibility ? 'bg-accent' : 'bg-muted'}`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${profileVisibility ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
             </div>
             <div className="flex items-center justify-between">
@@ -98,8 +146,14 @@ export default function UserSettingsPage() {
                 <p className="font-medium">Activity Tracking</p>
                 <p className="text-sm text-muted-foreground">Allow us to track your browsing activity</p>
               </div>
-              <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-accent transition-colors">
-                <span className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-6" />
+              <button 
+                role="switch" 
+                aria-checked={activityTracking}
+                aria-label="Toggle activity tracking"
+                onClick={() => setActivityTracking(!activityTracking)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${activityTracking ? 'bg-accent' : 'bg-muted'}`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${activityTracking ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>
             </div>
           </CardContent>
@@ -116,7 +170,27 @@ export default function UserSettingsPage() {
                 <p className="font-medium">Delete Account</p>
                 <p className="text-sm text-muted-foreground">Permanently delete your account and all data</p>
               </div>
-              <Button variant="destructive" size="sm">Delete Account</Button>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="destructive" size="sm">Delete Account</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Delete Account</DialogTitle>
+                    <DialogDescription>
+                      Are you sure you want to delete your account? This action is irreversible and all your data will be permanently lost.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter>
+                    <DialogTrigger asChild>
+                      <Button variant="outline">Cancel</Button>
+                    </DialogTrigger>
+                    <Button variant="destructive" onClick={handleDeleteAccount}>
+                      Yes, Delete My Account
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
           </CardContent>
         </Card>

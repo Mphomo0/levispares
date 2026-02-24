@@ -79,7 +79,7 @@ export default function Hero() {
             <div className="relative w-full aspect-square max-w-lg mx-auto">
               <div className="absolute inset-0 bg-linear-to-br from-orange-400/20 to-transparent rounded-3xl" />
               <Image
-                src="https://images.unsplash.com/photo-1605218427368-35b0900d0679?w=800&q=80"
+                src="/images/spares.webp"
                 alt="Truck spare parts and automotive components"
                 fill
                 className="object-contain"
