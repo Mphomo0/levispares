@@ -156,7 +156,7 @@ export default function AdminAnalyticsPage() {
                   className="flex-1 flex flex-col items-center gap-2"
                 >
                   <div
-                    className="w-full bg-gradient-to-t from-accent to-orange-400 rounded-t-md transition-all hover:opacity-80"
+                    className="w-full bg-linear-to-t from-accent to-orange-400 rounded-t-md transition-all hover:opacity-80"
                     style={{ height: `${(item.revenue / maxRevenue) * 100}%` }}
                   ></div>
                   <span className="text-xs text-slate-500 dark:text-slate-400">
@@ -186,7 +186,7 @@ export default function AdminAnalyticsPage() {
                   </div>
                   <div className="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-accent to-orange-400 rounded-full"
+                      className="h-full bg-linear-to-r from-accent to-orange-400 rounded-full"
                       style={{ width: `${source.percentage}%` }}
                     ></div>
                   </div>
