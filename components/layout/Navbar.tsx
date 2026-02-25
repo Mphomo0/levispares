@@ -19,7 +19,7 @@ export default function Navbar() {
     { path: '/contact', label: 'Contact' },
   ]
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (searchQuery.trim()) {
       window.location.href = `/search?q=${encodeURIComponent(searchQuery)}`
@@ -27,16 +27,16 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
+    <nav className="sticky top-0 z-50 bg-white/55 backdrop-blur-md border-b border-border shadow-sm">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 md:h-20">
           <Link href="/">
             <Image
               src="/images/logo/logo.webp"
               alt="Levi's Spares Logo"
-              width={150}
-              height={90}
-              className="w-full h-full object-contain"
+              width={250}
+              height={250}
+              className="w-auto h-auto object-contain"
             />
           </Link>
 
