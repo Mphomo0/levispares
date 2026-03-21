@@ -6,7 +6,7 @@ import Image from 'next/image'
 
 export default function Footer() {
   return (
-    <footer className="bg-slate-900 text-primary-foreground">
+    <footer className="bg-slate-900 text-white">
       <div className="container mx-auto px-4 py-12 md:py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
           {/* Brand */}
@@ -20,14 +20,14 @@ export default function Footer() {
                 className="w-full h-full object-contain"
               />
             </Link>
-            <p className="text-primary-foreground/70 text-sm leading-relaxed">
+            <p className="text-white/70 text-sm leading-relaxed">
               Your trusted source for quality car spare parts. We deliver
               excellence in every part, ensuring your vehicle runs at its best.
             </p>
             <div className="flex gap-4 pt-2">
               <a
                 href="#"
-                className="p-2 rounded-lg bg-primary-foreground/10 hover:bg-accent hover:text-accent-foreground transition-colors"
+                className="p-2 rounded-lg bg-white/10 hover:bg-accent hover:text-accent-foreground transition-colors"
               >
                 <svg
                   className="w-5 h-5"
@@ -44,7 +44,7 @@ export default function Footer() {
               </a>
               <a
                 href="#"
-                className="p-2 rounded-lg bg-primary-foreground/10 hover:bg-accent hover:text-accent-foreground transition-colors"
+                className="p-2 rounded-lg bg-white/10 hover:bg-accent hover:text-accent-foreground transition-colors"
               >
                 <svg
                   className="w-5 h-5"
@@ -57,7 +57,7 @@ export default function Footer() {
               </a>
               <a
                 href="#"
-                className="p-2 rounded-lg bg-primary-foreground/10 hover:bg-accent hover:text-accent-foreground transition-colors"
+                className="p-2 rounded-lg bg-white/10 hover:bg-accent hover:text-accent-foreground transition-colors"
               >
                 <svg
                   className="w-5 h-5"
@@ -74,7 +74,7 @@ export default function Footer() {
               </a>
               <a
                 href="#"
-                className="p-2 rounded-lg bg-primary-foreground/10 hover:bg-accent hover:text-accent-foreground transition-colors"
+                className="p-2 rounded-lg bg-white/10 hover:bg-accent hover:text-accent-foreground transition-colors"
               >
                 <svg
                   className="w-5 h-5"
@@ -100,7 +100,7 @@ export default function Footer() {
                 <li key={link}>
                   <Link
                     href={link === 'Home' ? '/' : `/${link.toLowerCase()}`}
-                    className="text-primary-foreground/70 hover:text-accent transition-colors"
+                    className="text-white/70 hover:text-accent transition-colors"
                   >
                     {link}
                   </Link>
@@ -124,7 +124,7 @@ export default function Footer() {
                 <li key={cat}>
                   <Link
                     href={`/shop?category=${cat.toLowerCase().replace(' ', '-')}`}
-                    className="text-primary-foreground/70 hover:text-accent transition-colors"
+                    className="text-white/70 hover:text-accent transition-colors"
                   >
                     {cat}
                   </Link>
@@ -139,7 +139,7 @@ export default function Footer() {
             <ul className="space-y-4">
               <li className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-accent shrink-0 mt-0.5" />
-                <span className="text-primary-foreground/70 text-sm">
+                <span className="text-white/70 text-sm">
                   Stand 11 Zambezi Auto Mart
                   <br />
                   Montana, Pretoria, 0182
@@ -149,7 +149,7 @@ export default function Footer() {
                 <Phone className="w-5 h-5 text-accent shrink-0" />
                 <a
                   href="tel:+0127703389"
-                  className="text-primary-foreground/70 hover:text-accent transition-colors text-sm"
+                  className="text-white/70 hover:text-accent transition-colors text-sm"
                 >
                   012 770 3389
                 </a>
@@ -158,7 +158,7 @@ export default function Footer() {
                 <Mail className="w-5 h-5 text-accent shrink-0" />
                 <a
                   href="mailto:info@levispares.co.za"
-                  className="text-primary-foreground/70 hover:text-accent transition-colors text-sm"
+                  className="text-white/70 hover:text-accent transition-colors text-sm"
                 >
                   info@levispares.co.za
                 </a>
@@ -168,14 +168,14 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-12 pt-8 border-t border-primary-foreground/10">
+        <div className="mt-12 pt-8 border-t border-white/10">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-primary-foreground/50 text-sm">
+            <p className="text-white/50 text-sm">
               © {new Date().getFullYear()} Levi Truck Spares. All rights
               reserved. Developed by{' '}
               <a
                 href="https://nostalgic-studio.co.za"
-                className="text-primary-foreground/50 hover:text-accent transition-colors"
+                className="text-white/50 hover:text-accent transition-colors"
                 target="_blank"
               >
                 {' '}
@@ -186,13 +186,13 @@ export default function Footer() {
             <div className="flex gap-6">
               <a
                 href="privacy-policy"
-                className="text-primary-foreground/50 hover:text-accent text-sm transition-colors"
+                className="text-white/50 hover:text-accent text-sm transition-colors"
               >
                 Privacy Policy
               </a>
               <a
                 href="terms-conditions"
-                className="text-primary-foreground/50 hover:text-accent text-sm transition-colors"
+                className="text-white/50 hover:text-accent text-sm transition-colors"
               >
                 Terms & Conditions
               </a>

@@ -8,27 +8,36 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 
+import { useMutation } from 'convex/react'
+import { api } from '@/convex/_generated/api'
+
 export default function NewCategoryPage() {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const addCategory = useMutation(api.categories.add)
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
     
     const formData = new FormData(e.currentTarget)
-    const data = {
-      name: formData.get('name'),
-      description: formData.get('description'),
-      icon: formData.get('icon'),
-    }
-    
-    console.log('Category data:', data)
-    
-    setTimeout(() => {
-      setIsSubmitting(false)
+    const name = formData.get('name') as string
+    const description = formData.get('description') as string
+    const icon = (formData.get('icon') as string) || '🏷️'
+    const slug = (formData.get('slug') as string) || name.toLowerCase().replace(/[^a-z0-9]+/g, '-')
+
+    try {
+      await addCategory({
+        name,
+        description,
+        icon,
+        slug,
+      })
       router.push('/admin/categories')
-    }, 1000)
+    } catch (error) {
+      console.error('Failed to add category:', error)
+      setIsSubmitting(false)
+    }
   }
 
   const emojiOptions = ['🛑', '💧', '🔧', '⚡', '💡', '🛞', '🔋', '🌧️', '🔩', '🧰', '💺', '🎯']
@@ -50,7 +59,7 @@ export default function NewCategoryPage() {
 
       <form onSubmit={handleSubmit}>
         <div className="grid gap-6 lg:grid-cols-2">
-          <Card className="card-shadow">
+          <Card className="">
             <CardHeader>
               <CardTitle>Category Details</CardTitle>
               <CardDescription>Enter the details for your new category.</CardDescription>
@@ -89,7 +98,7 @@ export default function NewCategoryPage() {
             </CardContent>
           </Card>
 
-          <Card className="card-shadow">
+          <Card className="">
             <CardHeader>
               <CardTitle>Preview</CardTitle>
               <CardDescription>See how your category will appear.</CardDescription>

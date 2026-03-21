@@ -5,8 +5,13 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRight, Shield, Truck, HeadphonesIcon } from 'lucide-react'
 import { motion } from 'motion/react'
+import { useQuery } from 'convex/react'
+import { api } from '@/convex/_generated/api'
 
 export default function Hero() {
+  const storeSettings = useQuery(api.settings.get)
+  const freeShippingThreshold = storeSettings?.freeShippingThreshold ?? 750
+
   return (
     <section className="relative hero-gradient text-primary-foreground overflow-hidden">
       <div className="absolute inset-0 opacity-10">
@@ -122,7 +127,7 @@ export default function Hero() {
             </div>
             <div>
               <h4 className="font-semibold text-white">Free Shipping</h4>
-              <p className="text-sm text-white/70">On orders over $99</p>
+              <p className="text-sm text-white/70">On orders over R{freeShippingThreshold.toFixed(2)}</p>
             </div>
           </motion.div>
           <motion.div

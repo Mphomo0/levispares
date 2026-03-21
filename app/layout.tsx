@@ -4,6 +4,8 @@ import './globals.css'
 import NavigationWrapper from '@/components/layout/NavigationWrapper'
 import { CartProvider } from '@/lib/CartContext'
 
+import { ConvexClientProvider } from '@/components/providers/ConvexClientProvider'
+
 const geistSans = Geist({
   variable: '--font-geist-sans',
   subsets: ['latin'],
@@ -25,15 +27,17 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <CartProvider>
-          <NavigationWrapper>
-            {children}
-          </NavigationWrapper>
-        </CartProvider>
+        <ConvexClientProvider>
+          <CartProvider>
+            <NavigationWrapper>
+              {children}
+            </NavigationWrapper>
+          </CartProvider>
+        </ConvexClientProvider>
       </body>
     </html>
   )

@@ -1,12 +1,18 @@
 'use client'
 
+import { useState } from 'react'
 import { motion } from 'motion/react'
 import { useCart } from '@/lib/CartContext'
+import { useRouter } from 'next/navigation'
+import { useUser } from '@clerk/nextjs'
+import { useQuery } from 'convex/react'
+import { api } from '@/convex/_generated/api'
 import Link from 'next/link'
 
-const OrderSummary = ({ totalPrice }: { totalPrice: number }) => {
-  const shipping = totalPrice >= 750 ? 0 : 250
-  const tax = totalPrice * 0.08
+const OrderSummary = ({ totalPrice, taxEnabled, taxRate, shippingRate, freeShippingThreshold, onCheckout }: { totalPrice: number; taxEnabled: boolean; taxRate: number; shippingRate: number; freeShippingThreshold: number; onCheckout: () => void }) => {
+  const [termsAccepted, setTermsAccepted] = useState(false)
+  const shipping = totalPrice >= freeShippingThreshold ? 0 : shippingRate
+  const tax = taxEnabled ? totalPrice * (taxRate / 100) : 0
   const grandTotal = totalPrice + shipping + tax
 
   return (
@@ -27,12 +33,14 @@ const OrderSummary = ({ totalPrice }: { totalPrice: number }) => {
         </div>
         <div className="flex justify-between text-muted-foreground">
           <span>Shipping</span>
-          <span>{totalPrice >= 750 ? 'Free' : 'R250.00'}</span>
+          <span>{totalPrice >= freeShippingThreshold ? 'Free' : `R${shippingRate.toFixed(2)}`}</span>
         </div>
-        <div className="flex justify-between text-muted-foreground">
-          <span>Tax</span>
-          <span>R{tax.toFixed(2)}</span>
-        </div>
+        {taxEnabled && (
+          <div className="flex justify-between text-muted-foreground">
+            <span>Tax ({taxRate}%)</span>
+            <span>R{tax.toFixed(2)}</span>
+          </div>
+        )}
       </div>
 
       <div className="border-t border-border pt-4 mb-6">
@@ -42,12 +50,39 @@ const OrderSummary = ({ totalPrice }: { totalPrice: number }) => {
         </div>
       </div>
 
-      <button className="btn-accent w-full flex items-center justify-center gap-2">
+      <div className="mb-4">
+        <label className="flex items-start gap-3 cursor-pointer group">
+          <div className="relative flex items-center mt-1">
+            <input
+              type="checkbox"
+              className="peer sr-only"
+              checked={termsAccepted}
+              onChange={(e) => setTermsAccepted(e.target.checked)}
+            />
+            <div className="w-5 h-5 border-2 border-muted-foreground/30 rounded-md peer-checked:bg-accent peer-checked:border-accent transition-all flex items-center justify-center">
+              <svg className={`w-3.5 h-3.5 text-white ${termsAccepted ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          </div>
+          <span className="text-sm text-muted-foreground flex-1 leading-snug">
+            I agree to the <Link href="/terms-conditions" target="_blank" className="text-foreground font-medium hover:text-accent underline underline-offset-2">Terms & Conditions</Link>
+          </span>
+        </label>
+      </div>
+
+      <button
+        onClick={onCheckout}
+        disabled={!termsAccepted}
+        className={`btn-accent w-full flex items-center justify-center gap-2 ${
+          !termsAccepted ? 'opacity-50 cursor-not-allowed' : ''
+        }`}
+      >
         Proceed to Checkout
       </button>
 
       <p className="text-center text-muted-foreground text-xs mt-4">
-        Free shipping on orders over R750
+        Free shipping on orders over R{freeShippingThreshold.toFixed(2)}
       </p>
     </motion.div>
   )
@@ -56,6 +91,21 @@ const OrderSummary = ({ totalPrice }: { totalPrice: number }) => {
 export default function CartPage() {
   const { items, totalPrice, clearCart, removeFromCart, updateQuantity } =
     useCart()
+  const router = useRouter()
+  const { user } = useUser()
+  const storeSettings = useQuery(api.settings.get)
+  const taxEnabled = storeSettings?.taxEnabled ?? false
+  const taxRate = storeSettings?.taxRate ?? 0
+  const shippingRate = storeSettings?.shippingRate ?? 250
+  const freeShippingThreshold = storeSettings?.freeShippingThreshold ?? 750
+
+  const handleCheckout = () => {
+    if (!user) {
+      router.push('/login')
+      return
+    }
+    router.push('/checkout')
+  }
 
   if (items.length === 0) {
     return (
@@ -127,13 +177,13 @@ export default function CartPage() {
 
   return (
     <>
-      <div className="bg-primary text-primary-foreground py-12 md:py-16">
+      <div className="hero-gradient text-primary-foreground py-16 md:py-24">
         <div className="container mx-auto px-4">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="font-display text-4xl md:text-5xl tracking-wide"
+            className="font-display text-4xl md:text-5xl lg:text-6xl tracking-wide mb-6"
           >
             YOUR <span className="text-accent">CART</span>
           </motion.h1>
@@ -141,9 +191,9 @@ export default function CartPage() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-primary-foreground/70 mt-2"
+            className="text-lg md:text-xl text-primary-foreground/80 max-w-2xl"
           >
-            {items.length} {items.length === 1 ? 'item' : 'items'}
+            {items.length} {items.length === 1 ? 'item' : 'items'} in your cart
           </motion.p>
         </div>
       </div>
@@ -153,14 +203,14 @@ export default function CartPage() {
           <div className="lg:col-span-2 space-y-4">
             {items.map((item, index) => (
               <motion.div
-                key={item.id}
+                  key={item._id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: index * 0.1 }}
                 className="bg-card rounded-xl p-4 md:p-6 card-shadow flex flex-col sm:flex-row gap-4"
               >
                 <Link
-                  href={`/product/${item.id}`}
+                  href={`/product/${item._id}`}
                   className="w-full sm:w-32 h-32 bg-secondary rounded-lg overflow-hidden shrink-0"
                 >
                   <img
@@ -177,14 +227,14 @@ export default function CartPage() {
                         {item.category}
                       </span>
                       <Link
-                        href={`/product/${item.id}`}
+                        href={`/product/${item._id}`}
                         className="block font-semibold text-foreground text-lg hover:text-accent transition-colors"
                       >
                         {item.name}
                       </Link>
                     </div>
                     <button
-                      onClick={() => removeFromCart(item.id)}
+                      onClick={() => removeFromCart(item._id)}
                       className="p-2 text-muted-foreground hover:text-destructive transition-colors"
                       aria-label="Remove item"
                     >
@@ -208,7 +258,7 @@ export default function CartPage() {
                     <div className="flex items-center border border-border rounded-lg">
                       <button
                         onClick={() =>
-                          updateQuantity(item.id, item.quantity - 1)
+                          updateQuantity(item._id, item.quantity - 1)
                         }
                         className="p-2 hover:bg-secondary transition-colors"
                         aria-label="Decrease quantity"
@@ -227,10 +277,10 @@ export default function CartPage() {
                           />
                         </svg>
                       </button>
-                      <span className="px-4 font-medium">{item.quantity}</span>
+                      <span className="px-4 font-medium text-foreground">{item.quantity}</span>
                       <button
                         onClick={() =>
-                          updateQuantity(item.id, item.quantity + 1)
+                          updateQuantity(item._id, item.quantity + 1)
                         }
                         className="p-2 hover:bg-secondary transition-colors"
                         aria-label="Increase quantity"
@@ -270,7 +320,7 @@ export default function CartPage() {
           </div>
 
           <div className="lg:col-span-1">
-            <OrderSummary totalPrice={totalPrice} />
+            <OrderSummary totalPrice={totalPrice} taxEnabled={taxEnabled} taxRate={taxRate} shippingRate={shippingRate} freeShippingThreshold={freeShippingThreshold} onCheckout={handleCheckout} />
           </div>
         </div>
       </div>

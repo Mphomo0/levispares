@@ -9,6 +9,18 @@
         "mcp"
       ],
       "enabled": true
+    },
+    "convex": {
+      "type": "local",
+      "command": [
+        "npx",
+        "convex@latest",
+        "mcp",
+        "start",
+        "--project-dir",
+        "."
+      ],
+      "enabled": true
     }
   }
 }

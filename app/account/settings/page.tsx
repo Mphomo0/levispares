@@ -1,148 +1,106 @@
 'use client'
 
+import { useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { useClerk } from '@clerk/nextjs'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
+import { deleteAccount } from '@/app/account/actions'
 
 export default function SettingsPage() {
+  const { signOut } = useClerk()
+  const router = useRouter()
+  const [showConfirm, setShowConfirm] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [confirmText, setConfirmText] = useState('')
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true)
+    try {
+      await deleteAccount()
+      await signOut()
+      router.push('/')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete account. Please try again.')
+      setDeleting(false)
+      setShowConfirm(false)
+      setConfirmText('')
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Account Settings</h2>
-        <p className="text-muted-foreground">Manage your account preferences and privacy.</p>
+        <p className="text-muted-foreground">Manage your account preferences.</p>
       </div>
 
-      <div className="grid gap-6">
-        <Card className="card-shadow">
-          <CardHeader>
-            <CardTitle>Notification Preferences</CardTitle>
-            <CardDescription>Choose how you want to receive updates.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between py-3 border-b">
-                <div>
-                  <p className="font-medium">Order Updates</p>
-                  <p className="text-sm text-muted-foreground">Get notified about order status changes</p>
-                </div>
+      <Card className="card-shadow border-red-200 dark:border-red-900/50">
+        <CardHeader>
+          <CardTitle className="text-red-600 dark:text-red-400">Danger Zone</CardTitle>
+          <CardDescription>
+            Irreversible and destructive actions.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-lg border border-red-200 dark:border-red-900/50 bg-red-50/50 dark:bg-red-950/20">
+            <div>
+              <p className="font-medium">Delete Account</p>
+              <p className="text-sm text-muted-foreground">
+                Permanently delete your account and all associated data. This action cannot be undone.
+              </p>
+            </div>
+            {!showConfirm ? (
+              <Button
+                variant="outline"
+                className="text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-950/50 shrink-0"
+                onClick={() => setShowConfirm(true)}
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Delete Account
+              </Button>
+            ) : (
+              <div className="space-y-3 w-full sm:w-auto sm:min-w-[280px]">
+                <p className="text-sm font-medium text-red-600 dark:text-red-400">
+                  Type <span className="font-mono font-bold">DELETE</span> to confirm:
+                </p>
+                <input
+                  type="text"
+                  value={confirmText}
+                  onChange={(e) => setConfirmText(e.target.value)}
+                  placeholder="Type DELETE"
+                  className="w-full px-3 py-2 text-sm border border-red-300 dark:border-red-800 rounded-lg bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-red-500/50"
+                  autoFocus
+                />
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm">Email</Button>
-                  <Button variant="outline" size="sm">SMS</Button>
-                  <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-black">Push</Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setShowConfirm(false)
+                      setConfirmText('')
+                    }}
+                    disabled={deleting}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    disabled={confirmText !== 'DELETE' || deleting}
+                    onClick={handleDeleteAccount}
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    {deleting ? 'Deleting...' : 'Permanently Delete'}
+                  </Button>
                 </div>
               </div>
-              <div className="flex items-center justify-between py-3 border-b">
-                <div>
-                  <p className="font-medium">Promotions & Deals</p>
-                  <p className="text-sm text-text-muted-foreground">Receive special offers and discounts</p>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm">Email</Button>
-                  <Button variant="outline" size="sm">SMS</Button>
-                  <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-black">Push</Button>
-                </div>
-              </div>
-              <div className="flex items-center justify-between py-3 border-b">
-                <div>
-                  <p className="font-medium">New Product Alerts</p>
-                  <p className="text-sm text-muted-foreground">Be the first to know about new products</p>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm">Email</Button>
-                  <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-black">SMS</Button>
-                  <Button variant="outline" size="sm">Push</Button>
-                </div>
-              </div>
-              <div className="flex items-center justify-between py-3">
-                <div>
-                  <p className="font-medium">Review Requests</p>
-                  <p className="text-sm text-muted-foreground">Get reminded to leave reviews</p>
-                </div>
-                <div className="flex gap-2">
-                  <Button size="sm" className="bg-orange-500 hover:bg-orange-600 text-black">Email</Button>
-                  <Button variant="outline" size="sm">SMS</Button>
-                  <Button variant="outline" size="sm">Push</Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="card-shadow">
-          <CardHeader>
-            <CardTitle>Privacy & Security</CardTitle>
-            <CardDescription>Manage your privacy and security settings.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-4 rounded-lg border border-border">
-              <div className="flex items-center gap-4">
-                <div className="p-2 rounded-lg bg-green-100 text-green-600">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-medium">Two-Factor Authentication</p>
-                  <p className="text-sm text-muted-foreground">Add an extra layer of security</p>
-                </div>
-              </div>
-              <Button variant="outline">Enable</Button>
-            </div>
-
-            <div className="flex items-center justify-between p-4 rounded-lg border border-border">
-              <div className="flex items-center gap-4">
-                <div className="p-2 rounded-lg bg-muted text-muted-foreground">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-medium">Change Password</p>
-                  <p className="text-sm text-muted-foreground">Update your password regularly</p>
-                </div>
-              </div>
-              <Button variant="outline">Change</Button>
-            </div>
-
-            <div className="flex items-center justify-between p-4 rounded-lg border border-border">
-              <div className="flex items-center gap-4">
-                <div className="p-2 rounded-lg bg-muted text-muted-foreground">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="font-medium">Connected Devices</p>
-                  <p className="text-sm text-muted-foreground">Manage devices logged into your account</p>
-                </div>
-              </div>
-              <Button variant="outline">View</Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="card-shadow">
-          <CardHeader>
-            <CardTitle>Data & Privacy</CardTitle>
-            <CardDescription>Control your data and privacy settings.</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-center justify-between p-4 rounded-lg border border-border">
-              <div>
-                <p className="font-medium">Download Your Data</p>
-                <p className="text-sm text-muted-foreground">Get a copy of all your account data</p>
-              </div>
-              <Button variant="outline">Request</Button>
-            </div>
-            <div className="flex items-center justify-between p-4 rounded-lg border border-border">
-              <div>
-                <p className="font-medium">Delete Account</p>
-                <p className="text-sm text-muted-foreground">Permanently delete your account and data</p>
-              </div>
-              <Button variant="outline" className="text-destructive hover:text-destructive">Delete</Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

@@ -118,7 +118,7 @@
   --popover-foreground: 0 0% 98%;
 
   --primary: 0 0% 98%;
-  --primary-foreground: oklch(1 0 0);
+  --primary-foreground: 220 15% 10%;
 
   --secondary: 220 15% 18%;
   --secondary-foreground: 0 0% 98%;
@@ -229,6 +229,28 @@
 
   .input-styled {
     @apply w-full px-4 py-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent/50 focus:border-accent transition-all duration-200;
+  }
+
+  /* Admin Scope Styles */
+  .admin-scope [data-slot="card"],
+  .admin-scope .card-like {
+    background-color: hsl(var(--card)) !important;
+    border: 1px solid hsl(220 15% 15% / 0.2) !important;
+    box-shadow: var(--card-shadow);
+  }
+
+  /* Ensure portalled elements have opaque backgrounds */
+  [data-slot="dropdown-menu-content"],
+  [data-slot="popover-content"],
+  [data-slot="select-content"] {
+    background-color: hsl(var(--popover)) !important;
+    border: 1px solid hsl(var(--border)) !important;
+  }
+
+  /* Ensure actions have opaque backgrounds in admin */
+  .admin-scope [data-slot="button"][data-variant="ghost"],
+  .admin-scope [data-slot="button"][data-variant="outline"] {
+    background-color: hsl(var(--background)) !important;
   }
 }
 

@@ -3,16 +3,17 @@
 import { useCart } from '@/lib/CartContext'
 
 interface Product {
-  id: string
+  _id: string
   name: string
   description: string
   price: number
   category: string
   image: string
+  specs?: { label: string; value: string }[]
 }
 
 interface ProductCardProps {
-  product: Product
+  product: any // Temporarily use any to avoid strict Convex types in shared component, or import Doc
 }
 
 export default function ProductCard({ product }: ProductCardProps) {

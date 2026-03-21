@@ -24,7 +24,7 @@ export default function AboutStory() {
               <p>
                 What started as a small family-owned shop has grown into one of
                 the most trusted names in the automotive parts industry. Over
-                the years, we've built lasting relationships with customers who
+                the years, we&apos;ve built lasting relationships with customers who
                 appreciate our commitment to quality, transparency, and
                 exceptional service.
               </p>
@@ -37,8 +37,8 @@ export default function AboutStory() {
               </p>
               <p>
                 We understand that your vehicle is more than just
-                transportation—it's an investment, a passion, and often a
-                part of your daily life. That's why we go above and beyond to
+                transportation—it&apos;s an investment, a passion, and often a
+                part of your daily life. That&apos;s why we go above and beyond to
                 help you find the right parts, at the right price, with the
                 support you deserve.
               </p>

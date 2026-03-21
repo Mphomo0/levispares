@@ -1,18 +1,29 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { products } from '@/lib/products'
+import { usePaginatedQuery, useQuery } from 'convex/react'
+import { api } from '@/convex/_generated/api'
 import CategorySidebar from '@/components/sections/shop/CategorySidebar'
 import ProductGrid from '@/components/sections/shop/ProductGrid'
 import { useSearchParams } from 'next/navigation'
 
 export default function ShopContent() {
   const searchParams = useSearchParams()
-  const selectedCategory = searchParams.get('category') || ''
+  const selectedCategory = searchParams.get('category') || undefined
+  const searchQuery = searchParams.get('q') || ''
 
-  const filteredProducts = selectedCategory
-    ? products.filter((p) => p.category === selectedCategory)
-    : products
+  const { results, status, loadMore } = usePaginatedQuery(
+    (api as any).products.list,
+    { category: selectedCategory },
+    { initialNumItems: 12 }
+  )
+
+  const searchResults = useQuery(
+    (api as any).products.search,
+    searchQuery ? { query: searchQuery } : "skip"
+  )
+
+  const displayProducts = searchQuery ? searchResults : results
 
   return (
     <>
@@ -32,17 +43,18 @@ export default function ShopContent() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-lg md:text-xl text-primary-foreground/80 max-w-2xl"
           >
-            {products.length} products available
+            {(displayProducts as any)?.length || 0} products available
           </motion.p>
         </div>
       </div>
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex flex-col lg:flex-row gap-8">
-          <CategorySidebar selectedCategory={selectedCategory} />
+      <div className="container mx-auto px-4 py-6 md:py-8">
+        <div className="flex flex-col lg:flex-row gap-6 md:gap-8">
+          <CategorySidebar selectedCategory={selectedCategory || ""} />
 
           <ProductGrid
-            products={filteredProducts}
-            selectedCategory={selectedCategory}
+            products={(displayProducts as any) || []}
+            selectedCategory={selectedCategory || ''}
+            isLoading={status === 'LoadingFirstPage' || (!!searchQuery && !searchResults)}
           />
         </div>
       </div>

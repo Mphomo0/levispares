@@ -16,11 +16,11 @@ const CartItems = ({ items, removeFromCart, updateQuantity }: CartItemsProps) =>
     <>
       {items.map((item) => (
         <div
-          key={item.id}
+          key={item._id}
           className="bg-card rounded-xl p-4 md:p-6 card-shadow flex flex-col sm:flex-row gap-4"
         >
           <Link
-            href={`/product/${item.id}`}
+            href={`/product/${item._id}`}
             className="w-full sm:w-32 h-32 bg-secondary rounded-lg overflow-hidden shrink-0"
           >
             <img
@@ -37,14 +37,14 @@ const CartItems = ({ items, removeFromCart, updateQuantity }: CartItemsProps) =>
                   {item.category}
                 </span>
                 <Link
-                  href={`/product/${item.id}`}
+                  href={`/product/${item._id}`}
                   className="block font-semibold text-foreground text-lg hover:text-accent transition-colors"
                 >
                   {item.name}
                 </Link>
               </div>
               <button
-                onClick={() => removeFromCart(item.id)}
+                onClick={() => removeFromCart(item._id)}
                 className="p-2 text-muted-foreground hover:text-destructive transition-colors"
               >
                 <Trash2 className="w-5 h-5" />
@@ -54,14 +54,14 @@ const CartItems = ({ items, removeFromCart, updateQuantity }: CartItemsProps) =>
             <div className="mt-auto pt-4 flex items-center justify-between">
               <div className="flex items-center border border-border rounded-lg">
                 <button
-                  onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                  onClick={() => updateQuantity(item._id, item.quantity - 1)}
                   className="p-2 hover:bg-secondary transition-colors"
                 >
                   <Minus className="w-4 h-4" />
                 </button>
                 <span className="px-4 font-medium">{item.quantity}</span>
                 <button
-                  onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                  onClick={() => updateQuantity(item._id, item.quantity + 1)}
                   className="p-2 hover:bg-secondary transition-colors"
                 >
                   <Plus className="w-4 h-4" />
@@ -69,7 +69,7 @@ const CartItems = ({ items, removeFromCart, updateQuantity }: CartItemsProps) =>
               </div>
 
               <span className="text-lg font-bold text-foreground">
-                ${(item.price * item.quantity).toFixed(2)}
+                R{(item.price * item.quantity).toFixed(2)}
               </span>
             </div>
           </div>

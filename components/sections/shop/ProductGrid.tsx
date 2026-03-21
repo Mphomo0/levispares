@@ -7,6 +7,7 @@ import ProductCard from '@/components/sections/products/ProductCard'
 interface Props {
   products: any[]
   selectedCategory: string
+  isLoading?: boolean
 }
 
 export default function ProductGrid({ products, selectedCategory }: Props) {
@@ -29,7 +30,7 @@ export default function ProductGrid({ products, selectedCategory }: Props) {
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
         {products.map((product, index) => (
           <motion.div
-            key={product.id}
+            key={product._id}
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: index * 0.05 }}

@@ -3,7 +3,8 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
-import { useState } from 'react'
+import { useUser } from '@clerk/nextjs'
+import Image from 'next/image'
 
 const userNavItems = [
   {
@@ -21,15 +22,6 @@ const userNavItems = [
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-      </svg>
-    )
-  },
-  {
-    title: 'Profile',
-    href: '/account/profile',
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
       </svg>
     )
   },
@@ -61,19 +53,51 @@ export default function UserAccountLayout({
   children: React.ReactNode
 }) {
   const pathname = usePathname()
+  const { user } = useUser()
+
+  const displayName =
+    [user?.firstName, user?.lastName].filter(Boolean).join(' ') ||
+    user?.emailAddresses?.[0]?.emailAddress ||
+    'My Account'
+
+  const initials = [
+    user?.firstName?.[0],
+    user?.lastName?.[0],
+  ]
+    .filter(Boolean)
+    .join('')
+    .toUpperCase() || '?'
+
+  const email = user?.emailAddresses?.[0]?.emailAddress || ''
+
+  const memberSince = user?.createdAt
+    ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
+    : null
 
   return (
     <div className="min-h-screen bg-background">
       <div className="bg-gradient-to-r from-orange-500 to-orange-600 text-white py-12">
         <div className="container mx-auto px-4">
           <div className="flex items-center gap-4">
-            <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center">
-              <span className="text-3xl font-bold">JD</span>
+            <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center overflow-hidden shrink-0">
+              {user?.imageUrl ? (
+                <Image
+                  src={user.imageUrl}
+                  alt={displayName}
+                  width={80}
+                  height={80}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-3xl font-bold">{initials}</span>
+              )}
             </div>
             <div>
-              <h1 className="text-2xl font-bold">John Doe</h1>
-              <p className="text-white/80">john.doe@example.com</p>
-              <p className="text-sm text-white/60">Member since January 2023</p>
+              <h1 className="text-2xl font-bold">{displayName}</h1>
+              {email && <p className="text-white/80">{email}</p>}
+              {memberSince && (
+                <p className="text-sm text-white/60">Member since {memberSince}</p>
+              )}
             </div>
           </div>
         </div>

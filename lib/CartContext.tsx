@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 
 export interface Product {
-  id: string
+  _id: string
   name: string
   price: number
   image: string
@@ -38,7 +38,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const savedCart = localStorage.getItem(CART_STORAGE_KEY)
     if (savedCart) {
       try {
-        setItems(JSON.parse(savedCart))
+        const parsed = JSON.parse(savedCart)
+        setItems(parsed) // eslint-disable-line react-hooks/set-state-in-effect
       } catch (e) {
         console.error('Failed to parse cart from localStorage:', e)
       }
@@ -54,10 +55,10 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const addToCart = (product: Product) => {
     setItems(prev => {
-      const existing = prev.find(item => item.id === product.id)
+      const existing = prev.find(item => item._id === product._id)
       if (existing) {
         return prev.map(item =>
-          item.id === product.id
+          item._id === product._id
             ? { ...item, quantity: item.quantity + 1 }
             : item
         )
@@ -67,7 +68,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }
 
   const removeFromCart = (productId: string) => {
-    setItems(prev => prev.filter(item => item.id !== productId))
+    setItems(prev => prev.filter(item => item._id !== productId))
   }
 
   const updateQuantity = (productId: string, quantity: number) => {
@@ -77,7 +78,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
     setItems(prev =>
       prev.map(item =>
-        item.id === productId ? { ...item, quantity } : item
+        item._id === productId ? { ...item, quantity } : item
       )
     )
   }

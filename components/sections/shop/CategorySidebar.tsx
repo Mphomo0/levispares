@@ -11,6 +11,39 @@ interface Props {
 export default function CategorySidebar({ selectedCategory }: Props) {
   return (
     <>
+      {/* Mobile Category Selector - Horizontal Scroll Chips */}
+      <div className="lg:hidden -mx-4 px-4 mb-6 overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-2 pb-2 min-w-max">
+          <Link
+            href="/shop"
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors border ${
+              !selectedCategory
+                ? 'bg-accent border-accent text-accent-foreground shadow-sm'
+                : 'bg-card border-border text-muted-foreground hover:bg-secondary'
+            }`}
+          >
+            All Parts
+          </Link>
+          {categories.map((category) => {
+            const isActive = selectedCategory === category.id
+            return (
+              <Link
+                key={category.id}
+                href={isActive ? '/shop' : `/shop?category=${category.id}`}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors border whitespace-nowrap ${
+                  isActive
+                    ? 'bg-accent border-accent text-accent-foreground shadow-sm'
+                    : 'bg-card border-border text-muted-foreground hover:bg-secondary'
+                }`}
+              >
+                <span>{category.icon}</span>
+                <span>{category.name}</span>
+              </Link>
+            )
+          })}
+        </div>
+      </div>
+
       <aside className="lg:w-64 shrink-0 hidden lg:block">
         <motion.div
           initial={{ opacity: 0, x: -20 }}

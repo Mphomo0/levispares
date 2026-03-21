@@ -9,9 +9,15 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@clerk/nextjs": "^6.39.0",
     "@hookform/resolvers": "^5.2.2",
+    "@imagekit/next": "^2.1.5",
+    "@imagekit/nodejs": "^7.3.0",
+    "@paypal/react-paypal-js": "^9.0.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "convex": "^1.32.0",
+    "imagekit": "^6.0.0",
     "lucide-react": "^0.575.0",
     "motion": "^12.34.3",
     "next": "16.1.6",
