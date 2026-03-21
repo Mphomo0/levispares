@@ -23,8 +23,8 @@ export default function NewVariantPage() {
   const [withBulkVariants, setWithBulkVariants] = useState(false)
   const [bulkVariants, setBulkVariants] = useState<Array<{ variantType: string; variantValue: string }>>([])
 
-  const models = useQuery(api.models.list)
-  const brands = useQuery(api.brands.listAll)
+  const models = useQuery(api.models.list, {})
+  const brands = useQuery(api.brands.listAll, {})
   const addVariant = useMutation(api.variants.add)
   const addBulkVariants = useMutation(api.variants.addBulk)
 

@@ -58,8 +58,8 @@ export default function AdminModelsPage() {
   const [statusFilter, setStatusFilter] = useState('All')
   const [brandFilter, setBrandFilter] = useState<string>('All')
 
-  const models = useQuery(api.models.list)
-  const brands = useQuery(api.brands.listAll)
+  const models = useQuery(api.models.list, {})
+  const brands = useQuery(api.brands.listAll, {})
   const removeModel = useMutation(api.models.remove)
   const toggleActive = useMutation(api.models.toggleActive)
 

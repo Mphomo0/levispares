@@ -45,11 +45,11 @@ export default function UserProfilePage() {
   // Fetch orders & addresses for this user (only when we have the clerkId)
   const userOrders = useQuery(
     api.orders.listByUser,
-    user?.clerkId ? { userId: user.clerkId } : 'skip'
+    user?.clerkId ? { userId: user.clerkId as Id<'users'> } : 'skip'
   )
   const userAddresses = useQuery(
     api.addresses.listByUser,
-    user?.clerkId ? { userId: user.clerkId } : 'skip'
+    user?.clerkId ? { userId: user.clerkId as Id<'users'> } : 'skip'
   )
 
   if (user === undefined) {
@@ -108,7 +108,7 @@ export default function UserProfilePage() {
   }
 
   const totalSpent = userOrders?.reduce((sum, o) => {
-    if (o.status !== 'cancelled' && o.status !== 'draft') return sum + o.totalAmount
+    if (o.status !== 'cancelled') return sum + o.total
     return sum
   }, 0) ?? 0
 
@@ -226,7 +226,7 @@ export default function UserProfilePage() {
                       <TableRow key={order._id}>
                         <TableCell className="font-mono text-xs">{order._id.slice(-8).toUpperCase()}</TableCell>
                         <TableCell>{order.items.length} item{order.items.length !== 1 ? 's' : ''}</TableCell>
-                        <TableCell className="font-medium">R{order.totalAmount.toFixed(2)}</TableCell>
+                        <TableCell className="font-medium">R{order.total.toFixed(2)}</TableCell>
                         <TableCell>
                           <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusStyles[order.status] || 'bg-muted text-muted-foreground'}`}>
                             {order.status.charAt(0).toUpperCase() + order.status.slice(1)}

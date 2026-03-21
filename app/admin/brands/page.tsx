@@ -81,10 +81,12 @@ export default function AdminBrandsPage() {
   const handleDelete = async (id: Id<'brands'>, logoUrl?: string | null) => {
     if (confirm('Are you sure you want to delete this brand? This will also delete all associated models and variants.')) {
       try {
-        const result = await removeBrand({ id })
-        if (result?.logoUrl) {
-          await deleteImage({ url: result.logoUrl })
+        // Delete the image from ImageKit first (if exists)
+        if (logoUrl) {
+          await deleteImage({ url: logoUrl })
         }
+        // Then delete the brand from database
+        await removeBrand({ id })
       } catch (error) {
         console.error('Failed to delete brand:', error)
         alert('Failed to delete brand. Please try again.')

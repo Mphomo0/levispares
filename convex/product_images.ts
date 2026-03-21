@@ -96,7 +96,13 @@ export const update = mutation({
 export const remove = mutation({
   args: { id: v.id("productImages") },
   handler: async (ctx, args) => {
+    const image = await ctx.db.get(args.id);
+    if (!image) throw new Error("Image not found");
+    
+    const imageUrl = image.url;
     await ctx.db.delete(args.id);
+    
+    return { imageUrl };
   },
 });
 

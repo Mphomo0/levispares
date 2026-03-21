@@ -273,6 +273,11 @@ export const toggleActive = mutation({
 export const remove = mutation({
   args: { id: v.id("categories") },
   handler: async (ctx, args) => {
+    const category = await ctx.db.get(args.id);
+    if (!category) throw new Error("Category not found");
+    
+    const imageUrl = category.image || null;
+
     const subcategories = await ctx.db
       .query("categories")
       .withIndex("by_parentId", (q) => q.eq("parentId", args.id))
@@ -283,5 +288,7 @@ export const remove = mutation({
     }
 
     await ctx.db.delete(args.id);
+    
+    return { imageUrl };
   },
 });

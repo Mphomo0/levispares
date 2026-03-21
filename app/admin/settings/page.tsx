@@ -34,8 +34,8 @@ export default function AdminSettingsPage() {
 
   useEffect(() => {
     if (storeSettings) {
-      setTaxEnabled(storeSettings.taxEnabled)
-      setTaxRate(storeSettings.taxRate > 0 ? String(storeSettings.taxRate) : '')
+      setTaxEnabled(storeSettings.taxEnabled ?? false)
+      setTaxRate((storeSettings.taxRate ?? 0) > 0 ? String(storeSettings.taxRate) : '')
       setShippingRate(String(storeSettings.shippingRate ?? 250))
       setFreeShippingThreshold(String(storeSettings.freeShippingThreshold ?? 750))
     }

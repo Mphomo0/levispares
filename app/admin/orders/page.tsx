@@ -40,7 +40,7 @@ import { api } from '@/convex/_generated/api'
 import type { Id } from '@/convex/_generated/dataModel'
 import { toast } from 'sonner'
 
-const orderStatuses = ['draft', 'paid', 'shipped', 'delivered', 'cancelled']
+const orderStatuses = ['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'] as const
 
 const statusStyles: Record<string, string> = {
   delivered: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
@@ -80,13 +80,13 @@ export default function AdminOrdersPage() {
 
   const orderStats = {
     total: allOrders?.length ?? 0,
-    draft: allOrders?.filter((o) => o.status === 'draft').length ?? 0,
+    pending: allOrders?.filter((o) => o.status === 'pending').length ?? 0,
     paid: allOrders?.filter((o) => o.status === 'paid').length ?? 0,
     shipped: allOrders?.filter((o) => o.status === 'shipped').length ?? 0,
     delivered: allOrders?.filter((o) => o.status === 'delivered').length ?? 0,
   }
 
-  const handleStatusChange = async (orderId: Id<'orders'>, newStatus: string) => {
+  const handleStatusChange = async (orderId: Id<'orders'>, newStatus: 'pending' | 'paid' | 'processing' | 'shipped' | 'delivered' | 'cancelled') => {
     try {
       await updateStatus({ id: orderId, status: newStatus })
       toast.success(`Order status updated to ${newStatus}`)
@@ -133,7 +133,7 @@ export default function AdminOrdersPage() {
             {loading ? (
               <div className="h-8 w-12 bg-muted rounded animate-pulse" />
             ) : (
-              <div className="text-2xl font-bold">{orderStats.draft}</div>
+              <div className="text-2xl font-bold">{orderStats.pending}</div>
             )}
             <p className="text-xs text-muted-foreground">Unpaid</p>
           </CardContent>
@@ -270,7 +270,7 @@ export default function AdminOrdersPage() {
                         <p className="font-medium text-sm">{order.items.length} item{order.items.length !== 1 ? 's' : ''}</p>
                         <p className="text-xs text-muted-foreground font-mono">{order.userId.slice(0, 16)}...</p>
                       </div>
-                      <p className="font-bold">R{order.totalAmount.toFixed(2)}</p>
+                      <p className="font-bold">R{order.total.toFixed(2)}</p>
                     </div>
                     <div className="flex items-center justify-between pt-2 border-t border-border">
                       {mounted && (
@@ -362,7 +362,7 @@ export default function AdminOrdersPage() {
                         <div className="font-mono text-xs text-muted-foreground">{order.userId.slice(0, 16)}...</div>
                       </TableCell>
                       <TableCell>{order.items.length} item{order.items.length !== 1 ? 's' : ''}</TableCell>
-                      <TableCell className="font-medium">R{order.totalAmount.toFixed(2)}</TableCell>
+                      <TableCell className="font-medium">R{order.total.toFixed(2)}</TableCell>
                       <TableCell>
                         {mounted && (
                           <DropdownMenu>

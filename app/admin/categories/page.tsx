@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useEffect } from 'react'
 
-import { useQuery, useMutation } from 'convex/react'
+import { useQuery, useMutation, useAction } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
 
@@ -49,9 +49,10 @@ export default function AdminCategoriesPage() {
   const [mounted, setMounted] = useState(false)
   const [statusFilter, setStatusFilter] = useState('All')
 
-  const categories = useQuery(api.categories.list)
+  const categories = useQuery(api.categories.list, {})
   const removeCategory = useMutation(api.categories.remove)
   const toggleActive = useMutation(api.categories.toggleActive)
+  const deleteImage = useAction(api.imageActions.deleteImage)
 
   useEffect(() => {
     if (!mounted) {
@@ -71,10 +72,13 @@ export default function AdminCategoriesPage() {
     inactive: categories?.filter((c) => !c.active).length || 0,
   }
 
-  const handleDelete = async (id: Id<'categories'>) => {
+  const handleDelete = async (id: Id<'categories'>, imageUrl?: string | null) => {
     if (confirm('Are you sure you want to delete this category? This will also delete all subcategories.')) {
       try {
-        await removeCategory({ id })
+        const result = await removeCategory({ id })
+        if (result?.imageUrl) {
+          await deleteImage({ url: result.imageUrl })
+        }
       } catch (error) {
         console.error('Failed to delete category:', error)
         alert('Failed to delete category. Please try again.')
@@ -285,7 +289,7 @@ export default function AdminCategoriesPage() {
                             <DropdownMenuSeparator />
                             <DropdownMenuItem 
                               className="text-red-600 focus:text-red-600 cursor-pointer"
-                              onClick={() => handleDelete(category._id)}
+                              onClick={() => handleDelete(category._id, category.image)}
                             >
                               <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

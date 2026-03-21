@@ -3,6 +3,7 @@
 import { useUser, useClerk } from '@clerk/nextjs'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import type { Id } from '@/convex/_generated/dataModel'
 import {
   Card,
   CardContent,
@@ -26,11 +27,11 @@ export default function AdminProfilePage() {
   )
   const userOrders = useQuery(
     api.orders.listByUser,
-    user?.id ? { userId: user.id } : 'skip'
+    user?.id ? { userId: user.id as Id<'users'> } : 'skip'
   )
   const userAddresses = useQuery(
     api.addresses.listByUser,
-    user?.id ? { userId: user.id } : 'skip'
+    user?.id ? { userId: user.id as Id<'users'> } : 'skip'
   )
 
   if (!isLoaded || convexUser === undefined) {
@@ -53,7 +54,7 @@ export default function AdminProfilePage() {
   }
 
   const totalSpent = userOrders?.reduce((sum, o) => {
-    if (o.status !== 'cancelled' && o.status !== 'draft') return sum + o.totalAmount
+    if (o.status !== 'cancelled') return sum + o.total
     return sum
   }, 0) ?? 0
 

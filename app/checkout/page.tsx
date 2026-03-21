@@ -33,7 +33,7 @@ export default function CheckoutPage() {
   const { items, totalPrice, clearCart } = useCart()
   const addresses = useQuery(
     api.addresses.listByUser,
-    user?.id ? { userId: user.id } : 'skip'
+    user?.id ? { userId: user.id as Id<'users'> } : 'skip'
   )
   const addAddress = useMutation(api.addresses.add)
   const createOrder = useMutation(api.orders.create)
@@ -95,7 +95,8 @@ export default function CheckoutPage() {
     setSavingAddress(true)
     try {
       const newId = await addAddress({
-        userId: user.id,
+        userId: user.id as Id<'users'>,
+        type: 'shipping' as const,
         ...addressForm,
         isDefault: (addresses?.length ?? 0) === 0,
       })
@@ -123,25 +124,19 @@ export default function CheckoutPage() {
     setIsProcessing(true)
     try {
       const orderId = await createOrder({
-        userId: user.id,
+        userId: user.id as Id<'users'>,
         items: items.map((item) => ({
           productId: item._id as Id<'products'>,
           name: item.name,
           quantity: item.quantity,
           price: item.price,
+          sku: '',
         })),
-        totalAmount: grandTotal,
+        shippingAddressId: selectedAddress._id as Id<'addresses'>,
+        subtotal: totalPrice,
         shipping,
         tax,
-        shippingAddress: {
-          name: selectedAddress.name,
-          street: selectedAddress.street,
-          city: selectedAddress.city,
-          province: selectedAddress.province,
-          postalCode: selectedAddress.postalCode,
-          country: selectedAddress.country,
-          phone: selectedAddress.phone,
-        },
+        total: grandTotal,
       })
       setConvexOrderId(orderId)
       setCurrentStep('Payment')

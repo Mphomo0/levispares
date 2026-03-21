@@ -39,7 +39,7 @@ import { useEffect } from 'react'
 import { Checkbox } from '@/components/ui/checkbox'
 import Link from 'next/link'
 
-import { useQuery, useMutation } from 'convex/react'
+import { useQuery, useMutation, useAction } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
 
@@ -69,8 +69,9 @@ export default function AdminProductsPage() {
   const productsResult = useQuery(api.products.list, { 
     paginationOpts: { numItems: 50, cursor: null } 
   })
-  const categoriesDocs = useQuery(api.categories.list)
+  const categoriesDocs = useQuery(api.categories.list, {})
   const removeProduct = useMutation(api.products.remove)
+  const deleteImages = useAction(api.imageActions.deleteImages)
 
   useEffect(() => {
     setMounted(true)
@@ -115,7 +116,10 @@ export default function AdminProductsPage() {
   const handleDelete = async (id: Id<'products'>) => {
     if (confirm('Are you sure you want to delete this product?')) {
       try {
-        await removeProduct({ id })
+        const result = await removeProduct({ id })
+        if (result?.imageUrls?.length) {
+          await deleteImages({ urls: result.imageUrls })
+        }
       } catch (error) {
         console.error('Failed to delete product:', error)
       }

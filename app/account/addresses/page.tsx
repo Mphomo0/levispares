@@ -27,7 +27,7 @@ const emptyForm = {
 
 export default function AddressesPage() {
   const { user } = useUser()
-  const addresses = useQuery(api.addresses.listByUser, user?.id ? { userId: user.id } : 'skip')
+  const addresses = useQuery(api.addresses.listByUser, user?.id ? { userId: user.id as Id<'users'> } : 'skip')
   const addAddress = useMutation(api.addresses.add)
   const updateAddress = useMutation(api.addresses.update)
   const removeAddress = useMutation(api.addresses.remove)
@@ -50,15 +50,15 @@ export default function AddressesPage() {
     if (!addr) return
     setEditingId(addr._id)
     setForm({
-      label: addr.label,
+      label: addr.label ?? 'Home',
       name: addr.name,
       street: addr.street,
       city: addr.city,
-      province: addr.province,
+      province: addr.province ?? '',
       postalCode: addr.postalCode,
       country: addr.country,
-      phone: addr.phone,
-      isDefault: addr.isDefault,
+      phone: addr.phone ?? '',
+      isDefault: addr.isDefault ?? false,
     })
     setShowForm(true)
   }
@@ -75,7 +75,7 @@ export default function AddressesPage() {
         await updateAddress({ id: editingId, ...form })
         toast.success('Address updated')
       } else {
-        await addAddress({ userId: user.id, ...form })
+        await addAddress({ userId: user.id as Id<'users'>, type: 'shipping', ...form })
         toast.success('Address added')
       }
       setShowForm(false)

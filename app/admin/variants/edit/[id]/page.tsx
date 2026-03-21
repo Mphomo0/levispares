@@ -24,8 +24,8 @@ export default function EditVariantPage({ params }: { params: Promise<{ id: stri
   const variantId = unwrappedParams.id as Id<'variants'>
 
   const variant = useQuery(api.variants.getWithModel, { id: variantId })
-  const models = useQuery(api.models.list)
-  const brands = useQuery(api.brands.listAll)
+  const models = useQuery(api.models.list, {})
+  const brands = useQuery(api.brands.listAll, {})
   const updateVariant = useMutation(api.variants.update)
   const toggleActive = useMutation(api.variants.toggleActive)
 

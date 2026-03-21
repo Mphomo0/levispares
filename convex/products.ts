@@ -445,11 +445,15 @@ export const remove = mutation({
       .withIndex("by_productId", (q) => q.eq("productId", args.id))
       .collect();
 
+    const imageUrls = images.map(img => img.url);
+
     for (const img of images) {
       await ctx.db.delete(img._id);
     }
 
     await ctx.db.delete(args.id);
+    
+    return { imageUrls };
   },
 });
 

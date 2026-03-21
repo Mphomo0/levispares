@@ -16,7 +16,7 @@ export default function AdminAnalyticsPage() {
   useEffect(() => { setMounted(true) }, [])
 
   const allOrders = useQuery(api.orders.listAll)
-  const allProducts = useQuery(api.products.listAllSimple)
+  const allProducts = useQuery(api.products.listAll, {})
   const bestSellers = useQuery(api.products.listBestSellers, { limit: 5 })
   const allUsers = useQuery(api.users.list)
 
@@ -26,7 +26,7 @@ export default function AdminAnalyticsPage() {
   const totalRevenue = useMemo(() => {
     if (!allOrders) return 0
     return allOrders.reduce((sum, o) => {
-      if (o.status !== 'cancelled' && o.status !== 'draft') return sum + o.totalAmount
+      if (o.status !== 'cancelled') return sum + o.total
       return sum
     }, 0)
   }, [allOrders])
@@ -34,7 +34,7 @@ export default function AdminAnalyticsPage() {
   const totalOrders = allOrders?.length ?? 0
   const totalProducts = allProducts?.length ?? 0
   const totalUsers = allUsers?.length ?? 0
-  const avgOrderValue = totalOrders > 0 ? totalRevenue / allOrders!.filter(o => o.status !== 'cancelled' && o.status !== 'draft').length : 0
+  const avgOrderValue = totalOrders > 0 ? totalRevenue / allOrders!.filter(o => o.status !== 'cancelled').length : 0
 
   // Monthly revenue data for chart (last 12 months)
   const monthlyRevenue = useMemo(() => {
@@ -49,14 +49,14 @@ export default function AdminAnalyticsPage() {
       const month = d.getMonth()
 
       const monthOrders = allOrders.filter((o) => {
-        if (o.status === 'cancelled' || o.status === 'draft') return false
+        if (o.status === 'cancelled') return false
         const oDate = new Date(o._creationTime)
         return oDate.getFullYear() === year && oDate.getMonth() === month
       })
 
       months.push({
         month: monthKey,
-        revenue: monthOrders.reduce((s, o) => s + o.totalAmount, 0),
+        revenue: monthOrders.reduce((s, o) => s + o.total, 0),
         orders: monthOrders.length,
       })
     }

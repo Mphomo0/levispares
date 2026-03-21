@@ -73,8 +73,8 @@ export default function AdminVariantsPage() {
   const [typeFilter, setTypeFilter] = useState('All')
   const [modelFilter, setModelFilter] = useState<string>('All')
 
-  const variants = useQuery(api.variants.list)
-  const models = useQuery(api.models.list)
+  const variants = useQuery(api.variants.list, {})
+  const models = useQuery(api.models.list, {})
   const removeVariant = useMutation(api.variants.remove)
   const toggleActive = useMutation(api.variants.toggleActive)
 

@@ -241,7 +241,7 @@ export const remove = mutation({
     const brand = await ctx.db.get(args.id);
     if (!brand) throw new Error("Brand not found");
 
-    const logoUrl = brand.logo || null;
+    const imageUrl = brand.logo || null;
 
     const models = await ctx.db
       .query("models")
@@ -262,6 +262,6 @@ export const remove = mutation({
 
     await ctx.db.delete(args.id);
 
-    return { logoUrl };
+    return { imageUrl };
   },
 });

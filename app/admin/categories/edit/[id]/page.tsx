@@ -25,7 +25,7 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
   const categoryId = unwrappedParams.id as Id<'categories'>
 
   const category = useQuery(api.categories.getWithSubcategories, { id: categoryId })
-  const categories = useQuery(api.categories.list)
+  const categories = useQuery(api.categories.list, {})
   const updateCategory = useMutation(api.categories.update)
   const toggleActive = useMutation(api.categories.toggleActive)
 
@@ -92,7 +92,7 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
         slug: slug !== category.slug ? slug : undefined,
         description: description !== (category.description || '') ? (description || undefined) : undefined,
         icon: icon !== category.icon ? icon : undefined,
-        parentId: parentId !== (category.parentId || '') ? (parentId || undefined) : undefined,
+        parentId: parentId !== (category.parentId || '') ? (parentId as Id<'categories'> || undefined) : undefined,
       })
       router.push('/admin/categories')
     } catch (error: any) {

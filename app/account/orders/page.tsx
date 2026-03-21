@@ -6,15 +6,16 @@ import Link from 'next/link'
 import { useUser } from '@clerk/nextjs'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import type { Id } from '@/convex/_generated/dataModel'
 
 export default function OrdersPage() {
   const { user, isLoaded } = useUser()
-  const orders = useQuery(api.orders.listByUser, user?.id ? { userId: user.id } : 'skip')
+  const orders = useQuery(api.orders.listByUser, user?.id ? { userId: user.id as Id<'users'> } : 'skip')
 
   const orderCount = orders?.length ?? 0
   const deliveredCount = orders?.filter((o) => o.status === 'shipped' || o.status === 'delivered').length ?? 0
   const inTransitCount = orders?.filter((o) => o.status === 'paid').length ?? 0
-  const totalSpent = orders?.reduce((sum, o) => sum + o.totalAmount, 0) ?? 0
+  const totalSpent = orders?.reduce((sum, o) => sum + o.total, 0) ?? 0
 
   const statusStyles: Record<string, string> = {
     delivered: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
@@ -154,7 +155,7 @@ export default function OrdersPage() {
                   </div>
                   <div className="flex items-center gap-4 sm:gap-6">
                     <div className="text-right">
-                      <p className="font-bold text-lg">R{order.totalAmount.toFixed(2)}</p>
+                      <p className="font-bold text-lg">R{order.total.toFixed(2)}</p>
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
                           statusStyles[order.status] || 'bg-muted text-muted-foreground'

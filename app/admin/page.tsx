@@ -15,7 +15,7 @@ import { api } from '@/convex/_generated/api'
 export default function AdminDashboardPage() {
   const allOrders = useQuery(api.orders.listAll)
   const recentOrders = useQuery(api.orders.listRecent, { limit: 5 })
-  const allProducts = useQuery(api.products.listAll)
+  const allProducts = useQuery(api.products.listAll, {})
   const bestSellers = useQuery(api.products.listBestSellers, { limit: 4 })
   const allUsers = useQuery(api.users.list)
 
@@ -23,7 +23,7 @@ export default function AdminDashboardPage() {
 
   // Compute stats from real data
   const totalRevenue = allOrders?.reduce((sum, o) => {
-    if (o.status !== 'cancelled' && o.status !== 'draft') return sum + o.totalAmount
+    if (o.status !== 'cancelled') return sum + o.total
     return sum
   }, 0) ?? 0
 
@@ -236,12 +236,12 @@ export default function AdminDashboardPage() {
                           {new Date(order._creationTime).toLocaleDateString('en-ZA', {
                             month: 'short',
                             day: 'numeric',
-                          })} • {order.items.length} item{order.items.length !== 1 ? 's' : ''}
+                          })} • {' '}
                         </p>
                       </div>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="font-semibold text-sm">R{order.totalAmount.toLocaleString('en-ZA', { minimumFractionDigits: 2 })}</p>
+                      <p className="font-semibold text-sm">R{order.total.toLocaleString('en-ZA', { minimumFractionDigits: 2 })}</p>
                       <span
                         className={`text-[10px] uppercase font-bold inline-flex items-center rounded-full px-2 py-0.5 ${
                           statusStyles[order.status] || 'bg-muted text-muted-foreground'
