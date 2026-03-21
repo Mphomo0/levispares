@@ -35,7 +35,7 @@ export default function Navbar() {
     }
   }, [pathname, isMenuOpen])
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (searchQuery.trim()) {
       window.location.href = `/search?q=${encodeURIComponent(searchQuery)}`
@@ -53,6 +53,7 @@ export default function Navbar() {
     path === '/' ? pathname === '/' : pathname.startsWith(path)
 
   return (
+
     <header className={`sticky top-0 z-50 bg-white dark:bg-slate-950 border-b border-border transition-shadow duration-300 ${scrolled ? 'shadow-lg shadow-black/5' : ''}`}>
       
       {/* Top utility bar */}
@@ -61,6 +62,42 @@ export default function Navbar() {
           <div className="flex items-center gap-1.5">
             <Phone className="w-3.5 h-3.5" />
             <span>012 770 3389</span>
+    <nav className="sticky top-0 z-50 bg-white/55 backdrop-blur-md border-b border-border shadow-sm">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16 md:h-20">
+          <Link href="/">
+            <Image
+              src="/images/logo/logo.webp"
+              alt="Levi's Spares Logo"
+              width={250}
+              height={250}
+              className="w-auto h-auto object-contain"
+            />
+          </Link>
+
+          <button
+            className="lg:hidden p-2 rounded-md hover:bg-secondary transition-colors"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
+          >
+            {isMenuOpen ? (
+              <X className="w-6 h-6 text-foreground" />
+            ) : (
+              <Menu className="w-6 h-6 text-foreground" />
+            )}
+          </button>
+
+          <div className="hidden lg:flex items-center gap-1">
+            {navLinks.map((link) => (
+              <Link
+                key={link.path}
+                href={link.path}
+                className="px-4 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary/50 transition-all duration-200 font-medium"
+              >
+                {link.label}
+              </Link>
+            ))}
+>>>>>>> 70da723f074bbf2ce245814cdc1095c6ceba029b
           </div>
           <span className="tracking-wide">FREE SHIPPING ON ORDERS OVER R{freeShippingThreshold.toFixed(2)} · 100% OEM QUALITY GUARANTEED</span>
           <div className="flex items-center gap-4">

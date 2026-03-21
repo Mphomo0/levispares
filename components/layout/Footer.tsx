@@ -13,11 +13,12 @@ export default function Footer() {
           <div className="space-y-4">
             <Link href="/" className="flex items-center gap-2">
               <Image
-                src="/images/logo/logo.webp"
+                src="/images/logo/logo-white.webp"
                 alt="Levi Truck Spares Logo"
-                width={150}
-                height={90}
+                width={1200}
+                height={800}
                 className="w-full h-full object-contain"
+                priority
               />
             </Link>
             <p className="text-white/70 text-sm leading-relaxed">
