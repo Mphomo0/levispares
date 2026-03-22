@@ -163,10 +163,7 @@ export const addWithVariants = mutation({
     name: v.string(),
     yearFrom: v.optional(v.number()),
     yearTo: v.optional(v.number()),
-    variants: v.array(v.object({
-      variantType: v.union(v.literal("GVM"), v.literal("Engine"), v.literal("Chassis")),
-      variantValue: v.string(),
-    })),
+    variants: v.array(v.string()),
   },
   handler: async (ctx, args) => {
     const brand = await ctx.db.get(args.brandId);
@@ -191,12 +188,12 @@ export const addWithVariants = mutation({
       active: true,
     });
 
-    for (const variant of args.variants) {
-      const variantSlug = `${modelSlug}-${variant.variantValue.toLowerCase().replace(/\s+/g, "-")}`;
+    for (const variantValue of args.variants) {
+      const variantSlug = `${modelSlug}-${variantValue.toLowerCase().replace(/\s+/g, "-")}`;
       await ctx.db.insert("variants", {
         modelId,
-        variantType: variant.variantType,
-        variantValue: variant.variantValue,
+        variantType: "GVM",
+        variantValue,
         slug: variantSlug,
         active: true,
       });
@@ -240,6 +237,22 @@ export const remove = mutation({
       .collect();
 
     for (const variant of variants) {
+      const products = await ctx.db
+        .query("products")
+        .withIndex("by_variantId", (q) => q.eq("variantId", variant._id))
+        .collect();
+
+      for (const product of products) {
+        const images = await ctx.db
+          .query("productImages")
+          .withIndex("by_productId", (q) => q.eq("productId", product._id))
+          .collect();
+
+        for (const image of images) {
+          await ctx.db.delete(image._id);
+        }
+        await ctx.db.delete(product._id);
+      }
       await ctx.db.delete(variant._id);
     }
 

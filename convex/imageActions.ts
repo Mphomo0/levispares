@@ -15,14 +15,18 @@ function extractFileIdFromUrl(url: string): string | null {
 
 async function imageKitApiCall(fileId: string, actionType: "delete" | "purge", purgeUrl?: string): Promise<boolean> {
   try {
-    const privateKey = process.env.IMAGEKIT_PRIVATE_KEY!
+    const privateKey = process.env.IMAGEKIT_PRIVATE_KEY
+    if (!privateKey) {
+      console.error("IMAGEKIT_PRIVATE_KEY is not set")
+      return false
+    }
     const auth = btoa(`${privateKey}:`)
     
     const headers: Record<string, string> = {
       Authorization: `Basic ${auth}`,
     }
     
-    let url = `https://api.imagekit.io/v1/files/${fileId}/${actionType}`
+    let url = `https://api.imagekit.io/v1/files/${fileId}`
     let method = "DELETE"
     let body: string | undefined
     
@@ -45,7 +49,7 @@ async function imageKitApiCall(fileId: string, actionType: "delete" | "purge", p
 
     if (response.status === 404) {
       console.warn(`File not found in ImageKit: ${fileId}`)
-      return true
+      return false // Return false so fallback can try finding real fileId
     }
 
     const errorText = await response.text()
@@ -57,20 +61,89 @@ async function imageKitApiCall(fileId: string, actionType: "delete" | "purge", p
   }
 }
 
+async function getFileIdByUrl(url: string): Promise<string | null> {
+  try {
+    const urlObj = new URL(url)
+    // ImageKit URLs are typically like: https://ik.imagekit.io/your_id/path/to/file.jpg
+    // Or with transformations: https://ik.imagekit.io/your_id/tr:w-500/path/to/file.jpg
+    // We want to extract the original path without transformations
+    let pathname = urlObj.pathname
+    
+    // Remove transformation prefixes like tr:xxx
+    pathname = pathname.replace(/\/tr:[^/]+/g, '')
+    
+    const pathParts = pathname.split("/")
+    // pathParts[0] is "", pathParts[1] is the ImageKit ID (xxx)
+    const path = pathParts.slice(2).join("/")
+
+    if (!path) return null
+
+    const privateKey = process.env.IMAGEKIT_PRIVATE_KEY
+    if (!privateKey) {
+      console.error("IMAGEKIT_PRIVATE_KEY is not set")
+      return null
+    }
+    const auth = btoa(`${privateKey}:`)
+
+    // Use the list endpoint with type filter and search query
+    const filename = path.split('/').pop() || ''
+    
+    // Try to find the file by listing files in the directory and matching the filename
+    const dirPath = path.includes('/') ? path.substring(0, path.lastIndexOf('/')) : ''
+    
+    const listUrl = dirPath 
+      ? `https://api.imagekit.io/v1/files?path=/${dirPath}&type=file`
+      : `https://api.imagekit.io/v1/files?type=file`
+
+    const response = await fetch(listUrl, {
+      headers: {
+        Authorization: `Basic ${auth}`,
+      },
+    })
+
+    if (response.ok) {
+      const files = await response.json()
+      if (Array.isArray(files)) {
+        // Find the file that matches our URL
+        for (const file of files) {
+          if (file.url === url || file.name === filename) {
+            return file.fileId
+          }
+        }
+      }
+    }
+
+    return null
+  } catch (error) {
+    console.error("Failed to get fileId by URL:", error)
+    return null
+  }
+}
+
 export async function deleteImageHelper(url: string): Promise<boolean> {
   if (!url || !url.includes("ik.imagekit.io")) {
     console.log("Invalid ImageKit URL:", url)
     return false
   }
 
-  const fileId = extractFileIdFromUrl(url)
-  if (!fileId) {
-    console.log("Could not extract file ID from URL:", url)
-    return false
+  // First attempt: extract fileId from URL (works if fileId is the filename)
+  let fileId = extractFileIdFromUrl(url)
+  
+  // Try to delete with extracted fileId
+  if (fileId) {
+    const success = await imageKitApiCall(fileId, "delete")
+    if (success) return true
   }
 
-  console.log("Deleting ImageKit file:", fileId)
-  return await imageKitApiCall(fileId, "delete")
+  // Second attempt: find real fileId by searching with path
+  console.log("Attempting to find fileId by path for:", url)
+  fileId = await getFileIdByUrl(url)
+  if (fileId) {
+    console.log("Found real fileId:", fileId)
+    return await imageKitApiCall(fileId, "delete")
+  }
+
+  return false
 }
 
 export const deleteImage = action({
@@ -78,6 +151,19 @@ export const deleteImage = action({
   handler: async (ctx, args) => {
     const success = await deleteImageHelper(args.url)
     return { success }
+  },
+})
+
+export const deleteImageByFileId = action({
+  args: { fileId: v.string() },
+  handler: async (ctx, args) => {
+    try {
+      const success = await imageKitApiCall(args.fileId, "delete")
+      return { success }
+    } catch (error) {
+      console.error("Failed to delete image by fileId:", error)
+      return { success: false }
+    }
   },
 })
 

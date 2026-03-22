@@ -2,18 +2,21 @@
 
 import Link from 'next/link'
 import { motion } from 'motion/react'
+import { Loader2 } from 'lucide-react'
 import ProductCard from '@/components/sections/products/ProductCard'
 
 interface Props {
   products: any[]
-  selectedCategory: string
+  selectedCategoryName: string
   isLoading?: boolean
+  loadMore?: () => void
+  isLoadingMore?: boolean
 }
 
-export default function ProductGrid({ products, selectedCategory }: Props) {
+export default function ProductGrid({ products, selectedCategoryName, isLoading, loadMore, isLoadingMore }: Props) {
   return (
     <div className="flex-1">
-      {selectedCategory && (
+      {selectedCategoryName && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -22,7 +25,7 @@ export default function ProductGrid({ products, selectedCategory }: Props) {
         >
           <span className="text-muted-foreground">Showing:</span>
           <span className="px-3 py-1 bg-accent/10 text-accent rounded-full text-sm font-medium capitalize">
-            {selectedCategory}
+            {selectedCategoryName}
           </span>
         </motion.div>
       )}
@@ -40,7 +43,7 @@ export default function ProductGrid({ products, selectedCategory }: Props) {
         ))}
       </div>
 
-      {products.length === 0 && (
+      {products.length === 0 && !isLoading && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -57,6 +60,25 @@ export default function ProductGrid({ products, selectedCategory }: Props) {
             View all products
           </Link>
         </motion.div>
+      )}
+
+      {loadMore && products.length > 0 && (
+        <div className="mt-8 flex justify-center">
+          <button
+            onClick={loadMore}
+            disabled={isLoadingMore}
+            className="px-8 py-3 bg-accent hover:bg-accent/90 text-accent-foreground font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {isLoadingMore ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Loading more...
+              </>
+            ) : (
+              'Load More Products'
+            )}
+          </button>
+        </div>
       )}
     </div>
   )

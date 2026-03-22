@@ -21,7 +21,7 @@ export default function NewModelPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [slugManual, setSlugManual] = useState(false)
   const [withVariants, setWithVariants] = useState(false)
-  const [variants, setVariants] = useState<Array<{ variantType: string; variantValue: string }>>([])
+  const [variants, setVariants] = useState<string[]>([])
 
   const brands = useQuery(api.brands.listAll)
   const addModel = useMutation(api.models.add)
@@ -41,16 +41,16 @@ export default function NewModelPage() {
   }
 
   const addVariant = () => {
-    setVariants([...variants, { variantType: 'GVM', variantValue: '' }])
+    setVariants([...variants, ''])
   }
 
   const removeVariant = (index: number) => {
     setVariants(variants.filter((_, i) => i !== index))
   }
 
-  const updateVariant = (index: number, field: 'variantType' | 'variantValue', value: string) => {
+  const updateVariant = (index: number, value: string) => {
     const updated = [...variants]
-    updated[index] = { ...updated[index], [field]: value }
+    updated[index] = value
     setVariants(updated)
   }
 
@@ -70,11 +70,7 @@ export default function NewModelPage() {
     try {
       if (withVariants && variants.length > 0) {
         const validVariants = variants
-          .filter(v => v.variantValue.trim() !== '')
-          .map(v => ({
-            variantType: v.variantType as 'GVM' | 'Engine' | 'Chassis',
-            variantValue: v.variantValue,
-          }))
+          .filter(v => v.trim() !== '')
         
         await addWithVariants({
           brandId: brandId as any,
@@ -127,7 +123,7 @@ export default function NewModelPage() {
                 <div className="space-y-2">
                   <Label htmlFor="brandId">Brand *</Label>
                   <Select name="brandId" required>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select a brand" />
                     </SelectTrigger>
                     <SelectContent>
@@ -225,28 +221,15 @@ export default function NewModelPage() {
                   </div>
                   
                   {variants.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">Click "Add Variant" to add variants like GVM, Engine type, or Chassis type.</p>
+                    <p className="text-sm text-muted-foreground">Click "Add Variant" to add variants.</p>
                   ) : (
                     <div className="space-y-3">
                       {variants.map((variant, index) => (
                         <div key={index} className="flex items-center gap-2">
-                          <Select
-                            value={variant.variantType}
-                            onValueChange={(value) => updateVariant(index, 'variantType', value)}
-                          >
-                            <SelectTrigger className="w-[140px]">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="GVM">GVM</SelectItem>
-                              <SelectItem value="Engine">Engine</SelectItem>
-                              <SelectItem value="Chassis">Chassis</SelectItem>
-                            </SelectContent>
-                          </Select>
                           <Input
                             placeholder="Variant value"
-                            value={variant.variantValue}
-                            onChange={(e) => updateVariant(index, 'variantValue', e.target.value)}
+                            value={variant}
+                            onChange={(e) => updateVariant(index, e.target.value)}
                             className="flex-1"
                           />
                           <Button
@@ -270,13 +253,13 @@ export default function NewModelPage() {
           </Card>
         </div>
 
-        <div className="flex items-center justify-end gap-4 mt-6">
-          <Button type="button" variant="outline" onClick={() => router.back()}>
+        <div className="flex flex-col md:flex-row gap-3 mt-6">
+          <Button type="button" variant="outline" onClick={() => router.back()} className="w-full md:w-auto">
             Cancel
           </Button>
           <Button
             type="submit"
-            className="bg-orange-500 hover:bg-orange-600 text-black font-semibold"
+            className="w-full md:w-auto bg-orange-500 hover:bg-orange-600 text-white font-semibold"
             disabled={isSubmitting}
           >
             {isSubmitting ? (

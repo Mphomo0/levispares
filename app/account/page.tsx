@@ -6,11 +6,10 @@ import Link from 'next/link'
 import { useUser } from '@clerk/nextjs'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
-import type { Id } from '@/convex/_generated/dataModel'
 
 export default function UserAccountPage() {
   const { user, isLoaded } = useUser()
-  const orders = useQuery(api.orders.listByUser, user?.id ? { userId: user.id as Id<'users'> } : 'skip')
+  const orders = useQuery(api.orders.listByUser)
 
   const orderCount = orders?.length ?? 0
   const deliveredCount = orders?.filter((o) => o.status === 'shipped' || o.status === 'delivered').length ?? 0

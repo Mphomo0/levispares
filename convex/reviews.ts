@@ -1,6 +1,16 @@
 import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 
+async function getUserIdFromAuth(ctx: any) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) return null;
+  const user = await ctx.db
+    .query("users")
+    .withIndex("by_clerkId", (q: any) => q.eq("clerkId", identity.subject))
+    .unique();
+  return user?._id ?? null;
+}
+
 export const listByProduct = query({
   args: { productId: v.id("products") },
   handler: async (ctx, args) => {
@@ -43,11 +53,13 @@ export const listVerifiedByProduct = query({
 });
 
 export const listByUser = query({
-  args: { userId: v.id("users") },
-  handler: async (ctx, args) => {
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getUserIdFromAuth(ctx);
+    if (!userId) return [];
     const reviews = await ctx.db
       .query("reviews")
-      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
       .order("desc")
       .collect();
 
@@ -108,19 +120,21 @@ export const getStats = query({
 export const add = mutation({
   args: {
     productId: v.id("products"),
-    userId: v.id("users"),
     rating: v.number(),
     title: v.optional(v.string()),
     comment: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const userId = await getUserIdFromAuth(ctx);
+    if (!userId) throw new Error("Not authenticated");
+
     if (args.rating < 1 || args.rating > 5) {
       throw new Error("Rating must be between 1 and 5");
     }
 
     const existing = await ctx.db
       .query("reviews")
-      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
       .filter((q) => q.eq(q.field("productId"), args.productId))
       .first();
 
@@ -130,7 +144,7 @@ export const add = mutation({
 
     return await ctx.db.insert("reviews", {
       productId: args.productId,
-      userId: args.userId,
+      userId,
       rating: args.rating,
       title: args.title,
       comment: args.comment,

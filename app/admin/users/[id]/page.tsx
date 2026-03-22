@@ -42,14 +42,14 @@ export default function UserProfilePage() {
   const toggleUserStatus = useMutation(api.users.toggleStatus)
   const deleteUser = useMutation(api.users.deleteById)
 
-  // Fetch orders & addresses for this user (only when we have the clerkId)
+  // Fetch orders & addresses for this user
   const userOrders = useQuery(
-    api.orders.listByUser,
-    user?.clerkId ? { userId: user.clerkId as Id<'users'> } : 'skip'
+    api.orders.listByUserId,
+    user ? { userId: id } : 'skip'
   )
   const userAddresses = useQuery(
-    api.addresses.listByUser,
-    user?.clerkId ? { userId: user.clerkId as Id<'users'> } : 'skip'
+    api.addresses.listByUserId,
+    user ? { userId: id } : 'skip'
   )
 
   if (user === undefined) {

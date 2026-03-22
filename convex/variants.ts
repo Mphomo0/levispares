@@ -179,11 +179,6 @@ export const getStats = query({
 export const add = mutation({
   args: {
     modelId: v.id("models"),
-    variantType: v.union(
-      v.literal("GVM"),
-      v.literal("Engine"),
-      v.literal("Chassis")
-    ),
     variantValue: v.string(),
     slug: v.string(),
   },
@@ -197,7 +192,10 @@ export const add = mutation({
     }
 
     return await ctx.db.insert("variants", {
-      ...args,
+      modelId: args.modelId,
+      variantType: "GVM",
+      variantValue: args.variantValue,
+      slug: args.slug,
       active: true,
     });
   },
@@ -206,10 +204,7 @@ export const add = mutation({
 export const addBulk = mutation({
   args: {
     modelId: v.id("models"),
-    variants: v.array(v.object({
-      variantType: v.union(v.literal("GVM"), v.literal("Engine"), v.literal("Chassis")),
-      variantValue: v.string(),
-    })),
+    variants: v.array(v.string()),
   },
   handler: async (ctx, args) => {
     const model = await ctx.db.get(args.modelId);
@@ -217,8 +212,8 @@ export const addBulk = mutation({
 
     const insertedIds: Id<"variants">[] = [];
 
-    for (const variant of args.variants) {
-      const variantSlug = `${model.slug}-${variant.variantValue.toLowerCase().replace(/\s+/g, "-")}`;
+    for (const variantValue of args.variants) {
+      const variantSlug = `${model.slug}-${variantValue.toLowerCase().replace(/\s+/g, "-")}`;
       
       const existing = await ctx.db
         .query("variants")
@@ -229,8 +224,8 @@ export const addBulk = mutation({
 
       const id = await ctx.db.insert("variants", {
         modelId: args.modelId,
-        variantType: variant.variantType,
-        variantValue: variant.variantValue,
+        variantType: "GVM",
+        variantValue,
         slug: variantSlug,
         active: true,
       });
@@ -274,6 +269,23 @@ export const toggleActive = mutation({
 export const remove = mutation({
   args: { id: v.id("variants") },
   handler: async (ctx, args) => {
+    const products = await ctx.db
+      .query("products")
+      .withIndex("by_variantId", (q) => q.eq("variantId", args.id))
+      .collect();
+
+    for (const product of products) {
+      const images = await ctx.db
+        .query("productImages")
+        .withIndex("by_productId", (q) => q.eq("productId", product._id))
+        .collect();
+
+      for (const image of images) {
+        await ctx.db.delete(image._id);
+      }
+      await ctx.db.delete(product._id);
+    }
+
     await ctx.db.delete(args.id);
   },
 });

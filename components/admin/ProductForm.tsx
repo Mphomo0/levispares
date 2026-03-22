@@ -1,7 +1,10 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -14,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { useMutation, useQuery } from 'convex/react'
+import { useMutation, useQuery, useAction } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import {
   ImageKitAbortError,
@@ -23,6 +26,8 @@ import {
   ImageKitUploadNetworkError,
   upload,
 } from '@imagekit/next'
+import { Id } from '@/convex/_generated/dataModel'
+import { toast } from 'sonner'
 
 interface ImageItem {
   file?: File
@@ -36,25 +41,101 @@ interface ProductFormProps {
   isEditing?: boolean
 }
 
+const productSchema = z.object({
+  name: z.string().min(1, 'Product name is required'),
+  brandId: z.string().min(1, 'Brand is required'),
+  modelId: z.string().optional(),
+  variantId: z.string().optional(),
+  categoryId: z.string().min(1, 'Category is required'),
+  description: z.string().optional(),
+  price: z.preprocess((val) => Number(val), z.number().min(0.01, 'Price must be greater than 0')),
+  stockQty: z.preprocess((val) => parseInt(String(val), 10) || 0, z.number().int().min(0)),
+  partNumber: z.string().optional(),
+})
+
+type ProductFormData = z.infer<typeof productSchema>
+
 export default function ProductForm({ initialData, isEditing }: ProductFormProps) {
   const router = useRouter()
-  const [isSubmitting, setIsSubmitting] = useState(false)
   const [images, setImages] = useState<ImageItem[]>([])
+  const [originalImages, setOriginalImages] = useState<string[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const categories = useQuery(api.categories.list)
-  const addProduct = useMutation(api.products.add)
-  const updateProduct = useMutation(api.products.update)
+  const categories = useQuery(api.categories.list, {})
+  const brands = useQuery(api.brands.list, {})
+  const deleteImages = useAction(api.imageActions.deleteImages)
+
+  const { control, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<ProductFormData>({
+    resolver: zodResolver(productSchema) as any,
+    defaultValues: {
+      name: initialData?.name || '',
+      brandId: initialData?.brand?._id || '',
+      modelId: initialData?.model?._id || '',
+      variantId: initialData?.variant?._id || '',
+      categoryId: initialData?.categoryId || initialData?.category?._id || '',
+      description: initialData?.description || '',
+      price: initialData?.price || '',
+      stockQty: initialData?.stockQty ?? initialData?.inventory ?? 0,
+      partNumber: initialData?.partNumber || '',
+    },
+  })
+
+  const selectedBrandId = watch('brandId')
+  const selectedModelId = watch('modelId')
+  const selectedVariantId = watch('variantId')
+
+  const models = useQuery(api.models.listActive, { brandId: selectedBrandId ? selectedBrandId as Id<'brands'> : undefined })
+  const variants = useQuery(api.variants.listActive, { modelId: selectedModelId ? selectedModelId as Id<'models'> : undefined })
+
+  const addWithRelations = useMutation(api.products.addWithRelations)
+  const updateWithRelations = useMutation(api.products.updateWithRelations)
 
   useEffect(() => {
-    if (initialData?.imageUrls?.length) {
-      setImages(initialData.imageUrls.map((url: string) => ({ url })))
-    } else if (initialData?.images?.length) {
-      setImages(initialData.images.map((url: string) => ({ url })))
-    } else if (initialData?.image) {
-      setImages([{ url: initialData.image }])
+    let loadedImages: ImageItem[] = []
+    let loadedUrls: string[] = []
+    
+    const urls: string[] = []
+    
+    if (initialData?.image) {
+      urls.push(initialData.image)
     }
+    
+    if (initialData?.images?.length) {
+      for (const img of initialData.images) {
+        const url = typeof img === 'string' ? img : img.url
+        if (url && !urls.includes(url)) {
+          urls.push(url)
+        }
+      }
+    }
+    
+    if (urls.length > 0) {
+      loadedImages = urls.map(url => ({ url }))
+      loadedUrls = urls
+    }
+    
+    setImages(loadedImages)
+    setOriginalImages(loadedUrls)
   }, [initialData])
+
+  useEffect(() => {
+    if (isEditing && initialData) {
+      setValue('brandId', initialData.brand?._id || '')
+      setValue('modelId', initialData.model?._id || '')
+      setValue('variantId', initialData.variant?._id || '')
+    }
+  }, [initialData, isEditing, setValue])
+
+  const handleBrandChange = (value: string) => {
+    setValue('brandId', value, { shouldValidate: true })
+    setValue('modelId', '', { shouldValidate: true })
+    setValue('variantId', '', { shouldValidate: true })
+  }
+
+  const handleModelChange = (value: string) => {
+    setValue('modelId', value, { shouldValidate: true })
+    setValue('variantId', '', { shouldValidate: true })
+  }
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || [])
@@ -124,13 +205,27 @@ export default function ProductForm({ initialData, isEditing }: ProductFormProps
     return response.url!
   }
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+  const onSubmit = async (data: ProductFormData) => {
+    if (images.length < 1) {
+      toast.error('Please upload at least 1 image')
+      return
+    }
 
     try {
-      const formData = new FormData(e.currentTarget)
       const imageUrls: string[] = []
+      const imagesToDelete: string[] = []
+
+      if (isEditing && originalImages.length > 0) {
+        const currentUrls = images
+          .filter(img => !img.file)
+          .map(img => img.url)
+        
+        for (const originalUrl of originalImages) {
+          if (!currentUrls.includes(originalUrl)) {
+            imagesToDelete.push(originalUrl)
+          }
+        }
+      }
 
       for (let i = 0; i < images.length; i++) {
         const item = images[i]
@@ -150,7 +245,7 @@ export default function ProductForm({ initialData, isEditing }: ProductFormProps
             } else {
               console.error('Upload error:', error)
             }
-            setIsSubmitting(false)
+            toast('Image upload failed', { description: 'Please try again.' })
             return
           }
         } else {
@@ -159,36 +254,46 @@ export default function ProductForm({ initialData, isEditing }: ProductFormProps
       }
 
       const productData = {
-        name: formData.get('name') as string,
-        description: formData.get('description') as string,
-        price: parseFloat(formData.get('price') as string),
-        category: formData.get('category') as string,
-        make: formData.get('make') as string,
-        model: formData.get('model') as string,
-        inventory: parseInt(formData.get('inventory') as string),
-        imageUrls,
+        name: data.name,
+        description: data.description || undefined,
+        price: data.price,
+        stockQty: data.stockQty ?? 0,
+        categoryId: data.categoryId as Id<'categories'>,
+        brandId: data.brandId as Id<'brands'>,
+        modelId: data.modelId ? data.modelId as Id<'models'> : undefined,
+        variantId: data.variantId ? data.variantId as Id<'variants'> : undefined,
+        partNumber: data.partNumber || undefined,
+        image: imageUrls[0] || undefined,
         specs: [],
       }
 
-      if (isEditing) {
-        await updateProduct({
-          id: initialData._id,
+      if (isEditing && initialData?._id) {
+        await updateWithRelations({
+          id: initialData._id as Id<'products'>,
           ...productData,
         })
+        
+        if (imagesToDelete.length > 0) {
+          await deleteImages({ urls: imagesToDelete })
+        }
+        
+        toast('Product updated', { description: 'Your changes have been saved.' })
       } else {
-        await addProduct(productData)
+        await addWithRelations(productData)
+        toast('Product created', { description: 'The product has been added to your catalog.' })
       }
 
       router.push('/admin/products')
       router.refresh()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to save product:', error)
-      setIsSubmitting(false)
+      const message = error?.message || 'Failed to save product. Please try again.'
+      toast(message, { description: 'Failed to save product.' })
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
@@ -198,50 +303,161 @@ export default function ProductForm({ initialData, isEditing }: ProductFormProps
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="name">Product Name</Label>
-              <Input id="name" name="name" defaultValue={initialData?.name} placeholder="e.g., Premium Brake Pads" required />
+              <Controller
+                name="name"
+                control={control}
+                render={({ field }) => (
+                  <>
+                    <Input {...field} id="name" placeholder="e.g., Premium Brake Pads" />
+                    {errors.name && <p className="text-sm text-destructive">{errors.name.message}</p>}
+                  </>
+                )}
+              />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="make">Make</Label>
-                <Input id="make" name="make" defaultValue={initialData?.make} placeholder="e.g., Toyota" required />
+                <Label>Brand / Make</Label>
+                <Controller
+                  name="brandId"
+                  control={control}
+                  render={({ field }) => (
+                    <>
+                      <Select value={field.value} onValueChange={handleBrandChange}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select brand" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {brands?.map((brand) => (
+                            <SelectItem key={brand._id} value={brand._id}>
+                              {brand.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {errors.brandId && <p className="text-sm text-destructive">{errors.brandId.message}</p>}
+                    </>
+                  )}
+                />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="model">Model</Label>
-                <Input id="model" name="model" defaultValue={initialData?.model} placeholder="e.g., Hilux" required />
+                <Label>Model</Label>
+                <Controller
+                  name="modelId"
+                  control={control}
+                  render={({ field }) => (
+                    <Select value={field.value || ''} onValueChange={handleModelChange} disabled={!selectedBrandId}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder={selectedBrandId ? "Select model (optional)" : "Select brand first"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {models?.map((model) => (
+                          <SelectItem key={model._id} value={model._id}>
+                            {model.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Variant</Label>
+                <Controller
+                  name="variantId"
+                  control={control}
+                  render={({ field }) => (
+                    <Select value={field.value || ''} onValueChange={field.onChange} disabled={!selectedModelId}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder={selectedModelId ? "Select variant" : "Select model first"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {variants?.map((variant) => (
+                          <SelectItem key={variant._id} value={variant._id}>
+                            {variant.variantValue} ({variant.variantType})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </div>
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
-              <Textarea id="description" name="description" defaultValue={initialData?.description} placeholder="Product description..." rows={5} required />
+              <Controller
+                name="description"
+                control={control}
+                render={({ field }) => (
+                  <Textarea {...field} id="description" placeholder="Product description..." rows={5} />
+                )}
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="price">Price (R)</Label>
-                <Input id="price" name="price" type="number" step="0.01" defaultValue={initialData?.price} placeholder="0.00" required />
+                <Controller
+                  name="price"
+                  control={control}
+                  render={({ field }) => (
+                    <>
+                      <Input {...field} id="price" type="number" step="0.01" placeholder="0.00" />
+                      {errors.price && <p className="text-sm text-destructive">{errors.price.message}</p>}
+                    </>
+                  )}
+                />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="inventory">Inventory</Label>
-                <Input id="inventory" name="inventory" type="number" defaultValue={initialData?.inventory || 0} placeholder="0" required />
+                <Label htmlFor="stockQty">Inventory</Label>
+                <Controller
+                  name="stockQty"
+                  control={control}
+                  render={({ field }) => (
+                    <>
+                      <Input {...field} id="stockQty" type="number" placeholder="0" />
+                      {errors.stockQty && <p className="text-sm text-destructive">{errors.stockQty.message}</p>}
+                    </>
+                  )}
+                />
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="category">Category</Label>
-              <Select name="category" defaultValue={initialData?.category} required>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories?.map((cat) => (
-                    <SelectItem key={cat._id} value={cat.name}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="partNumber">Part Number</Label>
+              <Controller
+                name="partNumber"
+                control={control}
+                render={({ field }) => (
+                  <Input {...field} id="partNumber" placeholder="e.g., BP-12345" />
+                )}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Category</Label>
+              <Controller
+                name="categoryId"
+                control={control}
+                render={({ field }) => (
+                  <>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories?.map((cat) => (
+                          <SelectItem key={cat._id} value={cat._id}>
+                            {cat.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {errors.categoryId && <p className="text-sm text-destructive">{errors.categoryId.message}</p>}
+                  </>
+                )}
+              />
             </div>
           </CardContent>
         </Card>
@@ -304,13 +520,13 @@ export default function ProductForm({ initialData, isEditing }: ProductFormProps
         </Card>
       </div>
 
-      <div className="flex items-center justify-end gap-4">
-        <Button type="button" variant="outline" onClick={() => router.back()}>
+      <div className="flex flex-col sm:flex-row items-center justify-end gap-4">
+        <Button type="button" variant="outline" onClick={() => router.back()} className="w-full sm:w-auto">
           Cancel
         </Button>
-        <Button 
-          type="submit" 
-          className="bg-orange-500 hover:bg-orange-600 text-black font-semibold" 
+        <Button
+          type="submit"
+          className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white font-semibold"
           disabled={isSubmitting || images.length < 1}
         >
           {isSubmitting ? 'Saving...' : isEditing ? 'Update Product' : 'Add Product'}

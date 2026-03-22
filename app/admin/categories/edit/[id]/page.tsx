@@ -18,6 +18,7 @@ import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
 import { use } from 'react'
+import { toast } from 'sonner'
 
 export default function EditCategoryPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
@@ -26,6 +27,7 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
 
   const category = useQuery(api.categories.getWithSubcategories, { id: categoryId })
   const categories = useQuery(api.categories.list, {})
+  const hasProducts = useQuery(api.categories.hasProducts, { id: categoryId })
   const updateCategory = useMutation(api.categories.update)
   const toggleActive = useMutation(api.categories.toggleActive)
 
@@ -92,12 +94,13 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
         slug: slug !== category.slug ? slug : undefined,
         description: description !== (category.description || '') ? (description || undefined) : undefined,
         icon: icon !== category.icon ? icon : undefined,
-        parentId: parentId !== (category.parentId || '') ? (parentId as Id<'categories'> || undefined) : undefined,
+        parentId: parentId !== '__none__' && parentId !== (category.parentId || '') ? (parentId as Id<'categories'>) : undefined,
       })
+      toast('Category updated', { description: 'Your changes have been saved.' })
       router.push('/admin/categories')
     } catch (error: any) {
       console.error('Failed to update category:', error)
-      alert(error.message || 'Failed to update category. Please try again.')
+      toast('Error', { description: error?.message || 'Failed to update category. Please try again.' })
       setIsSubmitting(false)
     }
   }
@@ -153,6 +156,28 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
         </div>
       </div>
 
+      {hasProducts && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 px-4 py-3 text-sm">
+          <div className="flex items-center gap-2 font-medium text-amber-800 dark:text-amber-200">
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            Cannot edit category
+          </div>
+          <p className="mt-1 text-amber-700 dark:text-amber-300">
+            This category has associated products. Remove or reassign the products before making changes.
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-3 border-amber-400 text-amber-700 hover:bg-amber-100 dark:border-amber-600 dark:text-amber-300"
+            onClick={() => router.push('/admin/categories')}
+          >
+            Back to Categories
+          </Button>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit}>
         <div className="grid gap-6 lg:grid-cols-2">
           <Card>
@@ -187,12 +212,12 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
 
               <div className="space-y-2">
                 <Label htmlFor="parentId">Parent Category</Label>
-                <Select name="parentId" defaultValue={category.parentId || ''}>
+                <Select name="parentId" defaultValue={category.parentId ? category.parentId : '__none__'}>
                   <SelectTrigger>
                     <SelectValue placeholder="No parent (top-level)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">No parent (top-level)</SelectItem>
+                    <SelectItem value="__none__">No parent (top-level)</SelectItem>
                     {(categories || [])
                       .filter(c => c._id !== categoryId)
                       .map((cat) => (
@@ -338,7 +363,7 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
           <Button
             type="submit"
             className="bg-orange-500 hover:bg-orange-600 text-black font-semibold"
-            disabled={isSubmitting}
+            disabled={isSubmitting || hasProducts === true}
           >
             {isSubmitting ? (
               <>

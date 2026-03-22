@@ -25,14 +25,8 @@ export default function AdminProfilePage() {
     api.users.getByClerkId,
     user?.id ? { clerkId: user.id } : 'skip'
   )
-  const userOrders = useQuery(
-    api.orders.listByUser,
-    user?.id ? { userId: user.id as Id<'users'> } : 'skip'
-  )
-  const userAddresses = useQuery(
-    api.addresses.listByUser,
-    user?.id ? { userId: user.id as Id<'users'> } : 'skip'
-  )
+  const userOrders = useQuery(api.orders.listByUser)
+  const userAddresses = useQuery(api.addresses.listByUser)
 
   if (!isLoaded || convexUser === undefined) {
     return (

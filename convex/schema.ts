@@ -7,6 +7,7 @@ export default defineSchema({
     name: v.string(),
     slug: v.string(),
     logo: v.optional(v.string()),
+    imageKitFileId: v.optional(v.string()),
     description: v.optional(v.string()),
     active: v.optional(v.boolean()),
   })
@@ -56,7 +57,7 @@ export default defineSchema({
 
   products: defineTable({
     brandId: v.id("brands"),
-    modelId: v.id("models"),
+    modelId: v.optional(v.id("models")),
     variantId: v.optional(v.id("variants")),
     categoryId: v.id("categories"),
     sku: v.string(),

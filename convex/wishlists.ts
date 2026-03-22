@@ -2,12 +2,24 @@ import { v } from "convex/values";
 import { query, mutation } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 
+async function getUserIdFromAuth(ctx: any) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) return null;
+  const user = await ctx.db
+    .query("users")
+    .withIndex("by_clerkId", (q: any) => q.eq("clerkId", identity.subject))
+    .unique();
+  return user?._id ?? null;
+}
+
 export const listByUser = query({
-  args: { userId: v.id("users") },
-  handler: async (ctx, args) => {
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getUserIdFromAuth(ctx);
+    if (!userId) return [];
     const wishlists = await ctx.db
       .query("wishlists")
-      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
       .order("desc")
       .collect();
 
@@ -51,11 +63,13 @@ export const getById = query({
 });
 
 export const getDefault = query({
-  args: { userId: v.id("users") },
-  handler: async (ctx, args) => {
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getUserIdFromAuth(ctx);
+    if (!userId) return null;
     const wishlist = await ctx.db
       .query("wishlists")
-      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
       .first();
 
     if (!wishlist) return null;
@@ -65,11 +79,13 @@ export const getDefault = query({
 });
 
 export const getDefaultWithItems = query({
-  args: { userId: v.id("users") },
-  handler: async (ctx, args) => {
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getUserIdFromAuth(ctx);
+    if (!userId) return null;
     const wishlist = await ctx.db
       .query("wishlists")
-      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
       .first();
 
     if (!wishlist) return null;
@@ -95,13 +111,14 @@ export const getDefaultWithItems = query({
 
 export const checkProductInWishlists = query({
   args: {
-    userId: v.id("users"),
     productId: v.id("products"),
   },
   handler: async (ctx, args) => {
+    const userId = await getUserIdFromAuth(ctx);
+    if (!userId) return [];
     const wishlists = await ctx.db
       .query("wishlists")
-      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
       .collect();
 
     const results: { wishlistId: Id<"wishlists">; wishlistName: string; inWishlist: boolean }[] = [];
@@ -126,12 +143,17 @@ export const checkProductInWishlists = query({
 
 export const create = mutation({
   args: {
-    userId: v.id("users"),
     name: v.string(),
     isPublic: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.insert("wishlists", args);
+    const userId = await getUserIdFromAuth(ctx);
+    if (!userId) throw new Error("Not authenticated");
+    return await ctx.db.insert("wishlists", {
+      userId,
+      name: args.name,
+      isPublic: args.isPublic,
+    });
   },
 });
 
@@ -185,18 +207,20 @@ export const addItem = mutation({
 
 export const addToDefault = mutation({
   args: {
-    userId: v.id("users"),
     productId: v.id("products"),
   },
   handler: async (ctx, args) => {
+    const userId = await getUserIdFromAuth(ctx);
+    if (!userId) throw new Error("Not authenticated");
+
     let wishlist = await ctx.db
       .query("wishlists")
-      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
       .first();
 
     if (!wishlist) {
       const wishlistId = await ctx.db.insert("wishlists", {
-        userId: args.userId,
+        userId,
         name: "My Wishlist",
         isPublic: false,
       });
@@ -242,13 +266,15 @@ export const removeItem = mutation({
 
 export const removeFromAllWishlists = mutation({
   args: {
-    userId: v.id("users"),
     productId: v.id("products"),
   },
   handler: async (ctx, args) => {
+    const userId = await getUserIdFromAuth(ctx);
+    if (!userId) return;
+
     const wishlists = await ctx.db
       .query("wishlists")
-      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
       .collect();
 
     for (const wishlist of wishlists) {

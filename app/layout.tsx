@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import NavigationWrapper from '@/components/layout/NavigationWrapper'
 import { CartProvider } from '@/lib/CartContext'
+import { FavoritesProvider } from '@/lib/FavoritesContext'
+import FavoritesMerge from '@/components/FavoritesMerge'
 
 import { ConvexClientProvider } from '@/components/providers/ConvexClientProvider'
 
@@ -33,9 +35,12 @@ export default function RootLayout({
       >
         <ConvexClientProvider>
           <CartProvider>
-            <NavigationWrapper>
-              {children}
-            </NavigationWrapper>
+            <FavoritesProvider>
+              <FavoritesMerge />
+              <NavigationWrapper>
+                {children}
+              </NavigationWrapper>
+            </FavoritesProvider>
           </CartProvider>
         </ConvexClientProvider>
       </body>

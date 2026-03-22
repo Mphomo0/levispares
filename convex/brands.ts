@@ -1,5 +1,7 @@
 import { v } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalMutation, internalQuery, action } from "./_generated/server";
+import { internal } from "./_generated/api";
+import { Id } from "./_generated/dataModel";
 
 export const list = query({
   handler: async (ctx) => {
@@ -133,6 +135,7 @@ export const add = mutation({
     name: v.string(),
     slug: v.string(),
     logo: v.optional(v.string()),
+    imageKitFileId: v.optional(v.string()),
     description: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -145,7 +148,11 @@ export const add = mutation({
     }
 
     return await ctx.db.insert("brands", {
-      ...args,
+      name: args.name,
+      slug: args.slug,
+      logo: args.logo,
+      imageKitFileId: args.imageKitFileId,
+      description: args.description,
       active: true,
     });
   },
@@ -156,6 +163,7 @@ export const addWithModels = mutation({
     name: v.string(),
     slug: v.string(),
     logo: v.optional(v.string()),
+    imageKitFileId: v.optional(v.string()),
     description: v.optional(v.string()),
     models: v.array(v.object({
       name: v.string(),
@@ -180,6 +188,7 @@ export const addWithModels = mutation({
       name: args.name,
       slug: args.slug,
       logo: args.logo,
+      imageKitFileId: args.imageKitFileId,
       description: args.description,
       active: true,
     });
@@ -217,6 +226,7 @@ export const update = mutation({
     name: v.optional(v.string()),
     slug: v.optional(v.string()),
     logo: v.optional(v.string()),
+    imageKitFileId: v.optional(v.string()),
     description: v.optional(v.string()),
     active: v.optional(v.boolean()),
   },
@@ -241,11 +251,54 @@ export const remove = mutation({
     const brand = await ctx.db.get(args.id);
     if (!brand) throw new Error("Brand not found");
 
-    const imageUrl = brand.logo || null;
-
     const models = await ctx.db
       .query("models")
       .withIndex("by_brandId", (q) => q.eq("brandId", args.id))
+      .collect();
+
+    for (const model of models) {
+      const variants = await ctx.db
+        .query("variants")
+        .withIndex("by_modelId", (q) => q.eq("modelId", model._id))
+        .collect();
+
+        for (const variant of variants) {
+          const products = await ctx.db
+            .query("products")
+            .withIndex("by_variantId", (q) => q.eq("variantId", variant._id))
+            .collect();
+
+          for (const product of products) {
+            const images = await ctx.db
+              .query("productImages")
+              .withIndex("by_productId", (q) => q.eq("productId", product._id))
+              .collect();
+
+            for (const image of images) {
+              await ctx.db.delete(image._id);
+            }
+            await ctx.db.delete(product._id);
+          }
+          await ctx.db.delete(variant._id);
+        }
+      await ctx.db.delete(model._id);
+    }
+
+    await ctx.db.delete(args.id);
+
+    return { success: true };
+  },
+});
+
+export const deleteBrandRecord = internalMutation({
+  args: { brandId: v.id("brands") },
+  handler: async (ctx, args) => {
+    const brand = await ctx.db.get(args.brandId);
+    if (!brand) throw new Error("Brand not found");
+
+    const models = await ctx.db
+      .query("models")
+      .withIndex("by_brandId", (q) => q.eq("brandId", args.brandId))
       .collect();
 
     for (const model of models) {
@@ -260,8 +313,55 @@ export const remove = mutation({
       await ctx.db.delete(model._id);
     }
 
-    await ctx.db.delete(args.id);
+    await ctx.db.delete(args.brandId);
+  },
+});
 
-    return { imageUrl };
+export const deleteBrandAndImage = action({
+  args: {
+    brandId: v.id("brands"),
+  },
+  handler: async (ctx, args) => {
+    const brand = await ctx.runQuery(internal.brands.getByIdInternal, {
+      id: args.brandId,
+    });
+
+    if (!brand) {
+      throw new Error("Brand not found");
+    }
+
+    if (brand.imageKitFileId) {
+      const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;
+      if (!privateKey) {
+        throw new Error("IMAGEKIT_PRIVATE_KEY is not set");
+      }
+      const auth = btoa(`${privateKey}:`);
+
+      const response = await fetch(
+        `https://api.imagekit.io/v1/files/${brand.imageKitFileId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Basic ${auth}`,
+          },
+        }
+      );
+
+      if (!response.ok && response.status !== 404) {
+        const errorText = await response.text();
+        throw new Error(`Failed to delete image from ImageKit: ${errorText}`);
+      }
+    }
+
+    await ctx.runMutation(internal.brands.deleteBrandRecord, {
+      brandId: args.brandId,
+    });
+  },
+});
+
+export const getByIdInternal = internalQuery({
+  args: { id: v.id("brands") },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.id);
   },
 });

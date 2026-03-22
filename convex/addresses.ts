@@ -3,7 +3,29 @@ import { mutation, query } from "./_generated/server";
 
 const MAX_ADDRESSES = 5;
 
+async function getUserIdFromAuth(ctx: any) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) return null;
+  const user = await ctx.db
+    .query("users")
+    .withIndex("by_clerkId", (q: any) => q.eq("clerkId", identity.subject))
+    .unique();
+  return user?._id ?? null;
+}
+
 export const listByUser = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getUserIdFromAuth(ctx);
+    if (!userId) return [];
+    return await ctx.db
+      .query("addresses")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .collect();
+  },
+});
+
+export const listByUserId = query({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {
     return await ctx.db
@@ -14,22 +36,26 @@ export const listByUser = query({
 });
 
 export const listShippingByUser = query({
-  args: { userId: v.id("users") },
-  handler: async (ctx, args) => {
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getUserIdFromAuth(ctx);
+    if (!userId) return [];
     return await ctx.db
       .query("addresses")
-      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
       .filter((q) => q.eq(q.field("type"), "shipping"))
       .collect();
   },
 });
 
 export const listBillingByUser = query({
-  args: { userId: v.id("users") },
-  handler: async (ctx, args) => {
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getUserIdFromAuth(ctx);
+    if (!userId) return [];
     return await ctx.db
       .query("addresses")
-      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
       .filter((q) => q.eq(q.field("type"), "billing"))
       .collect();
   },
@@ -37,7 +63,6 @@ export const listBillingByUser = query({
 
 export const add = mutation({
   args: {
-    userId: v.id("users"),
     type: v.union(v.literal("shipping"), v.literal("billing")),
     label: v.optional(v.string()),
     name: v.string(),
@@ -50,9 +75,12 @@ export const add = mutation({
     isDefault: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    const userId = await getUserIdFromAuth(ctx);
+    if (!userId) throw new Error("Not authenticated");
+
     const existing = await ctx.db
       .query("addresses")
-      .withIndex("by_userId", (q) => q.eq("userId", args.userId))
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
       .collect();
 
     const sameType = existing.filter((a) => a.type === args.type);
@@ -72,6 +100,7 @@ export const add = mutation({
 
     return await ctx.db.insert("addresses", {
       ...args,
+      userId,
       isDefault,
     });
   },

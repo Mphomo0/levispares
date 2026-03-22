@@ -17,6 +17,7 @@ export default function NewBrandPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [slugManual, setSlugManual] = useState(false)
   const [logo, setLogo] = useState<string | undefined>()
+  const [logoFileId, setLogoFileId] = useState<string | undefined>()
   const addBrand = useMutation(api.brands.add)
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,6 +49,7 @@ export default function NewBrandPage() {
         name,
         slug,
         logo,
+        imageKitFileId: logoFileId,
         description: description || undefined,
       })
       router.push('/admin/brands')
@@ -135,7 +137,10 @@ export default function NewBrandPage() {
             <CardContent>
               <LogoUpload
                 value={logo}
-                onChange={setLogo}
+                onChange={(url, fileId) => {
+                  setLogo(url)
+                  setLogoFileId(fileId)
+                }}
                 folder="/brands"
                 label=""
               />

@@ -173,6 +173,49 @@ export const getStats = query({
   },
 });
 
+export const hasProducts = query({
+  args: { id: v.id("categories") },
+  handler: async (ctx, args) => {
+    const products = await ctx.db
+      .query("products")
+      .withIndex("by_categoryId", (q) => q.eq("categoryId", args.id))
+      .take(1);
+    if (products.length > 0) return true;
+
+    const subcategories = await ctx.db
+      .query("categories")
+      .withIndex("by_parentId", (q) => q.eq("parentId", args.id))
+      .collect();
+
+    for (const sub of subcategories) {
+      const subProducts = await ctx.db
+        .query("products")
+        .withIndex("by_categoryId", (q) => q.eq("categoryId", sub._id))
+        .take(1);
+      if (subProducts.length > 0) return true;
+    }
+
+    return false;
+  },
+});
+
+export const getProductCounts = query({
+  handler: async (ctx) => {
+    const categories = await ctx.db.query("categories").collect();
+    const counts: Record<string, number> = {};
+
+    for (const cat of categories) {
+      const products = await ctx.db
+        .query("products")
+        .withIndex("by_categoryId", (q) => q.eq("categoryId", cat._id))
+        .collect();
+      counts[cat._id] = products.length;
+    }
+
+    return counts;
+  },
+});
+
 export const add = mutation({
   args: {
     name: v.string(),
@@ -256,8 +299,54 @@ export const update = mutation({
     active: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
-    const { id, ...data } = args;
-    await ctx.db.patch(id, data);
+    const { id, ...updates } = args;
+    const category = await ctx.db.get(id);
+    if (!category) throw new Error("Category not found");
+
+    const products = await ctx.db
+      .query("products")
+      .withIndex("by_categoryId", (q) => q.eq("categoryId", id))
+      .take(1);
+    if (products.length > 0) {
+      throw new Error("Cannot edit: this category has associated products. Remove or reassign the products first.");
+    }
+
+    if (updates.slug !== undefined && updates.slug !== category.slug) {
+      const existing = await ctx.db
+        .query("categories")
+        .withIndex("by_slug", (q) => q.eq("slug", updates.slug as string))
+        .unique();
+      if (existing && existing._id !== id) {
+        throw new Error("A category with this slug already exists.");
+      }
+    }
+
+    if (updates.parentId !== undefined) {
+      if (updates.parentId === id) {
+        throw new Error("A category cannot be its own parent.");
+      }
+      if (updates.parentId !== null) {
+        let current = await ctx.db.get(updates.parentId);
+        while (current) {
+          if (current.parentId === id) {
+            throw new Error("Circular parent reference detected. This would create an infinite category hierarchy.");
+          }
+          if (!current.parentId) break;
+          current = await ctx.db.get(current.parentId);
+        }
+      }
+    }
+
+    const patchData: Record<string, unknown> = {};
+    if (updates.name !== undefined) patchData.name = updates.name;
+    if (updates.slug !== undefined) patchData.slug = updates.slug;
+    if (updates.parentId !== undefined) patchData.parentId = updates.parentId === null ? undefined : updates.parentId;
+    if (updates.image !== undefined) patchData.image = updates.image;
+    if (updates.icon !== undefined) patchData.icon = updates.icon;
+    if (updates.description !== undefined) patchData.description = updates.description;
+    if (updates.active !== undefined) patchData.active = updates.active;
+
+    await ctx.db.patch(id, patchData);
   },
 });
 
@@ -275,8 +364,14 @@ export const remove = mutation({
   handler: async (ctx, args) => {
     const category = await ctx.db.get(args.id);
     if (!category) throw new Error("Category not found");
-    
-    const imageUrl = category.image || null;
+
+    const products = await ctx.db
+      .query("products")
+      .withIndex("by_categoryId", (q) => q.eq("categoryId", args.id))
+      .take(1);
+    if (products.length > 0) {
+      throw new Error("Cannot delete: this category has associated products. Remove or reassign the products first.");
+    }
 
     const subcategories = await ctx.db
       .query("categories")
@@ -284,8 +379,17 @@ export const remove = mutation({
       .collect();
 
     for (const sub of subcategories) {
+      const subProducts = await ctx.db
+        .query("products")
+        .withIndex("by_categoryId", (q) => q.eq("categoryId", sub._id))
+        .take(1);
+      if (subProducts.length > 0) {
+        throw new Error(`Cannot delete: subcategory "${sub.name}" has associated products. Remove or reassign the products first.`);
+      }
       await ctx.db.delete(sub._id);
     }
+
+    const imageUrl = category.image || null;
 
     await ctx.db.delete(args.id);
     

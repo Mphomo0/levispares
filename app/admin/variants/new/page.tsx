@@ -21,7 +21,7 @@ export default function NewVariantPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [slugManual, setSlugManual] = useState(false)
   const [withBulkVariants, setWithBulkVariants] = useState(false)
-  const [bulkVariants, setBulkVariants] = useState<Array<{ variantType: string; variantValue: string }>>([])
+  const [bulkVariants, setBulkVariants] = useState<string[]>([])
 
   const models = useQuery(api.models.list, {})
   const brands = useQuery(api.brands.listAll, {})
@@ -42,16 +42,16 @@ export default function NewVariantPage() {
   }
 
   const addBulkVariant = () => {
-    setBulkVariants([...bulkVariants, { variantType: 'GVM', variantValue: '' }])
+    setBulkVariants([...bulkVariants, ''])
   }
 
   const removeBulkVariant = (index: number) => {
     setBulkVariants(bulkVariants.filter((_, i) => i !== index))
   }
 
-  const updateBulkVariant = (index: number, field: 'variantType' | 'variantValue', value: string) => {
+  const updateBulkVariant = (index: number, value: string) => {
     const updated = [...bulkVariants]
-    updated[index] = { ...updated[index], [field]: value }
+    updated[index] = value
     setBulkVariants(updated)
   }
 
@@ -61,7 +61,6 @@ export default function NewVariantPage() {
 
     const formData = new FormData(e.currentTarget)
     const modelId = formData.get('modelId') as string
-    const variantType = formData.get('variantType') as string
     const variantValue = formData.get('variantValue') as string
     const slugValue = formData.get('slug') as string
 
@@ -70,11 +69,7 @@ export default function NewVariantPage() {
     try {
       if (withBulkVariants && bulkVariants.length > 0) {
         const validVariants = bulkVariants
-          .filter(v => v.variantValue.trim() !== '')
-          .map(v => ({
-            variantType: v.variantType as 'GVM' | 'Engine' | 'Chassis',
-            variantValue: v.variantValue,
-          }))
+          .filter(v => v.trim() !== '')
         
         await addBulkVariants({
           modelId: modelId as any,
@@ -83,7 +78,6 @@ export default function NewVariantPage() {
       } else {
         await addVariant({
           modelId: modelId as any,
-          variantType: variantType as 'GVM' | 'Engine' | 'Chassis',
           variantValue,
           slug,
         })
@@ -130,7 +124,7 @@ export default function NewVariantPage() {
                 <div className="space-y-2">
                   <Label htmlFor="modelId">Model *</Label>
                   <Select name="modelId" required>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Select a model" />
                     </SelectTrigger>
                     <SelectContent>
@@ -152,22 +146,7 @@ export default function NewVariantPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="variantType">Variant Type *</Label>
-                  <Select name="variantType" required>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="GVM">GVM (Gross Vehicle Mass)</SelectItem>
-                      <SelectItem value="Engine">Engine</SelectItem>
-                      <SelectItem value="Chassis">Chassis</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
+                  <Label htmlFor="variantValue">Variant Value *</Label>
                   <Label htmlFor="variantValue">Variant Value *</Label>
                   <Input
                     id="variantValue"
@@ -229,23 +208,10 @@ export default function NewVariantPage() {
                     <div className="space-y-3">
                       {bulkVariants.map((variant, index) => (
                         <div key={index} className="flex items-center gap-2">
-                          <Select
-                            value={variant.variantType}
-                            onValueChange={(value) => updateBulkVariant(index, 'variantType', value)}
-                          >
-                            <SelectTrigger className="w-[140px]">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="GVM">GVM</SelectItem>
-                              <SelectItem value="Engine">Engine</SelectItem>
-                              <SelectItem value="Chassis">Chassis</SelectItem>
-                            </SelectContent>
-                          </Select>
                           <Input
                             placeholder="Variant value"
-                            value={variant.variantValue}
-                            onChange={(e) => updateBulkVariant(index, 'variantValue', e.target.value)}
+                            value={variant}
+                            onChange={(e) => updateBulkVariant(index, e.target.value)}
                             className="flex-1"
                           />
                           <Button
@@ -269,13 +235,13 @@ export default function NewVariantPage() {
           </Card>
         </div>
 
-        <div className="flex items-center justify-end gap-4 mt-6">
-          <Button type="button" variant="outline" onClick={() => router.back()}>
+        <div className="flex flex-col md:flex-row gap-3 mt-6">
+          <Button type="button" variant="outline" onClick={() => router.back()} className="w-full md:w-auto">
             Cancel
           </Button>
           <Button
             type="submit"
-            className="bg-orange-500 hover:bg-orange-600 text-black font-semibold"
+            className="w-full md:w-auto bg-orange-500 hover:bg-orange-600 text-white font-semibold"
             disabled={isSubmitting}
           >
             {isSubmitting ? (

@@ -1,9 +1,8 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { X, Upload, ImageIcon } from 'lucide-react'
+import { X, ImageIcon } from 'lucide-react'
 import {
   ImageKitAbortError,
   ImageKitInvalidRequestError,
@@ -14,13 +13,13 @@ import {
 
 interface LogoUploadProps {
   value?: string
-  onChange: (url: string | undefined) => void
+  valueFileId?: string
+  onChange: (url: string | undefined, fileId?: string) => void
   folder?: string
   label?: string
 }
 
 export default function LogoUpload({ value, onChange, folder = '/brands', label = 'Logo' }: LogoUploadProps) {
-  const [preview, setPreview] = useState<string | undefined>(value)
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -39,7 +38,6 @@ export default function LogoUpload({ value, onChange, folder = '/brands', label 
     const file = e.target.files?.[0]
     if (!file) return
 
-    setPreview(URL.createObjectURL(file))
     setUploading(true)
     setProgress(0)
 
@@ -62,7 +60,7 @@ export default function LogoUpload({ value, onChange, folder = '/brands', label 
       })
 
       if (response.url) {
-        onChange(response.url)
+        onChange(response.url, response.fileId)
       }
     } catch (error) {
       console.error('Upload failed:', error)
@@ -75,15 +73,16 @@ export default function LogoUpload({ value, onChange, folder = '/brands', label 
       } else if (error instanceof ImageKitServerError) {
         console.error('Server error:', error.message)
       }
-      setPreview(value)
     } finally {
       setUploading(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
     }
   }
 
   const handleRemove = () => {
-    setPreview(undefined)
-    onChange(undefined)
+    onChange(undefined, undefined)
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
@@ -101,10 +100,10 @@ export default function LogoUpload({ value, onChange, folder = '/brands', label 
         id="logo-upload"
       />
       
-      {preview ? (
+      {value ? (
         <div className="relative w-32 h-32 rounded-lg border-2 border-dashed border-border overflow-hidden bg-muted">
           <img
-            src={preview}
+            src={value}
             alt="Logo preview"
             className="w-full h-full object-contain p-2"
           />

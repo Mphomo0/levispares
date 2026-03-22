@@ -119,20 +119,22 @@ function SuccessContent() {
                 </div>
                 <div className="flex justify-between text-foreground font-bold text-lg pt-2 border-t border-border">
                   <span>Total Paid</span>
-                  <span>R{order.totalAmount.toFixed(2)}</span>
+                  <span>R{order.total.toFixed(2)}</span>
                 </div>
               </div>
 
               {/* Shipping Address */}
-              <div className="border-t border-border pt-4 mb-4">
-                <h3 className="font-semibold text-foreground mb-2">Shipping To</h3>
-                <p className="text-sm text-foreground">{order.shippingAddress.name}</p>
-                <p className="text-sm text-muted-foreground">{order.shippingAddress.street}</p>
-                <p className="text-sm text-muted-foreground">
-                  {order.shippingAddress.city}, {order.shippingAddress.province} {order.shippingAddress.postalCode}
-                </p>
-                <p className="text-sm text-muted-foreground">{order.shippingAddress.phone}</p>
-              </div>
+              {order.shippingAddress && (
+                <div className="border-t border-border pt-4 mb-4">
+                  <h3 className="font-semibold text-foreground mb-2">Shipping To</h3>
+                  <p className="text-sm text-foreground">{order.shippingAddress.name}</p>
+                  <p className="text-sm text-muted-foreground">{order.shippingAddress.street}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {order.shippingAddress.city}, {order.shippingAddress.province} {order.shippingAddress.postalCode}
+                  </p>
+                  <p className="text-sm text-muted-foreground">{order.shippingAddress.phone}</p>
+                </div>
+              )}
 
               {/* Status */}
               <div className="border-t border-border pt-4">

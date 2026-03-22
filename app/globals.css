@@ -162,7 +162,7 @@
   h4,
   h5,
   h6 {
-    @apply font-bold tracking-tight;
+    @apply font-extrabold tracking-tight;
   }
 }
 

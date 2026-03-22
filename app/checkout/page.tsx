@@ -11,12 +11,29 @@ import { toast } from 'sonner'
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js'
 import type { Id } from '@/convex/_generated/dataModel'
 import Link from 'next/link'
+import { SignInButton, SignUpButton } from '@clerk/nextjs'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
 
 const STEPS = ['Address', 'Review', 'Payment'] as const
 type Step = (typeof STEPS)[number]
 
-const emptyAddressForm = {
-  label: 'Home' as string,
+const addressSchema = z.object({
+  label: z.string().min(1, 'Label is required'),
+  name: z.string().min(2, 'Full name is required'),
+  street: z.string().min(5, 'Street address is required'),
+  city: z.string().min(2, 'City is required'),
+  province: z.string().min(2, 'Province is required'),
+  postalCode: z.string().min(4, 'Valid postal code is required'),
+  country: z.string().min(2, 'Country is required'),
+  phone: z.string().min(7, 'Valid phone number is required'),
+})
+
+type AddressFormData = z.infer<typeof addressSchema>
+
+const defaultAddressValues: AddressFormData = {
+  label: 'Home',
   name: '',
   street: '',
   city: '',
@@ -24,17 +41,13 @@ const emptyAddressForm = {
   postalCode: '',
   country: 'South Africa',
   phone: '',
-  isDefault: false,
 }
 
 export default function CheckoutPage() {
   const router = useRouter()
   const { user, isLoaded: isUserLoaded } = useUser()
   const { items, totalPrice, clearCart } = useCart()
-  const addresses = useQuery(
-    api.addresses.listByUser,
-    user?.id ? { userId: user.id as Id<'users'> } : 'skip'
-  )
+  const addresses = useQuery(api.addresses.listByUser)
   const addAddress = useMutation(api.addresses.add)
   const createOrder = useMutation(api.orders.create)
   const storeSettings = useQuery(api.settings.get)
@@ -46,7 +59,7 @@ export default function CheckoutPage() {
   const [currentStep, setCurrentStep] = useState<Step>('Address')
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null)
   const [showAddForm, setShowAddForm] = useState(false)
-  const [addressForm, setAddressForm] = useState(emptyAddressForm)
+  const [addressForm, setAddressForm] = useState<AddressFormData>(defaultAddressValues)
   const [savingAddress, setSavingAddress] = useState(false)
   const [convexOrderId, setConvexOrderId] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -55,13 +68,7 @@ export default function CheckoutPage() {
   const tax = taxEnabled ? totalPrice * (taxRatePercent / 100) : 0
   const grandTotal = totalPrice + shipping + tax
 
-  // Redirect if cart is empty or not logged in
-  useEffect(() => {
-    if (isUserLoaded && !user) {
-      router.push('/login')
-    }
-  }, [isUserLoaded, user, router])
-
+  // Redirect if cart is empty
   useEffect(() => {
     if (items.length === 0 && isUserLoaded) {
       router.push('/cart')
@@ -85,24 +92,18 @@ export default function CheckoutPage() {
 
   const selectedAddress = addresses?.find((a) => a._id === selectedAddressId)
 
-  const handleSaveAddress = async () => {
+  const handleSaveAddress = async (data: AddressFormData) => {
     if (!user?.id) return
-    const { name, street, city, province, postalCode, phone } = addressForm
-    if (!name.trim() || !street.trim() || !city.trim() || !province.trim() || !postalCode.trim() || !phone.trim()) {
-      toast.error('Please fill in all required fields.')
-      return
-    }
     setSavingAddress(true)
     try {
       const newId = await addAddress({
-        userId: user.id as Id<'users'>,
         type: 'shipping' as const,
-        ...addressForm,
+        ...data,
         isDefault: (addresses?.length ?? 0) === 0,
       })
       setSelectedAddressId(newId)
       setShowAddForm(false)
-      setAddressForm(emptyAddressForm)
+      setAddressForm(defaultAddressValues)
       toast.success('Address saved')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to save address')
@@ -124,7 +125,6 @@ export default function CheckoutPage() {
     setIsProcessing(true)
     try {
       const orderId = await createOrder({
-        userId: user.id as Id<'users'>,
         items: items.map((item) => ({
           productId: item._id as Id<'products'>,
           name: item.name,
@@ -154,6 +154,51 @@ export default function CheckoutPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
       </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <>
+        <div className="hero-gradient text-primary-foreground py-12 md:py-16">
+          <div className="container mx-auto px-4">
+            <h1 className="font-display text-3xl md:text-4xl lg:text-5xl tracking-wide mb-2">
+              CHECKOUT
+            </h1>
+            <p className="text-primary-foreground/70">
+              Sign in to complete your order
+            </p>
+          </div>
+        </div>
+        <div className="container mx-auto px-4 py-12">
+          <div className="max-w-md mx-auto bg-white rounded-xl border border-slate-200 shadow-sm p-8 text-center">
+            <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg className="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-foreground mb-2">Sign in to checkout</h2>
+            <p className="text-muted-foreground mb-6">
+              Please sign in or create an account to complete your purchase.
+            </p>
+            <div className="flex flex-col gap-3">
+              <SignInButton mode="modal" forceRedirectUrl="/checkout">
+                <button className="w-full bg-accent text-white px-6 py-3 rounded-lg font-medium transition-all hover:brightness-110">
+                  Sign In
+                </button>
+              </SignInButton>
+              <SignUpButton mode="modal" forceRedirectUrl="/checkout">
+                <button className="w-full border border-accent text-accent px-6 py-3 rounded-lg font-medium transition-all hover:bg-accent/5">
+                  Create Account
+                </button>
+              </SignUpButton>
+            </div>
+            <Link href="/cart" className="block mt-6 text-sm text-muted-foreground hover:text-accent transition-colors">
+              &larr; Back to Cart
+            </Link>
+          </div>
+        </div>
+      </>
     )
   }
 
@@ -237,8 +282,6 @@ export default function CheckoutPage() {
                   onSelectAddress={setSelectedAddressId}
                   showAddForm={showAddForm}
                   onToggleAddForm={setShowAddForm}
-                  addressForm={addressForm}
-                  onUpdateForm={setAddressForm}
                   onSaveAddress={handleSaveAddress}
                   savingAddress={savingAddress}
                   onContinue={handleContinueToReview}
@@ -292,23 +335,21 @@ export default function CheckoutPage() {
 interface AddressStepProps {
   addresses: Array<{
     _id: string
-    label: string
+    label?: string
     name: string
     street: string
     city: string
-    province: string
+    province?: string
     postalCode: string
     country: string
-    phone: string
-    isDefault: boolean
+    phone?: string
+    isDefault?: boolean
   }>
   selectedAddressId: string | null
   onSelectAddress: (id: string) => void
   showAddForm: boolean
   onToggleAddForm: (show: boolean) => void
-  addressForm: typeof emptyAddressForm
-  onUpdateForm: (form: typeof emptyAddressForm) => void
-  onSaveAddress: () => void
+  onSaveAddress: (data: AddressFormData) => Promise<void>
   savingAddress: boolean
   onContinue: () => void
 }
@@ -319,12 +360,19 @@ function AddressStep({
   onSelectAddress,
   showAddForm,
   onToggleAddForm,
-  addressForm,
-  onUpdateForm,
   onSaveAddress,
   savingAddress,
   onContinue,
 }: AddressStepProps) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<AddressFormData>({
+    resolver: zodResolver(addressSchema),
+    defaultValues: defaultAddressValues,
+  })
+
   return (
     <motion.div
       initial={{ opacity: 0, x: -20 }}
@@ -334,7 +382,6 @@ function AddressStep({
     >
       <h2 className="text-2xl font-bold text-foreground mb-6">Delivery Address</h2>
 
-      {/* Existing Addresses */}
       {addresses.length > 0 && (
         <div className="space-y-3 mb-6">
           {addresses.map((addr) => (
@@ -374,20 +421,6 @@ function AddressStep({
         </div>
       )}
 
-      {/* Add New Address */}
-      {!showAddForm && addresses.length < 3 && (
-        <button
-          onClick={() => onToggleAddForm(true)}
-          className="w-full p-4 rounded-xl border-2 border-dashed border-border hover:border-accent/40 transition-colors text-muted-foreground hover:text-accent flex items-center justify-center gap-2"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Add New Address
-        </button>
-      )}
-
-      {/* Inline Address Form */}
       {showAddForm && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
@@ -396,119 +429,121 @@ function AddressStep({
           className="bg-card rounded-xl p-6 card-shadow mb-6"
         >
           <h3 className="font-semibold text-lg text-foreground mb-4">New Address</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">Label</label>
-              <select
-                value={addressForm.label}
-                onChange={(e) => onUpdateForm({ ...addressForm, label: e.target.value })}
-                className="input-styled"
-              >
-                <option value="Home">Home</option>
-                <option value="Work">Work</option>
-                <option value="Other">Other</option>
-              </select>
+          <form onSubmit={handleSubmit(onSaveAddress)} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Label</label>
+                <select {...register('label')} className="input-styled">
+                  <option value="Home">Home</option>
+                  <option value="Work">Work</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Full Name *</label>
+                <input
+                  {...register('name')}
+                  placeholder="Full name"
+                  className={`input-styled ${errors.name ? 'border-red-500 focus:border-red-500' : ''}`}
+                />
+                {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>}
+              </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1">Full Name *</label>
+              <label className="block text-sm font-medium text-foreground mb-1">Street Address *</label>
               <input
-                type="text"
-                value={addressForm.name}
-                onChange={(e) => onUpdateForm({ ...addressForm, name: e.target.value })}
-                placeholder="Full name"
+                {...register('street')}
+                placeholder="123 Main Street, Apt 4B"
+                className={`input-styled ${errors.street ? 'border-red-500 focus:border-red-500' : ''}`}
+              />
+              {errors.street && <p className="text-xs text-red-500 mt-1">{errors.street.message}</p>}
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">City *</label>
+                <input
+                  {...register('city')}
+                  placeholder="Johannesburg"
+                  className={`input-styled ${errors.city ? 'border-red-500 focus:border-red-500' : ''}`}
+                />
+                {errors.city && <p className="text-xs text-red-500 mt-1">{errors.city.message}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Province *</label>
+                <input
+                  {...register('province')}
+                  placeholder="Gauteng"
+                  className={`input-styled ${errors.province ? 'border-red-500 focus:border-red-500' : ''}`}
+                />
+                {errors.province && <p className="text-xs text-red-500 mt-1">{errors.province.message}</p>}
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Postal Code *</label>
+                <input
+                  {...register('postalCode')}
+                  placeholder="2000"
+                  className={`input-styled ${errors.postalCode ? 'border-red-500 focus:border-red-500' : ''}`}
+                />
+                {errors.postalCode && <p className="text-xs text-red-500 mt-1">{errors.postalCode.message}</p>}
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Phone *</label>
+                <input
+                  {...register('phone')}
+                  type="tel"
+                  placeholder="+27 12 345 6789"
+                  className={`input-styled ${errors.phone ? 'border-red-500 focus:border-red-500' : ''}`}
+                />
+                {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone.message}</p>}
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1">Country</label>
+              <input
+                {...register('country')}
                 className="input-styled"
               />
             </div>
-          </div>
-          <div className="mt-4">
-            <label className="block text-sm font-medium text-foreground mb-1">Street Address *</label>
-            <input
-              type="text"
-              value={addressForm.street}
-              onChange={(e) => onUpdateForm({ ...addressForm, street: e.target.value })}
-              placeholder="123 Main Street, Apt 4B"
-              className="input-styled"
-            />
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">City *</label>
-              <input
-                type="text"
-                value={addressForm.city}
-                onChange={(e) => onUpdateForm({ ...addressForm, city: e.target.value })}
-                placeholder="Johannesburg"
-                className="input-styled"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">Province *</label>
-              <input
-                type="text"
-                value={addressForm.province}
-                onChange={(e) => onUpdateForm({ ...addressForm, province: e.target.value })}
-                placeholder="Gauteng"
-                className="input-styled"
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">Postal Code *</label>
-              <input
-                type="text"
-                value={addressForm.postalCode}
-                onChange={(e) => onUpdateForm({ ...addressForm, postalCode: e.target.value })}
-                placeholder="2000"
-                className="input-styled"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1">Phone *</label>
-              <input
-                type="tel"
-                value={addressForm.phone}
-                onChange={(e) => onUpdateForm({ ...addressForm, phone: e.target.value })}
-                placeholder="+27 12 345 6789"
-                className="input-styled"
-              />
-            </div>
-          </div>
-          <div className="mt-4">
-            <label className="block text-sm font-medium text-foreground mb-1">Country</label>
-            <input
-              type="text"
-              value={addressForm.country}
-              onChange={(e) => onUpdateForm({ ...addressForm, country: e.target.value })}
-              className="input-styled"
-            />
-          </div>
-          <div className="flex gap-3 mt-6">
-            <button
-              onClick={onSaveAddress}
-              disabled={savingAddress}
-              className="btn-accent"
-            >
-              {savingAddress ? 'Saving...' : 'Save Address'}
-            </button>
-            {addresses.length > 0 && (
+            <div className="flex flex-col sm:flex-row gap-3">
               <button
-                onClick={() => onToggleAddForm(false)}
-                className="px-6 py-3 rounded-lg border border-border text-foreground hover:bg-secondary transition-colors"
+                type="submit"
+                disabled={savingAddress}
+                className="btn-accent w-full md:w-auto text-white disabled:opacity-50"
               >
-                Cancel
+                {savingAddress ? 'Saving...' : 'Save Address'}
               </button>
-            )}
-          </div>
+              {addresses.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => onToggleAddForm(false)}
+                  className="px-6 py-3 rounded-lg border border-border text-foreground hover:bg-secondary transition-colors w-full md:w-auto"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
+          </form>
         </motion.div>
       )}
 
-      {/* Continue Button */}
-      <div className="mt-8">
+      <div className="mt-8 flex flex-col lg:flex-row gap-4">
+        {!showAddForm && addresses.length < 3 && (
+          <button
+            onClick={() => onToggleAddForm(true)}
+            className="p-4 rounded-xl border-2 border-dashed border-border hover:border-accent/40 transition-colors text-muted-foreground hover:text-accent flex items-center justify-center gap-2"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Add New Address
+          </button>
+        )}
         <button
           onClick={onContinue}
           disabled={!selectedAddressId}
-          className="btn-accent w-full disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="btn-accent text-white disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           Continue to Review
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -524,14 +559,14 @@ function AddressStep({
 interface ReviewStepProps {
   items: Array<{ _id: string; name: string; price: number; quantity: number; image: string; category: string }>
   selectedAddress: {
-    label: string
+    label?: string
     name: string
     street: string
     city: string
-    province: string
+    province?: string
     postalCode: string
     country: string
-    phone: string
+    phone?: string
   }
   shipping: number
   tax: number
@@ -636,10 +671,10 @@ function ReviewStep({
       </div>
 
       {/* Actions */}
-      <div className="flex gap-4">
+      <div className="flex flex-col sm:flex-row gap-4">
         <button
           onClick={onBack}
-          className="px-6 py-3 rounded-lg border border-border text-foreground hover:bg-secondary transition-colors flex items-center gap-2"
+          className="px-6 py-3 rounded-lg border border-border text-foreground hover:bg-secondary transition-colors flex items-center justify-center gap-2 w-full md:w-auto"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -649,7 +684,7 @@ function ReviewStep({
         <button
           onClick={onContinue}
           disabled={isProcessing}
-          className="btn-accent flex-1 flex items-center justify-center gap-2 disabled:opacity-50"
+          className="btn-accent flex items-center justify-center gap-2 disabled:opacity-50 text-white w-full md:w-auto"
         >
           {isProcessing ? (
             <>
@@ -710,7 +745,7 @@ function PaymentStep({ items, shipping, tax, grandTotal, convexOrderId, onSucces
         <PayPalScriptProvider
           options={{
             clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!,
-            currency: 'ZAR',
+            currency: process.env.NEXT_PUBLIC_PAYPAL_CURRENCY || 'USD',
             intent: 'capture',
           }}
         >
@@ -771,7 +806,7 @@ function PaymentStep({ items, shipping, tax, grandTotal, convexOrderId, onSucces
 
       <button
         onClick={onBack}
-        className="px-6 py-3 rounded-lg border border-border text-foreground hover:bg-secondary transition-colors flex items-center gap-2"
+        className="px-6 py-3 rounded-lg border border-border text-foreground hover:bg-secondary transition-colors flex items-center gap-2 w-full md:w-auto"
       >
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -35,7 +35,6 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination'
-import { useEffect } from 'react'
 import { Checkbox } from '@/components/ui/checkbox'
 import Link from 'next/link'
 
@@ -59,15 +58,15 @@ const getStatusColor = (status: string) => {
 export default function AdminProductsPage() {
   const [selectedProducts, setSelectedProducts] = useState<Id<'products'>[]>([])
   const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('All')
   const [categoryFilter, setCategoryFilter] = useState('All')
   const [currentPage, setCurrentPage] = useState(1)
   const [mounted, setMounted] = useState(false)
 
-  // Use a simple query for now as the list mutation doesn't support search/filtering directly yet
-  // We can optimize this later with a dedicated search/filter query
-  const productsResult = useQuery(api.products.list, { 
-    paginationOpts: { numItems: 50, cursor: null } 
+  const productsResult = useQuery(api.products.listAdmin, {
+    paginationOpts: { numItems: 50, cursor: null },
+    search: debouncedSearch || undefined
   })
   const categoriesDocs = useQuery(api.categories.list, {})
   const removeProduct = useMutation(api.products.remove)
@@ -77,21 +76,33 @@ export default function AdminProductsPage() {
     setMounted(true)
   }, [])
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchQuery])
+
+  const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value)
+    setCurrentPage(1)
+  }, [])
+
   const itemsPerPage = 8
 
-  const categories = ['All', ...(categoriesDocs?.map(c => c.name) || [])]
+  const categories = useMemo(() => ['All', ...(categoriesDocs?.map(c => c.name) || [])], [categoriesDocs])
   const statuses = ['All', 'Active', 'Low Stock', 'Out of Stock']
 
   const allProducts = productsResult?.page || []
 
-  const filteredProducts = allProducts.filter((product: any) => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase())
-    // Status logic: Active if > 0, Out of Stock if 0, Low Stock if < 10
-    const status = product.inventory === 0 ? 'Out of Stock' : product.inventory < 10 ? 'Low Stock' : 'Active'
-    const matchesStatus = statusFilter === 'All' || status === statusFilter
-    const matchesCategory = categoryFilter === 'All' || product.category === categoryFilter
-    return matchesSearch && matchesStatus && matchesCategory
-  })
+  const filteredProducts = useMemo(() => {
+    return allProducts.filter((product: any) => {
+      const status = product.inventory === 0 ? 'Out of Stock' : product.inventory < 10 ? 'Low Stock' : 'Active'
+      const matchesStatus = statusFilter === 'All' || status === statusFilter
+      const matchesCategory = categoryFilter === 'All' || product.category === categoryFilter
+      return matchesStatus && matchesCategory
+    })
+  }, [allProducts, statusFilter, categoryFilter])
 
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage)
   const paginatedProducts = filteredProducts.slice(
@@ -133,8 +144,8 @@ export default function AdminProductsPage() {
           <h2 className="text-3xl font-bold tracking-tight">Products</h2>
           <p className="text-muted-foreground">Manage your product inventory.</p>
         </div>
-        <Link href="/admin/products/new">
-          <Button className="bg-orange-500 hover:bg-orange-600 text-black font-semibold">
+        <Link href="/admin/products/new" className="w-full md:w-auto">
+          <Button className="w-full md:w-auto bg-orange-500 hover:bg-orange-600 text-white font-semibold">
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
@@ -155,7 +166,7 @@ export default function AdminProductsPage() {
                 placeholder="Search products or SKU..." 
                 className="pl-9" 
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={handleSearchChange}
               />
             </div>
             <div className="flex items-center gap-2">

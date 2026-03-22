@@ -172,4 +172,4 @@ export const products: Product[] = [
   },
 ]
 
-export const featuredProducts = products.slice(0, 6)
+export const featuredProducts = products.slice(0, 9)

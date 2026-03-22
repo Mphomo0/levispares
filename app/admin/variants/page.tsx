@@ -41,7 +41,6 @@ import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
 
 const statuses = ['All', 'Active', 'Inactive']
-const variantTypes = ['All', 'GVM', 'Engine', 'Chassis']
 
 const getStatusColor = (active: boolean | undefined) => {
   return active
@@ -53,24 +52,10 @@ const getStatusLabel = (active: boolean | undefined) => {
   return active ? 'Active' : 'Inactive'
 }
 
-const getVariantTypeColor = (type: string) => {
-  switch (type) {
-    case 'GVM':
-      return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
-    case 'Engine':
-      return 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400'
-    case 'Chassis':
-      return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400'
-    default:
-      return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400'
-  }
-}
-
 export default function AdminVariantsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [mounted, setMounted] = useState(false)
   const [statusFilter, setStatusFilter] = useState('All')
-  const [typeFilter, setTypeFilter] = useState('All')
   const [modelFilter, setModelFilter] = useState<string>('All')
 
   const variants = useQuery(api.variants.list, {})
@@ -85,9 +70,8 @@ export default function AdminVariantsPage() {
   const filteredVariants = (variants || []).filter((variant) => {
     const matchesSearch = variant.variantValue.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesStatus = statusFilter === 'All' || getStatusLabel(variant.active) === statusFilter
-    const matchesType = typeFilter === 'All' || variant.variantType === typeFilter
     const matchesModel = modelFilter === 'All' || variant.modelId === modelFilter
-    return matchesSearch && matchesStatus && matchesType && matchesModel
+    return matchesSearch && matchesStatus && matchesModel
   })
 
   const getModelName = (modelId: Id<'models'>) => {
@@ -98,9 +82,6 @@ export default function AdminVariantsPage() {
   const variantStats = {
     total: variants?.length || 0,
     active: variants?.filter((v) => v.active).length || 0,
-    gvm: variants?.filter((v) => v.variantType === 'GVM').length || 0,
-    engine: variants?.filter((v) => v.variantType === 'Engine').length || 0,
-    chassis: variants?.filter((v) => v.variantType === 'Chassis').length || 0,
   }
 
   const handleDelete = async (id: Id<'variants'>) => {
@@ -130,7 +111,7 @@ export default function AdminVariantsPage() {
           <p className="text-muted-foreground">Manage vehicle variants (GVM, Engine, Chassis).</p>
         </div>
         <Link href="/admin/variants/new">
-          <Button className="bg-orange-500 hover:bg-orange-600 text-black font-semibold">
+          <Button className="w-full md:w-auto bg-orange-500 hover:bg-orange-600 text-white font-semibold">
             <svg
               className="w-4 h-4 mr-2"
               fill="none"
@@ -150,7 +131,7 @@ export default function AdminVariantsPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Variants</CardTitle>
@@ -167,38 +148,16 @@ export default function AdminVariantsPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">GVM Types</CardTitle>
-            <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
-              <span className="text-lg font-bold">GVM</span>
+            <CardTitle className="text-sm font-medium">Active Variants</CardTitle>
+            <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">
+              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{variantStats.gvm}</div>
-            <p className="text-xs text-muted-foreground">Gross Vehicle Mass</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Engine Types</CardTitle>
-            <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
-              <span className="text-lg font-bold">ENG</span>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{variantStats.engine}</div>
-            <p className="text-xs text-muted-foreground">Engine specifications</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Chassis Types</CardTitle>
-            <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400">
-              <span className="text-lg font-bold">CHS</span>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{variantStats.chassis}</div>
-            <p className="text-xs text-muted-foreground">Chassis configurations</p>
+            <div className="text-2xl font-bold">{variantStats.active}</div>
+            <p className="text-xs text-muted-foreground">Currently active</p>
           </CardContent>
         </Card>
       </div>
@@ -237,18 +196,6 @@ export default function AdminVariantsPage() {
                 {(models || []).map((model) => (
                   <SelectItem key={model._id} value={model._id}>
                     {model.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-full md:w-[140px]">
-                <SelectValue placeholder="Type" />
-              </SelectTrigger>
-              <SelectContent>
-                {variantTypes.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type === 'All' ? 'All Types' : type}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -300,12 +247,7 @@ export default function AdminVariantsPage() {
                 <div key={variant._id} className="rounded-lg border border-border p-4 space-y-3">
                   <div className="flex items-start gap-3">
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getVariantTypeColor(variant.variantType)}`}>
-                          {variant.variantType}
-                        </span>
-                        <p className="font-medium truncate">{variant.variantValue}</p>
-                      </div>
+                      <p className="font-medium truncate">{variant.variantValue}</p>
                       <p className="text-xs text-muted-foreground">{variant.slug}</p>
                     </div>
                     {mounted && (
@@ -370,7 +312,6 @@ export default function AdminVariantsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Variant</TableHead>
-                  <TableHead>Type</TableHead>
                   <TableHead>Model</TableHead>
                   <TableHead>Slug</TableHead>
                   <TableHead>Status</TableHead>
@@ -380,13 +321,13 @@ export default function AdminVariantsPage() {
               <TableBody>
                 {!variants || !models ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-12">
+                    <TableCell colSpan={5} className="text-center py-12">
                       <p className="text-muted-foreground italic">Loading variants...</p>
                     </TableCell>
                   </TableRow>
                 ) : filteredVariants.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-12">
+                    <TableCell colSpan={5} className="text-center py-12">
                       <p className="text-muted-foreground italic">No variants found</p>
                     </TableCell>
                   </TableRow>
@@ -395,11 +336,6 @@ export default function AdminVariantsPage() {
                     <TableRow key={variant._id}>
                       <TableCell>
                         <span className="font-medium">{variant.variantValue}</span>
-                      </TableCell>
-                      <TableCell>
-                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getVariantTypeColor(variant.variantType)}`}>
-                          {variant.variantType}
-                        </span>
                       </TableCell>
                       <TableCell>
                         <span className="text-muted-foreground">{getModelName(variant.modelId)}</span>

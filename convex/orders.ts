@@ -1,7 +1,40 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
+async function getUserIdFromAuth(ctx: any) {
+  const identity = await ctx.auth.getUserIdentity();
+  if (!identity) return null;
+  const user = await ctx.db
+    .query("users")
+    .withIndex("by_clerkId", (q: any) => q.eq("clerkId", identity.subject))
+    .unique();
+  return user?._id ?? null;
+}
+
 export const listByUser = query({
+  args: {},
+  handler: async (ctx) => {
+    const userId = await getUserIdFromAuth(ctx);
+    if (!userId) return [];
+    const orders = await ctx.db
+      .query("orders")
+      .withIndex("by_userId", (q) => q.eq("userId", userId))
+      .order("desc")
+      .collect();
+
+    return Promise.all(
+      orders.map(async (order) => {
+        const items = await ctx.db
+          .query("orderItems")
+          .withIndex("by_orderId", (q) => q.eq("orderId", order._id))
+          .collect();
+        return { ...order, items };
+      })
+    );
+  },
+});
+
+export const listByUserId = query({
   args: { userId: v.id("users") },
   handler: async (ctx, args) => {
     const orders = await ctx.db
@@ -79,7 +112,6 @@ export const getById = query({
 
 export const create = mutation({
   args: {
-    userId: v.id("users"),
     items: v.array(v.object({
       productId: v.id("products"),
       name: v.string(),
@@ -96,8 +128,12 @@ export const create = mutation({
     discount: v.optional(v.number()),
     total: v.number(),
     notes: v.optional(v.string()),
+    paypalOrderId: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const userId = await getUserIdFromAuth(ctx);
+    if (!userId) throw new Error("Not authenticated");
+
     for (const item of args.items) {
       const product = await ctx.db.get(item.productId);
       if (!product) {
@@ -109,7 +145,7 @@ export const create = mutation({
     }
 
     const orderId = await ctx.db.insert("orders", {
-      userId: args.userId,
+      userId,
       status: "pending",
       subtotal: args.subtotal,
       shipping: args.shipping,
@@ -119,6 +155,7 @@ export const create = mutation({
       shippingAddressId: args.shippingAddressId,
       billingAddressId: args.billingAddressId,
       notes: args.notes,
+      paypalOrderId: args.paypalOrderId,
     });
 
     for (const item of args.items) {

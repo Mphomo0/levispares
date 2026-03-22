@@ -111,7 +111,7 @@ export default function Home() {
             </p>
             <Link
               href="/shop"
-              className="btn-accent inline-flex items-center gap-2 text-lg"
+              className="btn-accent inline-flex items-center gap-2 text-lg text-white"
             >
               Start Shopping <ArrowRight className="w-5 h-5" />
             </Link>

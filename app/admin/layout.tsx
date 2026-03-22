@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import {
@@ -14,6 +14,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useUser, useClerk } from '@clerk/nextjs'
+import { useQuery } from 'convex/react'
+import { api } from '@/convex/_generated/api'
 
 const adminNavItems = [
   {
@@ -227,14 +229,52 @@ export default function AdminLayout({
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showResults, setShowResults] = useState(false)
+  const [showNotifications, setShowNotifications] = useState(false)
+  const [viewedOrders, setViewedOrders] = useState<string>('')
   const pathname = usePathname()
   const router = useRouter()
   const { user } = useUser()
   const { signOut } = useClerk()
 
+  const searchResults = useQuery(
+    api.products.search,
+    searchQuery.length >= 2 ? { query: searchQuery } : 'skip'
+  )
+
+  const recentOrders = useQuery(api.orders.listRecent, { limit: 10 })
+
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setViewedOrders(localStorage.getItem('viewedOrders') || '')
+    }
+  }, [])
+
+  useEffect(() => {
+    if (searchQuery.length >= 2) {
+      setShowResults(true)
+    } else {
+      setShowResults(false)
+    }
+  }, [searchQuery])
+
+  const markOrdersAsViewed = () => {
+    if (recentOrders && recentOrders.length > 0) {
+      const orderIds = recentOrders.map((o: any) => o._id).join(',')
+      localStorage.setItem('viewedOrders', orderIds)
+      setViewedOrders(orderIds)
+    }
+  }
+
+  const getUnreadCount = () => {
+    if (!recentOrders || !viewedOrders) return 0
+    return recentOrders.filter((o: any) => !viewedOrders.includes(o._id)).length
+  }
 
   const isActive = (href: string) => {
     if (href === '/admin') return pathname === '/admin'
@@ -281,14 +321,13 @@ export default function AdminLayout({
           <div className="flex items-center justify-between h-16 px-4 border-b border-slate-200 dark:border-slate-700">
             <Link
               href="/admin"
-              className="flex items-center gap-2 font-bold text-xl"
+              className="flex items-center gap-2"
             >
-              <div className="w-8 h-8 rounded-lg bg-linear-to-br from-orange-500 to-orange-400 flex items-center justify-center">
-                <span className="text-white text-sm font-bold">LS</span>
-              </div>
-              <span className="bg-linear-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
-                LeviSpares
-              </span>
+              <img 
+                src="https://ik.imagekit.io/qvmqqewsu/logo.webp" 
+                alt="Levi's Spares" 
+                className="h-8 w-auto"
+              />
             </Link>
             <button
               onClick={() => setSidebarOpen(false)}
@@ -392,7 +431,7 @@ export default function AdminLayout({
           </button>
 
           {/* Search - Hidden on small mobile */}
-          <div className="hidden md:flex flex-1 max-w-md">
+          <div className="hidden md:flex flex-1 max-w-md relative">
             <div className="relative w-full">
               <svg
                 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
@@ -410,10 +449,44 @@ export default function AdminLayout({
               <input
                 type="text"
                 aria-label="Search"
-                placeholder="Search..."
+                placeholder="Search products..."
                 className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 transition-all"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onFocus={() => searchQuery.length >= 2 && setShowResults(true)}
+                onBlur={() => setTimeout(() => setShowResults(false), 200)}
               />
             </div>
+            {/* Search Results Dropdown */}
+            {showResults && searchResults && searchResults.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto">
+                {searchResults.slice(0, 8).map((product: any) => (
+                  <button
+                    key={product._id}
+                    className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-left border-b border-slate-100 dark:border-slate-700 last:border-0"
+                    onClick={() => {
+                      router.push(`/admin/products/edit/${product._id}`)
+                      setSearchQuery('')
+                      setShowResults(false)
+                    }}
+                  >
+                    <div className="w-10 h-10 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center overflow-hidden shrink-0">
+                      {product.image ? (
+                        <img src={product.image} alt="" className="w-full h-full object-cover" />
+                      ) : (
+                        <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{product.name}</p>
+                      <p className="text-xs text-slate-500">R{product.price?.toFixed(2)}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Mobile Search Button */}
@@ -439,25 +512,94 @@ export default function AdminLayout({
           {/* Right Section */}
           <div className="flex items-center gap-2 lg:gap-4">
             {/* Notifications */}
-            <button
-              aria-label="Notifications"
-              className="relative p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700"
-            >
-              <svg
-                className="w-5 h-5 text-slate-600 dark:text-slate-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            <div className="relative">
+              <button
+                aria-label="Notifications"
+                className="relative p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700"
+                onClick={() => {
+                  setShowNotifications(!showNotifications)
+                  if (!showNotifications) markOrdersAsViewed()
+                }}
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-                />
-              </svg>
-              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-red-500"></span>
-            </button>
+                <svg
+                  className="w-5 h-5 text-slate-600 dark:text-slate-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                  />
+                </svg>
+                {mounted && getUnreadCount() > 0 && (
+                  <span className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse"></span>
+                )}
+              </button>
+              {/* Notifications Dropdown */}
+              {showNotifications && (
+                <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
+                  <div className="p-3 border-b border-slate-200 dark:border-slate-700">
+                    <h3 className="font-semibold">Notifications</h3>
+                    <p className="text-xs text-slate-500">Recent orders</p>
+                  </div>
+                  {!recentOrders || recentOrders.length === 0 ? (
+                    <div className="p-4 text-center text-slate-500 text-sm">
+                      No recent orders
+                    </div>
+                  ) : (
+                    <div className="divide-y divide-slate-100 dark:divide-slate-700">
+                      {recentOrders.slice(0, 5).map((order: any) => {
+                        const isNew = !viewedOrders.includes(order._id)
+                        return (
+                          <button
+                            key={order._id}
+                            className="w-full p-3 text-left hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                            onClick={() => {
+                              router.push('/admin/orders')
+                              setShowNotifications(false)
+                            }}
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className={`w-2 h-2 rounded-full mt-2 shrink-0 ${isNew ? 'bg-orange-500' : 'bg-slate-300'}`} />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium">
+                                  New Order #{order._id.slice(-6).toUpperCase()}
+                                </p>
+                                <p className="text-xs text-slate-500">
+                                  R{order.total?.toFixed(2)} • {order.status}
+                                </p>
+                                <p className="text-xs text-slate-400 mt-1">
+                                  {new Date(order._creationTime).toLocaleString('en-ZA', { 
+                                    month: 'short', 
+                                    day: 'numeric',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </p>
+                              </div>
+                            </div>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  )}
+                  <div className="p-2 border-t border-slate-200 dark:border-slate-700">
+                    <button
+                      className="w-full text-center text-sm text-orange-600 hover:text-orange-700 font-medium py-1"
+                      onClick={() => {
+                        router.push('/admin/orders')
+                        setShowNotifications(false)
+                      }}
+                    >
+                      View All Orders
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* User Menu */}
             <div className="flex items-center gap-2 lg:gap-3">
