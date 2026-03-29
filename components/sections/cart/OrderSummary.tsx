@@ -9,12 +9,11 @@ import { api } from '@/convex/_generated/api'
 export default function OrderSummary({ totalPrice }: { totalPrice: number }) {
   const [termsAccepted, setTermsAccepted] = useState(false)
   const storeSettings = useQuery(api.settings.get)
-  const taxEnabled = storeSettings?.taxEnabled ?? false
-  const taxRate = storeSettings?.taxRate ?? 0
-  const shippingRateSetting = storeSettings?.shippingRate ?? 250
-  const freeShippingThreshold = storeSettings?.freeShippingThreshold ?? 750
-  
-  const shipping = totalPrice >= freeShippingThreshold ? 0 : shippingRateSetting
+const taxEnabled = storeSettings?.taxEnabled ?? false
+const taxRate = storeSettings?.taxRate ?? 0
+const shippingRateSetting = storeSettings?.shippingRate ?? 250
+
+const shipping = shippingRateSetting
   const tax = taxEnabled ? totalPrice * (taxRate / 100) : 0
   const grandTotal = totalPrice + shipping + tax
 
@@ -31,7 +30,7 @@ export default function OrderSummary({ totalPrice }: { totalPrice: number }) {
         </div>
         <div className="flex justify-between text-muted-foreground">
           <span>Shipping</span>
-          <span>{totalPrice >= freeShippingThreshold ? 'Free' : `R${shippingRateSetting.toFixed(2)}`}</span>
+          <span>R{shippingRateSetting.toFixed(2)}</span>
         </div>
         {taxEnabled && (
           <div className="flex justify-between text-muted-foreground">
@@ -79,11 +78,7 @@ export default function OrderSummary({ totalPrice }: { totalPrice: number }) {
         }`}
       >
         Proceed to Checkout <ArrowRight className="w-5 h-5" />
-      </Link>
-
-      <p className="text-center text-muted-foreground text-xs mt-4">
-        Free shipping on orders over R{freeShippingThreshold.toFixed(2)}
-      </p>
-    </div>
+</Link>
+</div>
   )
 }

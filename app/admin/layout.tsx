@@ -360,21 +360,16 @@ export default function AdminLayout({
                 key={item.href}
                 href={item.href}
                 onClick={() => setSidebarOpen(false)}
-                className={cn(
-                  'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
-                  isActive(item.href)
-                    ? 'bg-orange-50 dark:bg-orange-950/50 text-orange-700 dark:text-orange-300'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white',
-                )}
+className={cn(
+          'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+          isActive(item.href)
+            ? 'bg-brand text-white'
+            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white',
+        )}
               >
-                <span
-                  className={cn(
-                    isActive(item.href) &&
-                      'text-orange-600 dark:text-orange-400',
-                  )}
-                >
-                  {item.icon}
-                </span>
+<span>
+              {item.icon}
+            </span>
                 {item.title}
               </Link>
             ))}
@@ -450,7 +445,7 @@ export default function AdminLayout({
                 type="text"
                 aria-label="Search"
                 placeholder="Search products..."
-                className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 transition-all"
+                className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand transition-all"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => searchQuery.length >= 2 && setShowResults(true)}
@@ -563,7 +558,7 @@ export default function AdminLayout({
                             }}
                           >
                             <div className="flex items-start gap-3">
-                              <div className={`w-2 h-2 rounded-full mt-2 shrink-0 ${isNew ? 'bg-orange-500' : 'bg-slate-300'}`} />
+                              <div className={`w-2 h-2 rounded-full mt-2 shrink-0 ${isNew ? 'bg-brand' : 'bg-slate-300'}`} />
                               <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium">
                                   New Order #{order._id.slice(-6).toUpperCase()}
@@ -588,7 +583,7 @@ export default function AdminLayout({
                   )}
                   <div className="p-2 border-t border-slate-200 dark:border-slate-700">
                     <button
-                      className="w-full text-center text-sm text-orange-600 hover:text-orange-700 font-medium py-1"
+                      className="w-full text-center text-sm text-brand hover:text-orange-700 font-medium py-1"
                       onClick={() => {
                         router.push('/admin/orders')
                         setShowNotifications(false)
@@ -619,7 +614,7 @@ export default function AdminLayout({
                       >
                         <Avatar className="h-9 w-9">
                           <AvatarImage src={user?.imageUrl} alt={displayName} />
-                          <AvatarFallback className="bg-linear-to-br from-orange-500 to-orange-400 text-white font-medium">
+                          <AvatarFallback className="bg-linear-to-br from-brand to-brand text-white font-medium">
                             {initials}
                           </AvatarFallback>
                         </Avatar>
@@ -722,8 +717,8 @@ export default function AdminLayout({
               className={cn(
                 'flex flex-col items-center gap-0.5 px-2 py-2 rounded-lg text-xs font-medium transition-colors',
                 isActive(item.href)
-                  ? 'text-orange-600 dark:text-orange-400'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-orange-500 dark:hover:text-orange-400',
+                  ? 'text-brand dark:text-brand'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-brand dark:hover:text-brand',
               )}
             >
               <div className="p-1">{item.icon}</div>

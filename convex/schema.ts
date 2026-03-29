@@ -218,7 +218,6 @@ export default defineSchema({
     taxEnabled: v.optional(v.boolean()),
     taxRate: v.optional(v.number()),
     shippingRate: v.optional(v.number()),
-    freeShippingThreshold: v.optional(v.number()),
   })
     .index("by_key", ["key"]),
 });

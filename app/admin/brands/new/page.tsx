@@ -99,7 +99,7 @@ export default function NewBrandPage() {
                   <Label htmlFor="slug">URL Slug *</Label>
                   <button
                     type="button"
-                    className="text-xs text-orange-500 hover:text-orange-600"
+                    className="text-xs text-brand hover:text-brand"
                     onClick={() => setSlugManual(!slugManual)}
                   >
                     {slugManual ? 'Auto-generate from name' : 'Enter manually'}
@@ -155,7 +155,7 @@ export default function NewBrandPage() {
                         name="status"
                         value="active"
                         defaultChecked
-                        className="text-orange-500"
+                        className="text-brand"
                       />
                       <span className="text-sm">Active</span>
                     </label>
@@ -164,7 +164,7 @@ export default function NewBrandPage() {
                         type="radio"
                         name="status"
                         value="inactive"
-                        className="text-orange-500"
+                        className="text-brand"
                       />
                       <span className="text-sm">Inactive</span>
                     </label>
@@ -184,7 +184,7 @@ export default function NewBrandPage() {
           </Button>
           <Button
             type="submit"
-            className="bg-orange-500 hover:bg-orange-600 text-black font-semibold"
+            className="bg-brand hover:bg-brand text-black font-semibold"
             disabled={isSubmitting}
           >
             {isSubmitting ? (

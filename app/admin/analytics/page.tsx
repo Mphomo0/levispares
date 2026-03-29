@@ -129,7 +129,7 @@ export default function AdminAnalyticsPage() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
         </svg>
       ),
-      iconBg: 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400',
+      iconBg: 'bg-brand text-white',
     },
     {
       title: 'Avg. Order Value',
@@ -209,7 +209,7 @@ export default function AdminAnalyticsPage() {
                         </div>
                       )}
                       <div
-                        className="w-full bg-gradient-to-t from-orange-500 to-orange-400 rounded-t-md transition-all hover:opacity-80"
+                        className="w-full bg-gradient-to-t from-brand to-brand rounded-t-md transition-all hover:opacity-80"
                         style={{ height: `${(item.revenue / maxRevenue) * 200}px` }}
                       />
                     </div>
@@ -292,7 +292,7 @@ export default function AdminAnalyticsPage() {
                     className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 font-medium">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-white font-medium">
                         {index + 1}
                       </div>
                       <div>

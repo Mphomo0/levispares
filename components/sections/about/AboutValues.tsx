@@ -8,7 +8,7 @@ const values = [
     icon: Target,
     title: 'Quality First',
     description:
-      'We source only the highest quality parts that meet or exceed OEM specifications.',
+      'We source only the highest quality parts that meet or exceed specifications.',
   },
   {
     icon: Heart,

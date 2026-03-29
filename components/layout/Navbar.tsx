@@ -40,10 +40,9 @@ export default function Navbar() {
   const currentUser = useQuery(api.users.getCurrent)
   const isAdmin = currentUser?.role === 'admin'
 
-  const storeSettings = useQuery(api.settings.get)
-  const freeShippingThreshold = storeSettings?.freeShippingThreshold ?? 750
+const storeSettings = useQuery(api.settings.get)
 
-  const brands = useQuery(api.brands.list, {})
+const brands = useQuery(api.brands.list, {})
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10)
@@ -79,21 +78,19 @@ export default function Navbar() {
       <div className="bg-slate-900 text-white text-xs">
         <div className="container mx-auto px-4 py-2 flex items-center justify-between">
           <div className="hidden md:flex items-center gap-6">
-            <span className="flex items-center gap-1.5">
-              <Phone className="w-3 h-3" />
-              <span className="font-medium">012 770 3389</span>
-            </span>
-            <span className="text-slate-400">|</span>
-            <span className="text-slate-300">Mon-Fri: 8am - 5pm</span>
-          </div>
-          <div className="flex items-center gap-4 md:gap-6 text-slate-300">
-            <span className="hidden sm:inline">
-              Free Shipping on orders over R{freeShippingThreshold}
-            </span>
-            <span className="hidden lg:inline text-orange-400 font-medium">
-              100% OEM Quality Guaranteed
-            </span>
-          </div>
+          <span className="flex items-center gap-1.5">
+            <Phone className="w-3 h-3" />
+            <span className="text-xs text-slate-400">Need Help?</span>
+            <span className="font-medium">012 770 3389</span>
+          </span>
+          <span className="text-slate-400">|</span>
+          <span className="text-slate-300">Mon-Fri: 8am - 5pm</span>
+        </div>
+        <div className="flex items-center gap-4 md:gap-6 text-slate-300">
+          <span className="hidden sm:inline">
+            Nationwide Shipping - we deliver across South Africa
+          </span>
+        </div>
         </div>
       </div>
 
@@ -119,7 +116,7 @@ export default function Navbar() {
                 href="/"
                 className="relative group"
               >
-                <div className="absolute -inset-2 bg-orange-500/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity -z-10" />
+                <div className="absolute -inset-2 bg-brand/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity -z-10" />
                 <Image
                   src="https://ik.imagekit.io/qvmqqewsu/logo.webp"
                   alt="Levi's Spares"
@@ -137,7 +134,7 @@ export default function Navbar() {
                     href={link.path}
                     className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                       isActive(link.path)
-                        ? 'text-orange-500 bg-orange-500/10'
+                        ? 'text-brand bg-brand/10'
                         : 'text-slate-300 hover:text-white hover:bg-slate-800'
                     }`}
                   >
@@ -149,7 +146,7 @@ export default function Navbar() {
 
             <div className="hidden md:flex flex-1 max-w-xl mx-6">
               <form onSubmit={handleSearch} className="relative w-full">
-                <div className="flex items-center bg-slate-800 rounded-lg border-2 border-transparent focus-within:border-orange-500 focus-within:bg-slate-800 transition-all">
+                <div className="flex items-center bg-slate-800 rounded-lg border-2 border-transparent focus-within:border-brand focus-within:bg-slate-800 transition-all">
                   <input
                     type="text"
                     value={searchQuery}
@@ -168,7 +165,7 @@ export default function Navbar() {
                   )}
                   <button
                     type="submit"
-                    className="m-1 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm font-medium rounded-md transition-colors flex items-center gap-2"
+                    className="m-1 px-4 py-2 bg-brand hover:bg-brand text-white text-sm font-medium rounded-md transition-colors flex items-center gap-2"
                   >
                     <Search className="w-4 h-4" />
                     <span className="hidden sm:inline">Search</span>
@@ -182,7 +179,7 @@ export default function Navbar() {
                 href="tel:0127703389"
                 className="hidden xl:flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors"
               >
-                <Phone className="w-5 h-5 text-orange-500" />
+                <Phone className="w-5 h-5 text-brand" />
                 <div className="text-sm">
                   <p className="text-xs text-slate-400 leading-none">
                     Need Help?
@@ -213,7 +210,7 @@ export default function Navbar() {
                 >
                   <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors">
                     {isAdmin ? (
-                      <LayoutDashboard className="w-5 h-5 text-orange-500" />
+                      <LayoutDashboard className="w-5 h-5 text-brand" />
                     ) : (
                       <User className="w-5 h-5 text-slate-300" />
                     )}
@@ -237,13 +234,13 @@ export default function Navbar() {
               <Link href="/cart" className="relative group">
                 <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors">
                   <div className="relative">
-                    <ShoppingBag className="w-6 h-6 text-slate-300 group-hover:text-orange-500 transition-colors" />
+                    <ShoppingBag className="w-6 h-6 text-slate-300 group-hover:text-brand transition-colors" />
                     {totalItems > 0 && (
                       <motion.span
                         key={totalItems}
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        className="absolute -top-2 -right-2 w-5 h-5 bg-orange-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center"
+                        className="absolute -top-2 -right-2 w-5 h-5 bg-brand text-white text-[10px] font-bold rounded-full flex items-center justify-center"
                       >
                         {totalItems > 99 ? '99+' : totalItems}
                       </motion.span>
@@ -288,7 +285,7 @@ export default function Navbar() {
           <div className="flex items-center justify-between h-12">
             <div className="flex items-center gap-6">
               <div className="relative group">
-                <button className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-white bg-orange-600 hover:bg-orange-500 rounded-md transition-colors">
+                <button className="flex items-center gap-2 px-3 py-1.5 text-sm font-semibold text-white bg-brand hover:bg-brand rounded-md transition-colors">
                   <span>All Brands</span>
                   <ChevronDown className="w-4 h-4" />
                 </button>
@@ -299,7 +296,7 @@ export default function Navbar() {
                         <Link
                           key={brand._id}
                           href={`/shop?brand=${brand.slug}`}
-                          className="block px-4 py-2 text-sm text-slate-200 hover:bg-orange-600 hover:text-white transition-colors"
+                          className="block px-4 py-2 text-sm text-slate-200 hover:bg-brand hover:text-white transition-colors"
                         >
                           {brand.name}
                         </Link>
@@ -317,28 +314,14 @@ export default function Navbar() {
                 <Link
                   key={brand._id}
                   href={`/shop?brand=${brand._id}`}
-                  className="text-sm font-medium text-slate-300 hover:text-orange-400 transition-colors"
+                  className="text-sm font-medium text-slate-300 hover:text-brand transition-colors"
                 >
                   {brand.name}
                 </Link>
               ))}
             </div>
 
-            <div className="flex items-center gap-4 text-sm text-slate-400">
-              <Link
-                href="/track-order"
-                className="hover:text-orange-400 transition-colors"
-              >
-                Track Order
-              </Link>
-              <span className="text-slate-600">|</span>
-              <Link
-                href="/help"
-                className="hover:text-orange-400 transition-colors"
-              >
-                Help Center
-              </Link>
-            </div>
+            
           </div>
         </div>
       </div>
@@ -351,11 +334,11 @@ export default function Navbar() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search parts..."
-              className="w-full pl-4 pr-12 py-2.5 rounded-lg bg-slate-100 border-2 border-transparent focus:border-orange-500 focus:bg-white outline-none text-sm transition-all"
+              className="w-full pl-4 pr-12 py-2.5 rounded-lg bg-slate-100 border-2 border-transparent focus:border-brand focus:bg-white outline-none text-sm transition-all"
             />
             <button
               type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-orange-500"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-brand"
             >
               <Search className="w-5 h-5" />
             </button>
@@ -379,7 +362,7 @@ export default function Navbar() {
                   href={link.path}
                   className={`block py-3 px-4 rounded-lg text-base font-medium transition-colors ${
                     isActive(link.path)
-                      ? 'bg-orange-50 text-orange-600'
+                      ? 'bg-brand text-brand'
                       : 'text-slate-700 hover:bg-slate-50'
                   }`}
                   onClick={() => setIsMenuOpen(false)}
@@ -397,7 +380,7 @@ export default function Navbar() {
                 <Link
                   key={brand._id}
                   href={`/shop?brand=${brand.slug}`}
-                  className="block py-2.5 px-4 text-sm text-slate-600 hover:bg-slate-50 hover:text-orange-600 transition-colors"
+                  className="block py-2.5 px-4 text-sm text-slate-600 hover:bg-slate-50 hover:text-brand transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {brand.name}
@@ -409,7 +392,7 @@ export default function Navbar() {
                   href="tel:0127703389"
                   className="flex items-center gap-3 py-3 px-4 rounded-lg bg-slate-50"
                 >
-                  <Phone className="w-5 h-5 text-orange-500" />
+                  <Phone className="w-5 h-5 text-brand" />
                   <div>
                     <p className="text-xs text-slate-500">Need Help?</p>
                     <p className="font-semibold text-slate-800">012 770 3389</p>
@@ -431,7 +414,7 @@ export default function Navbar() {
                   >
                     <div className="flex items-center gap-3">
                       {isAdmin ? (
-                        <LayoutDashboard className="w-5 h-5 text-orange-500" />
+                        <LayoutDashboard className="w-5 h-5 text-brand" />
                       ) : (
                         <User className="w-5 h-5 text-slate-600" />
                       )}
@@ -450,11 +433,11 @@ export default function Navbar() {
 
                 <Link
                   href="/cart"
-                  className="flex items-center justify-between py-3 px-4 rounded-lg bg-orange-50 border border-orange-100"
+                  className="flex items-center justify-between py-3 px-4 rounded-lg bg-brand border border-brand"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <div className="flex items-center gap-3">
-                    <ShoppingBag className="w-5 h-5 text-orange-600" />
+                    <ShoppingBag className="w-5 h-5 text-brand" />
                     <div>
                       <p className="text-xs text-slate-500">Shopping Cart</p>
                       <p className="font-semibold text-slate-800">
@@ -462,7 +445,7 @@ export default function Navbar() {
                       </p>
                     </div>
                   </div>
-                  <span className="font-bold text-orange-600">
+                  <span className="font-bold text-brand">
                     R{totalPrice.toFixed(2)}
                   </span>
                 </Link>

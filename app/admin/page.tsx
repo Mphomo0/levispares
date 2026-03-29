@@ -68,7 +68,7 @@ export default function AdminDashboardPage() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
         </svg>
       ),
-      iconBg: 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400',
+      iconBg: 'bg-brand text-white',
     },
     {
       label: 'Total Users',
@@ -92,7 +92,7 @@ export default function AdminDashboardPage() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
         </svg>
       ),
-      color: 'bg-orange-500 hover:bg-orange-600',
+      color: 'bg-brand hover:bg-brand',
     },
     {
       title: 'View Orders',
@@ -140,7 +140,7 @@ export default function AdminDashboardPage() {
         </div>
         <div className="flex items-center gap-2">
           <Link href="/admin/products/new">
-            <Button className="bg-orange-500 hover:bg-orange-600 text-white font-semibold">
+            <Button className="bg-brand hover:bg-brand text-white font-semibold">
               <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
@@ -199,7 +199,7 @@ export default function AdminDashboardPage() {
                 <CardTitle>Recent Orders</CardTitle>
                 <CardDescription>Latest customer orders</CardDescription>
               </div>
-              <Link href="/admin/orders" className="text-sm text-orange-600 hover:text-orange-700 font-medium">
+              <Link href="/admin/orders" className="text-sm text-brand hover:text-orange-700 font-medium">
                 View All
               </Link>
             </div>
@@ -223,8 +223,8 @@ export default function AdminDashboardPage() {
                     className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-border"
                   >
                     <div className="flex items-center gap-3 overflow-hidden">
-                      <div className="h-10 w-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center shrink-0">
-                        <svg className="h-5 w-5 text-orange-600 dark:text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+<div className="h-10 w-10 rounded-full bg-brand flex items-center justify-center shrink-0">
+								<svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                         </svg>
                       </div>
@@ -265,7 +265,7 @@ export default function AdminDashboardPage() {
                 <CardTitle>Top Products</CardTitle>
                 <CardDescription>Best selling items</CardDescription>
               </div>
-              <Link href="/admin/products" className="text-sm text-orange-600 hover:text-orange-700 font-medium">
+              <Link href="/admin/products" className="text-sm text-brand hover:text-orange-700 font-medium">
                 View All
               </Link>
             </div>
@@ -289,7 +289,7 @@ export default function AdminDashboardPage() {
                     className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors border border-transparent hover:border-border"
                   >
                     <div className="flex items-center gap-4 overflow-hidden">
-                      <span className="text-2xl font-bold text-orange-200 dark:text-orange-950 w-8 shrink-0">
+                      <span className="text-2xl font-bold text-brand w-8 shrink-0">
                         {String(i + 1).padStart(2, '0')}
                       </span>
                       <div className="min-w-0">

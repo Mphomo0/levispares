@@ -236,7 +236,7 @@ export default function AdminUsersPage() {
             <CardTitle className="text-sm font-medium">
               New This Month
             </CardTitle>
-            <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400">
+            <div className="p-2 rounded-lg bg-brand text-white">
               <svg
                 className="h-4 w-4"
                 fill="none"
@@ -348,8 +348,8 @@ export default function AdminUsersPage() {
               return (
                 <div key={user._id} className="rounded-lg border border-border p-4 space-y-3">
                   <div className="flex items-start gap-3">
-                    <div className="h-10 w-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center shrink-0">
-                      <span className="text-sm font-medium text-orange-600 dark:text-orange-400">
+<div className="h-10 w-10 rounded-full bg-brand flex items-center justify-center shrink-0">
+								<span className="text-sm font-medium text-white">
                         {(user.name || user.email).charAt(0).toUpperCase()}
                       </span>
                     </div>
@@ -357,7 +357,7 @@ export default function AdminUsersPage() {
                       <div className="font-medium flex items-center gap-2">
                         <span className="truncate">{user.name || 'Anonymous User'}</span>
                         {isSelf && (
-                          <span className="text-[10px] bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-full uppercase shrink-0">You</span>
+                          <span className="text-[10px] bg-brand text-white px-1.5 py-0.5 rounded-full uppercase shrink-0">You</span>
                         )}
                       </div>
                       <p className="text-xs text-muted-foreground truncate">{user.email}</p>
@@ -448,8 +448,8 @@ export default function AdminUsersPage() {
                   <TableRow key={user._id}>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center">
-                          <span className="text-sm font-medium text-orange-600 dark:text-orange-400">
+<div className="h-10 w-10 rounded-full bg-brand flex items-center justify-center">
+								<span className="text-sm font-medium text-white">
                             {(user.name || user.email).charAt(0).toUpperCase()}
                           </span>
                         </div>
@@ -457,7 +457,7 @@ export default function AdminUsersPage() {
                           <div className="font-medium flex items-center gap-2">
                             {user.name || 'Anonymous User'}
                             {isSelf && (
-                              <span className="text-[10px] bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-full uppercase">You</span>
+                              <span className="text-[10px] bg-brand text-white px-1.5 py-0.5 rounded-full uppercase">You</span>
                             )}
                           </div>
                           <div className="text-xs text-muted-foreground">
@@ -641,7 +641,7 @@ export default function AdminUsersPage() {
         <CardContent className="text-xs space-y-2 text-muted-foreground">
           <p><strong>View Profile:</strong> Navigate to the detailed user profile page where you can see order history, address information, and specific activity logs.</p>
           <p><strong>Deactivate Account:</strong> This action suspends the user&apos;s access to the platform. 
-            <span className="block mt-1 italic text-orange-600 dark:text-orange-400">
+            <span className="block mt-1 italic text-brand dark:text-brand">
               Note: Deactivated users will be prevented from placing new orders or accessing protected account areas. 
               As a security measure, you cannot deactivate your own admin account.
             </span>

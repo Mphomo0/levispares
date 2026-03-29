@@ -162,7 +162,7 @@ export default function NewVariantPage() {
                     <Label htmlFor="slug">URL Slug *</Label>
                     <button
                       type="button"
-                      className="text-xs text-orange-500 hover:text-orange-600"
+                      className="text-xs text-brand hover:text-brand"
                       onClick={() => setSlugManual(!slugManual)}
                     >
                       {slugManual ? 'Auto-generate from value' : 'Enter manually'}
@@ -184,7 +184,7 @@ export default function NewVariantPage() {
                     type="checkbox"
                     checked={withBulkVariants}
                     onChange={(e) => setWithBulkVariants(e.target.checked)}
-                    className="text-orange-500 rounded"
+                    className="text-brand rounded"
                   />
                   <span className="text-sm font-medium">Add multiple variants</span>
                 </label>
@@ -241,7 +241,7 @@ export default function NewVariantPage() {
           </Button>
           <Button
             type="submit"
-            className="w-full md:w-auto bg-orange-500 hover:bg-orange-600 text-white font-semibold"
+            className="w-full md:w-auto bg-brand hover:bg-brand text-white font-semibold"
             disabled={isSubmitting}
           >
             {isSubmitting ? (

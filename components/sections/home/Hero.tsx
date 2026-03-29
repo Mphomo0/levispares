@@ -10,7 +10,6 @@ import { api } from '@/convex/_generated/api'
 
 export default function Hero() {
   const storeSettings = useQuery(api.settings.get)
-  const freeShippingThreshold = storeSettings?.freeShippingThreshold ?? 750
 
   return (
     <section className="relative hero-gradient text-primary-foreground overflow-hidden">
@@ -30,7 +29,7 @@ export default function Hero() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="inline-block px-4 py-2 bg-orange-400/20 text-orange-400 rounded-full text-sm font-medium mb-6"
+              className="inline-block px-4 py-2 bg-brand/20 text-brand rounded-full text-sm font-medium mb-6"
             >
               Premium Quality Parts
             </motion.span>
@@ -41,8 +40,8 @@ export default function Hero() {
               className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl tracking-wider mb-6 leading-tight"
               style={{ fontWeight: 1000 }}
             >
-              <span className="text-white block">DRIVE WITH</span>
-              <span className="text-orange-400 block mt-1 sm:mt-2">CONFIDENCE</span>
+              <span className="text-white block">BUY WITH</span>
+              <span className="text-brand block mt-1 sm:mt-2">CONFIDENCE</span>
             </motion.h1>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -50,9 +49,10 @@ export default function Hero() {
               transition={{ duration: 0.5, delay: 0.3 }}
               className="text-lg md:text-xl text-white/80 mb-8 max-w-xl"
             >
-              Premium truck parts for all makes and models. From heavy-duty
-              brakes to reliable batteries, we provide everything your truck
-              needs to stay powerful, efficient, and road-ready.
+              After market parts for Isuzu / Nissan / fuso / hino / FAW /
+              Toyota. From heavy-duty brakes to reliable batteries, we provide
+              everything your truck needs to stay powerful, efficient, and
+              road-ready.
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -83,7 +83,7 @@ export default function Hero() {
             className="relative hidden lg:block"
           >
             <div className="relative w-full aspect-square max-w-lg mx-auto">
-              <div className="absolute inset-0 bg-linear-to-br from-orange-400/20 to-transparent rounded-3xl" />
+              <div className="absolute inset-0 bg-linear-to-br from-brand/20 to-transparent rounded-3xl" />
               <Image
                 src="/images/spares.webp"
                 alt="Truck spare parts and automotive components"
@@ -98,11 +98,11 @@ export default function Hero() {
                 className="absolute -bottom-6 -left-6 bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-lg bg-orange-400/30 flex items-center justify-center">
-                    <Shield className="w-6 h-6 text-orange-400" />
+                  <div className="w-12 h-12 rounded-lg bg-brand/30 flex items-center justify-center">
+                    <Shield className="w-6 h-6 text-brand" />
                   </div>
                   <div>
-                    <p className="text-white font-semibold">OEM Quality</p>
+                    <p className="text-white font-semibold">Quality Parts</p>
                     <p className="text-white/70 text-sm">Certified parts</p>
                   </div>
                 </div>
@@ -127,8 +127,10 @@ export default function Hero() {
               <Truck className="w-6 h-6 text-accent" />
             </div>
             <div>
-              <h4 className="font-semibold text-white">Free Shipping</h4>
-              <p className="text-sm text-white/70">On orders over R{freeShippingThreshold.toFixed(2)}</p>
+              <h4 className="font-semibold text-white">Nationwide Shipping</h4>
+              <p className="text-sm text-white/70">
+                We deliver across South Africa
+              </p>
             </div>
           </motion.div>
           <motion.div
@@ -142,7 +144,7 @@ export default function Hero() {
             </div>
             <div>
               <h4 className="font-semibold text-white">Quality Guarantee</h4>
-              <p className="text-sm text-white/70">OEM specifications</p>
+              <p className="text-sm text-white/70">specifications</p>
             </div>
           </motion.div>
           <motion.div

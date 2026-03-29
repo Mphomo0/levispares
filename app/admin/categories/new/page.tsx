@@ -160,7 +160,7 @@ export default function NewCategoryPage() {
                   <Label htmlFor="slug">URL Slug *</Label>
                   <button
                     type="button"
-                    className="text-xs text-orange-500 hover:text-orange-600"
+                    className="text-xs text-brand hover:text-brand"
                     onClick={() => {
                       setSlugManual(!slugManual)
                       if (!slugManual && name) {
@@ -201,8 +201,8 @@ export default function NewCategoryPage() {
                       type="button"
                       className={`h-10 w-10 rounded-lg border flex items-center justify-center text-xl transition-colors ${
                         icon === emoji
-                          ? 'border-orange-500 bg-orange-50 dark:bg-orange-950'
-                          : 'border-border hover:border-orange-500 hover:bg-orange-50 dark:hover:bg-orange-950'
+                          ? 'border-brand bg-brand dark:bg-orange-950'
+                          : 'border-border hover:border-brand hover:bg-brand dark:hover:bg-orange-950'
                       }`}
                       onClick={() => setIcon(emoji)}
                     >
@@ -216,7 +216,7 @@ export default function NewCategoryPage() {
               <div className="space-y-2">
                 <Label>Preview</Label>
                 <div className="flex items-center gap-4 p-4 rounded-lg border border-border">
-                  <div className="h-16 w-16 rounded-lg bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-3xl">
+                  <div className="h-16 w-16 rounded-lg bg-brand dark:bg-orange-900/30 flex items-center justify-center text-3xl">
                     {icon}
                   </div>
                   <div>
@@ -235,7 +235,7 @@ export default function NewCategoryPage() {
                       name="status"
                       value="active"
                       defaultChecked
-                      className="text-orange-500"
+                      className="text-brand"
                     />
                     <span className="text-sm">Active</span>
                   </label>
@@ -254,7 +254,7 @@ export default function NewCategoryPage() {
           </Button>
           <Button
             type="submit"
-            className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white font-semibold"
+            className="w-full sm:w-auto bg-brand hover:bg-brand text-white font-semibold"
             disabled={isSubmitting}
           >
             {isSubmitting ? (

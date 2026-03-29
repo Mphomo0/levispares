@@ -145,7 +145,7 @@ export default function AdminProductsPage() {
           <p className="text-muted-foreground">Manage your product inventory.</p>
         </div>
         <Link href="/admin/products/new" className="w-full md:w-auto">
-          <Button className="w-full md:w-auto bg-orange-500 hover:bg-orange-600 text-white font-semibold">
+          <Button className="w-full md:w-auto bg-brand hover:bg-brand text-white font-semibold">
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
@@ -205,7 +205,7 @@ export default function AdminProductsPage() {
 
       {/* Bulk Actions */}
       {selectedProducts.length > 0 && (
-        <div className="flex items-center gap-4 p-4 bg-orange-50 dark:bg-orange-950/30 rounded-lg">
+        <div className="flex items-center gap-4 p-4 bg-brand dark:bg-orange-950/30 rounded-lg">
           <span className="text-sm font-medium">
             {selectedProducts.length} product{selectedProducts.length > 1 ? 's' : ''} selected
           </span>

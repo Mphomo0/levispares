@@ -180,7 +180,7 @@ export default function EditModelPage({ params }: { params: Promise<{ id: string
                     <Label htmlFor="slug">URL Slug *</Label>
                     <button
                       type="button"
-                      className="text-xs text-orange-500 hover:text-orange-600"
+                      className="text-xs text-brand hover:text-brand"
                       onClick={() => setSlugManual(!slugManual)}
                     >
                       {slugManual ? 'Auto-generate from name' : 'Enter manually'}
@@ -252,14 +252,14 @@ export default function EditModelPage({ params }: { params: Promise<{ id: string
                     {model.variants.map((variant: any) => (
                       <span
                         key={variant._id}
-                        className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400"
+                        className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-brand text-orange-800 dark:bg-orange-900/30 dark:text-brand"
                       >
                         {variant.variantType}: {variant.variantValue}
                       </span>
                     ))}
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Manage variants from the <a href="/admin/variants" className="text-orange-500 hover:underline">Variants page</a>.
+                    Manage variants from the <a href="/admin/variants" className="text-brand hover:underline">Variants page</a>.
                   </p>
                 </div>
               )}
@@ -289,7 +289,7 @@ export default function EditModelPage({ params }: { params: Promise<{ id: string
           </Button>
           <Button
             type="submit"
-            className="bg-orange-500 hover:bg-orange-600 text-black font-semibold"
+            className="bg-brand hover:bg-brand text-black font-semibold"
             disabled={isSubmitting}
           >
             {isSubmitting ? (

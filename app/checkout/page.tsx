@@ -51,12 +51,11 @@ export default function CheckoutPage() {
   const addAddress = useMutation(api.addresses.add)
   const createOrder = useMutation(api.orders.create)
   const storeSettings = useQuery(api.settings.get)
-  const taxEnabled = storeSettings?.taxEnabled ?? false
-  const taxRatePercent = storeSettings?.taxRate ?? 0
-  const shippingRateSetting = storeSettings?.shippingRate ?? 250
-  const freeShippingThreshold = storeSettings?.freeShippingThreshold ?? 750
+const taxEnabled = storeSettings?.taxEnabled ?? false
+const taxRatePercent = storeSettings?.taxRate ?? 0
+const shippingRateSetting = storeSettings?.shippingRate ?? 250
 
-  const [currentStep, setCurrentStep] = useState<Step>('Address')
+const [currentStep, setCurrentStep] = useState<Step>('Address')
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null)
   const [showAddForm, setShowAddForm] = useState(false)
   const [addressForm, setAddressForm] = useState<AddressFormData>(defaultAddressValues)
@@ -64,8 +63,8 @@ export default function CheckoutPage() {
   const [convexOrderId, setConvexOrderId] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
 
-  const shipping = totalPrice >= freeShippingThreshold ? 0 : shippingRateSetting
-  const tax = taxEnabled ? totalPrice * (taxRatePercent / 100) : 0
+const shipping = shippingRateSetting
+const tax = taxEnabled ? totalPrice * (taxRatePercent / 100) : 0
   const grandTotal = totalPrice + shipping + tax
 
   // Redirect if cart is empty
@@ -323,7 +322,7 @@ export default function CheckoutPage() {
 
           {/* Order Summary Sidebar */}
           <div className="lg:col-span-1">
-            <OrderSidebar items={items} totalPrice={totalPrice} shipping={shipping} tax={tax} taxEnabled={taxEnabled} taxRatePercent={taxRatePercent} freeShippingThreshold={freeShippingThreshold} grandTotal={grandTotal} />
+            <OrderSidebar items={items} totalPrice={totalPrice} shipping={shipping} tax={tax} taxEnabled={taxEnabled} taxRatePercent={taxRatePercent} grandTotal={grandTotal} />
           </div>
         </div>
       </div>
@@ -825,11 +824,10 @@ interface OrderSidebarProps {
   tax: number
   taxEnabled: boolean
   taxRatePercent: number
-  freeShippingThreshold: number
   grandTotal: number
 }
 
-function OrderSidebar({ items, totalPrice, shipping, tax, taxEnabled, taxRatePercent, freeShippingThreshold, grandTotal }: OrderSidebarProps) {
+function OrderSidebar({ items, totalPrice, shipping, tax, taxEnabled, taxRatePercent, grandTotal }: OrderSidebarProps) {
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -875,15 +873,11 @@ function OrderSidebar({ items, totalPrice, shipping, tax, taxEnabled, taxRatePer
           <div className="flex justify-between text-foreground">
             <span className="font-semibold">Total</span>
             <span className="font-bold text-lg">R{grandTotal.toFixed(2)}</span>
-          </div>
-        </div>
-      </div>
+</div>
+</div>
+</div>
 
-      <p className="text-center text-muted-foreground text-xs mt-4">
-        Free shipping on orders over R{freeShippingThreshold.toFixed(2)}
-      </p>
-
-      <Link href="/cart" className="block mt-4 text-center text-sm text-accent hover:underline">
+<Link href="/cart" className="block mt-4 text-center text-sm text-accent hover:underline">
         ← Edit Cart
       </Link>
     </motion.div>

@@ -124,7 +124,7 @@ export default function OrdersPage() {
               <h3 className="mt-4 text-lg font-medium">No orders yet</h3>
               <p className="text-sm text-muted-foreground mt-1">When you place an order, it will appear here.</p>
               <Link href="/shop">
-                <Button className="mt-4 bg-orange-500 hover:bg-orange-600 text-white font-semibold">
+                <Button className="mt-4 bg-brand hover:bg-brand text-white font-semibold">
                   Browse Products
                 </Button>
               </Link>

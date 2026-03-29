@@ -112,13 +112,13 @@ export default function TermsConditions() {
             We offer delivery across South Africa. Delivery times may vary based on location
             and product availability.
           </p>
-          <ul className="list-disc pl-6 space-y-2">
-            <li>Delivery times are estimates and not guaranteed</li>
-            <li>Shipping costs are calculated at checkout</li>
-            <li>Free shipping may apply to orders above certain thresholds</li>
-            <li>Risk of loss passes to you upon delivery to the carrier</li>
-            <li>Please inspect packages upon delivery and report any damage</li>
-          </ul>
+<ul className="list-disc pl-6 space-y-2">
+<li>Delivery times are estimates and not guaranteed</li>
+<li>Shipping costs are calculated at checkout</li>
+<li>We deliver nationwide across South Africa</li>
+<li>Risk of loss passes to you upon delivery to the carrier</li>
+<li>Please inspect packages upon delivery and report any damage</li>
+</ul>
         </>
       ),
     },

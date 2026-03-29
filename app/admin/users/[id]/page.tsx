@@ -132,8 +132,8 @@ export default function UserProfilePage() {
         {/* User Identity Card */}
         <Card className="md:col-span-1">
           <CardHeader className="flex flex-col items-center text-center">
-            <div className="h-24 w-24 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center mb-4">
-              <span className="text-3xl font-bold text-orange-600 dark:text-orange-400">
+            <div className="h-24 w-24 rounded-full bg-brand dark:bg-orange-900/30 flex items-center justify-center mb-4">
+              <span className="text-3xl font-bold text-brand dark:text-brand">
                 {(user.name || user.email).charAt(0).toUpperCase()}
               </span>
             </div>

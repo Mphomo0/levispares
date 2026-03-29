@@ -111,7 +111,7 @@ export default function LogoUpload({ value, onChange, folder = '/brands', label 
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
               <div className="w-3/4 bg-gray-200 rounded-full h-2 overflow-hidden">
                 <div
-                  className="bg-orange-500 h-full transition-all duration-300"
+                  className="bg-brand h-full transition-all duration-300"
                   style={{ width: `${progress}%` }}
                 />
               </div>

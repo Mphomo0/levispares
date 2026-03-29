@@ -110,9 +110,9 @@ export default function ContactForm() {
         viewport={{ once: true }}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        className="btn-accent flex items-center gap-2"
+        className="btn-accent flex items-center gap-2 text-white"
       >
-        <Send className="w-5 h-5" />
+        <Send className="w-5 h-5 text-white" />
         Send Message
       </motion.button>
     </form>

@@ -50,6 +50,7 @@
   --color-card-shadow: var(--card-shadow);
   --color-card-shadow-hover: var(--card-shadow-hover);
   --color-accent-glow: var(--accent-glow);
+  --color-brand: #da2108;
 }
 
 :root {
@@ -72,15 +73,15 @@
   --muted: 220 10% 94%;
   --muted-foreground: 220 10% 45%;
 
-  --accent: oklch(0.75 0.183 47.752);
-  --accent-foreground: oklch(0.205 0 0);
+  --accent: #da2108;
+  --accent-foreground: oklch(1 0 0);
 
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 98%;
 
   --border: 220 13% 90%;
   --input: 220 13% 90%;
-  --ring: oklch(0.75 0.183 47.752);
+  --ring: #da2108;
 
   --hero-gradient: linear-gradient(
     135deg,
@@ -98,10 +99,10 @@
   --sidebar-accent: 240 4.8% 95.9%;
   --sidebar-accent-foreground: 240 5.9% 10%;
   --sidebar-border: 220 13% 91%;
-  --sidebar-ring: oklch(0.75 0.183 47.752);
+  --sidebar-ring: #da2108;
 
   --chart-1: 220 15% 20%;
-  --chart-2: oklch(0.75 0.183 47.752);
+  --chart-2: #da2108;
   --chart-3: 220 10% 45%;
   --chart-4: 220 10% 94%;
   --chart-5: 0 84% 60%;
@@ -126,24 +127,24 @@
   --muted: 220 15% 18%;
   --muted-foreground: 220 10% 60%;
 
-  --accent: oklch(0.75 0.183 47.752);
-  --accent-foreground: oklch(0.205 0 0);
+  --accent: #da2108;
+  --accent-foreground: oklch(1 0 0);
 
   --destructive: 0 62% 30%;
   --destructive-foreground: 0 0% 98%;
 
   --border: 220 15% 20%;
   --input: 220 15% 20%;
-  --ring: oklch(0.75 0.183 47.752);
+  --ring: #da2108;
 
   --sidebar: 220 15% 10%;
   --sidebar-foreground: 0 0% 98%;
-  --sidebar-primary: oklch(0.75 0.183 47.752);
+  --sidebar-primary: #da2108;
   --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 220 15% 15%;
   --sidebar-accent-foreground: 0 0% 98%;
   --sidebar-border: 220 15% 18%;
-  --sidebar-ring: oklch(0.75 0.183 47.752);
+  --sidebar-ring: #da2108;
 }
 
 @layer base {
@@ -256,7 +257,7 @@
 
 @layer utilities {
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-linear-to-r from-accent to-orange-400;
+    @apply bg-clip-text text-transparent bg-linear-to-r from-accent to-brand;
   }
 
   @keyframes slide-up {

@@ -154,7 +154,7 @@ export default function AdminSupportPage() {
             Manage customer tickets and help resources.
           </p>
         </div>
-        <Button className="bg-orange-500 hover:bg-orange-600 text-black font-semibold" onClick={handleNewTicket}>
+        <Button className="bg-brand hover:bg-brand text-black font-semibold" onClick={handleNewTicket}>
           <svg
             className="w-4 h-4 mr-2"
             fill="none"

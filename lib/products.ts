@@ -58,7 +58,7 @@ export const products: Product[] = [
       'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop',
     category: 'brakes',
     description:
-      'High-performance ceramic brake pads with low dust and noise. OEM quality for superior stopping power.',
+      'High-performance ceramic brake pads with low dust and noise. Quality Parts for superior stopping power.',
     specs: [
       { label: 'Material', value: 'Ceramic' },
       { label: 'Position', value: 'Front' },
@@ -118,10 +118,10 @@ export const products: Product[] = [
       'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&h=300&fit=crop',
     category: 'engine',
     description:
-      'Complete timing belt kit with tensioner, idler pulleys, and water pump. OEM specifications.',
+      'Complete timing belt kit with tensioner, idler pulleys, and water pump. specifications.',
     specs: [
       { label: 'Components', value: 'Complete Kit' },
-      { label: 'Quality', value: 'OEM Spec' },
+      { label: 'Quality', value: 'Spec' },
       { label: 'Warranty', value: '2 Years' },
     ],
   },

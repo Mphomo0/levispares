@@ -77,8 +77,8 @@ export default function AdminProfilePage() {
                 className="rounded-full mb-4"
               />
             ) : (
-              <div className="h-24 w-24 rounded-full bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center mb-4">
-                <span className="text-3xl font-bold text-orange-600 dark:text-orange-400">
+              <div className="h-24 w-24 rounded-full bg-brand dark:bg-orange-900/30 flex items-center justify-center mb-4">
+                <span className="text-3xl font-bold text-brand dark:text-brand">
                   {(user.fullName || user.primaryEmailAddress?.emailAddress || 'A').charAt(0).toUpperCase()}
                 </span>
               </div>

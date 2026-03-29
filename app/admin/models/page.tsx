@@ -112,7 +112,7 @@ export default function AdminModelsPage() {
           <p className="text-muted-foreground">Manage vehicle models and their variants.</p>
         </div>
         <Link href="/admin/models/new">
-          <Button className="w-full md:w-auto bg-orange-500 hover:bg-orange-600 text-white font-semibold">
+          <Button className="w-full md:w-auto bg-brand hover:bg-brand text-white font-semibold">
             <svg
               className="w-4 h-4 mr-2"
               fill="none"

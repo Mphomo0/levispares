@@ -13,7 +13,6 @@ export const get = query({
       taxEnabled: false,
       taxRate: 0,
       shippingRate: 250,
-      freeShippingThreshold: 750,
     };
   },
 });
@@ -23,7 +22,6 @@ export const update = mutation({
     taxEnabled: v.boolean(),
     taxRate: v.number(),
     shippingRate: v.number(),
-    freeShippingThreshold: v.number(),
   },
   handler: async (ctx, args) => {
     const existing = await ctx.db
@@ -36,7 +34,6 @@ export const update = mutation({
         taxEnabled: args.taxEnabled,
         taxRate: args.taxRate,
         shippingRate: args.shippingRate,
-        freeShippingThreshold: args.freeShippingThreshold,
       });
     } else {
       await ctx.db.insert("storeSettings", {
@@ -44,7 +41,6 @@ export const update = mutation({
         taxEnabled: args.taxEnabled,
         taxRate: args.taxRate,
         shippingRate: args.shippingRate,
-        freeShippingThreshold: args.freeShippingThreshold,
       });
     }
   },

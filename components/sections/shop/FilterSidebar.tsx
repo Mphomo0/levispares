@@ -162,7 +162,7 @@ export default function FilterSidebar() {
               onClick={() => handleFilterChange({ category: '' })}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 !filters.category
-                  ? 'bg-orange-500 text-white'
+                  ? 'bg-brand text-white'
                   : 'hover:bg-secondary text-foreground'
               }`}
             >
@@ -181,7 +181,7 @@ export default function FilterSidebar() {
                   onClick={() => handleFilterChange({ category: isActive ? '' : cat.slug })}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                     isActive
-                      ? 'bg-orange-500 text-white'
+                      ? 'bg-brand text-white'
                       : 'hover:bg-secondary text-foreground'
                   }`}
                 >
@@ -229,7 +229,7 @@ export default function FilterSidebar() {
               onClick={() => handleFilterChange({ brand: '' })}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 !filters.brand
-                  ? 'bg-orange-500 text-white'
+                  ? 'bg-brand text-white'
                   : 'hover:bg-secondary text-foreground'
               }`}
             >
@@ -248,7 +248,7 @@ export default function FilterSidebar() {
                   onClick={() => handleFilterChange({ brand: isActive ? '' : brand.slug })}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                     isActive
-                      ? 'bg-orange-500 text-white'
+                      ? 'bg-brand text-white'
                       : 'hover:bg-secondary text-foreground'
                   }`}
                 >

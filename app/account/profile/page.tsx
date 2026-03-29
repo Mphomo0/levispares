@@ -99,7 +99,7 @@ export default function ProfilePage() {
           <CardContent className="space-y-4">
             {/* Avatar */}
             <div className="flex items-center gap-4 mb-6">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center overflow-hidden shrink-0">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-brand to-brand flex items-center justify-center overflow-hidden shrink-0">
                 {user?.imageUrl ? (
                   <Image
                     src={user.imageUrl}
@@ -186,7 +186,7 @@ export default function ProfilePage() {
             <Button
               onClick={handleSave}
               disabled={saving}
-              className="bg-orange-500 hover:bg-orange-600 text-white font-semibold"
+              className="bg-brand hover:bg-brand text-white font-semibold"
             >
               {saving ? 'Saving...' : 'Save Changes'}
             </Button>
@@ -258,7 +258,7 @@ export default function ProfilePage() {
                 <input
                   type="checkbox"
                   defaultChecked
-                  className="h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500"
+                  className="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
                 />
               </div>
               <div className="flex items-center justify-between">
@@ -269,7 +269,7 @@ export default function ProfilePage() {
                 <input
                   type="checkbox"
                   defaultChecked
-                  className="h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500"
+                  className="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
                 />
               </div>
               <div className="flex items-center justify-between">
@@ -279,7 +279,7 @@ export default function ProfilePage() {
                 </div>
                 <input
                   type="checkbox"
-                  className="h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500"
+                  className="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
                 />
               </div>
             </CardContent>

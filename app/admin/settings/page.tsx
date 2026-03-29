@@ -23,9 +23,8 @@ export default function AdminSettingsPage() {
   const [savingTax, setSavingTax] = useState(false)
   const [showSavedMessage, setShowSavedMessage] = useState(false)
   
-  const [shippingRate, setShippingRate] = useState('')
-  const [freeShippingThreshold, setFreeShippingThreshold] = useState('')
-  const [savingShipping, setSavingShipping] = useState(false)
+const [shippingRate, setShippingRate] = useState('')
+const [savingShipping, setSavingShipping] = useState(false)
   const [showSavedShippingMessage, setShowSavedShippingMessage] = useState(false)
 
   const [showConfirm, setShowConfirm] = useState(false)
@@ -36,9 +35,8 @@ export default function AdminSettingsPage() {
     if (storeSettings) {
       setTaxEnabled(storeSettings.taxEnabled ?? false)
       setTaxRate((storeSettings.taxRate ?? 0) > 0 ? String(storeSettings.taxRate) : '')
-      setShippingRate(String(storeSettings.shippingRate ?? 250))
-      setFreeShippingThreshold(String(storeSettings.freeShippingThreshold ?? 750))
-    }
+setShippingRate(String(storeSettings.shippingRate ?? 250))
+  }
   }, [storeSettings])
 
   async function handleSaveTax() {
@@ -49,12 +47,11 @@ export default function AdminSettingsPage() {
     }
     setSavingTax(true)
     try {
-      await updateSettings({
-        taxEnabled,
-        taxRate: taxEnabled ? rate : 0,
-        shippingRate: parseFloat(shippingRate) || 0,
-        freeShippingThreshold: parseFloat(freeShippingThreshold) || 0,
-      })
+await updateSettings({
+      taxEnabled,
+      taxRate: taxEnabled ? rate : 0,
+      shippingRate: parseFloat(shippingRate) || 0,
+    })
       toast.success('Tax settings saved.')
       setShowSavedMessage(true)
       setTimeout(() => setShowSavedMessage(false), 3000)
@@ -65,23 +62,21 @@ export default function AdminSettingsPage() {
     }
   }
 
-  async function handleSaveShipping() {
-    const sRate = parseFloat(shippingRate)
-    const threshold = parseFloat(freeShippingThreshold)
-    
-    if (isNaN(sRate) || sRate < 0 || isNaN(threshold) || threshold < 0) {
-      toast.error('Please enter valid positive numbers for shipping.')
-      return
-    }
-    
-    setSavingShipping(true)
-    try {
-      await updateSettings({
-        taxEnabled,
-        taxRate: taxEnabled ? parseFloat(taxRate) : 0,
-        shippingRate: sRate,
-        freeShippingThreshold: threshold,
-      })
+async function handleSaveShipping() {
+  const sRate = parseFloat(shippingRate)
+
+  if (isNaN(sRate) || sRate < 0) {
+    toast.error('Please enter a valid positive number for shipping rate.')
+    return
+  }
+
+  setSavingShipping(true)
+  try {
+    await updateSettings({
+      taxEnabled,
+      taxRate: taxEnabled ? parseFloat(taxRate) : 0,
+      shippingRate: sRate,
+    })
       toast.success('Shipping settings saved.')
       setShowSavedShippingMessage(true)
       setTimeout(() => setShowSavedShippingMessage(false), 3000)
@@ -144,7 +139,7 @@ export default function AdminSettingsPage() {
               aria-checked={taxEnabled}
               onClick={() => setTaxEnabled(!taxEnabled)}
               className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 ${
-                taxEnabled ? 'bg-accent' : 'bg-orange-500'
+                taxEnabled ? 'bg-accent' : 'bg-brand'
               }`}
             >
               <span
@@ -186,7 +181,7 @@ export default function AdminSettingsPage() {
             <Button
               onClick={handleSaveTax}
               disabled={savingTax}
-              className="bg-orange-500 text-white hover:bg-orange-600"
+              className="bg-brand text-white hover:bg-brand"
             >
               {savingTax ? 'Saving...' : 'Save Tax Settings'}
             </Button>
@@ -208,9 +203,9 @@ export default function AdminSettingsPage() {
             </svg>
             Shipping Configuration
           </CardTitle>
-          <CardDescription>
-            Configure your standard shipping rate and the threshold for free shipping.
-          </CardDescription>
+<CardDescription>
+          Configure your standard shipping rate.
+        </CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -235,38 +230,15 @@ export default function AdminSettingsPage() {
               <p className="text-xs text-muted-foreground">
                 The standard flat fee for delivery.
               </p>
-            </div>
-
-            {/* Free Shipping Threshold Input */}
-            <div className="p-4 rounded-lg border border-border bg-secondary/30 space-y-2">
-              <label htmlFor="free-shipping" className="block text-sm font-medium text-foreground">
-                Free Shipping Threshold (R)
-              </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">R</span>
-                <input
-                  id="free-shipping"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={freeShippingThreshold}
-                  onChange={(e) => setFreeShippingThreshold(e.target.value)}
-                  placeholder="e.g. 750"
-                  className="w-full pl-8 pr-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent/50"
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Orders over this amount get free shipping.
-              </p>
-            </div>
-          </div>
+</div>
+    </div>
 
           {/* Save Area */}
           <div className="flex items-center gap-4">
             <Button
               onClick={handleSaveShipping}
               disabled={savingShipping}
-              className="bg-orange-500 text-white hover:bg-orange-600"
+              className="bg-brand text-white hover:bg-brand"
             >
               {savingShipping ? 'Saving...' : 'Save Shipping Settings'}
             </Button>

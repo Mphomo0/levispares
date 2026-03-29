@@ -511,7 +511,7 @@ export default function ProductForm({ initialData, isEditing }: ProductFormProps
             </div>
             <input type="file" ref={fileInputRef} className="hidden" accept="image/*" multiple onChange={handleImageChange} />
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <svg className="h-4 w-4 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="h-4 w-4 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span>The first image will be used as the main thumbnail.</span>
@@ -526,7 +526,7 @@ export default function ProductForm({ initialData, isEditing }: ProductFormProps
         </Button>
         <Button
           type="submit"
-          className="w-full sm:w-auto bg-orange-500 hover:bg-orange-600 text-white font-semibold"
+          className="w-full sm:w-auto bg-brand hover:bg-brand text-white font-semibold"
           disabled={isSubmitting || images.length < 1}
         >
           {isSubmitting ? 'Saving...' : isEditing ? 'Update Product' : 'Add Product'}

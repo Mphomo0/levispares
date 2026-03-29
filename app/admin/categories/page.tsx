@@ -61,8 +61,11 @@ export default function AdminCategoriesPage() {
   }, [mounted])
 
   const filteredCategories = (categories || []).filter((category) => {
-    const matchesSearch = category.name.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesStatus = statusFilter === 'All' || getStatusLabel(category.active) === statusFilter
+    const matchesSearch = category.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase())
+    const matchesStatus =
+      statusFilter === 'All' || getStatusLabel(category.active) === statusFilter
     return matchesSearch && matchesStatus
   })
 
@@ -72,13 +75,22 @@ export default function AdminCategoriesPage() {
     inactive: categories?.filter((c) => !c.active).length || 0,
   }
 
-  const handleDelete = async (id: Id<'categories'>, imageUrl?: string | null) => {
+  const handleDelete = async (
+    id: Id<'categories'>,
+    imageUrl?: string | null,
+  ) => {
     const count = productCounts?.[id] || 0
     if (count > 0) {
-      toast('Cannot delete', { description: `This category has ${count} product${count !== 1 ? 's' : ''} assigned. Remove or reassign them first.` })
+      toast('Cannot delete', {
+        description: `This category has ${count} product${count !== 1 ? 's' : ''} assigned. Remove or reassign them first.`,
+      })
       return
     }
-    if (confirm('Are you sure you want to delete this category? This will also delete all subcategories.')) {
+    if (
+      confirm(
+        'Are you sure you want to delete this category? This will also delete all subcategories.',
+      )
+    ) {
       try {
         const result = await removeCategory({ id })
         if (result?.imageUrl) {
@@ -87,7 +99,10 @@ export default function AdminCategoriesPage() {
         toast('Category deleted')
       } catch (error: any) {
         console.error('Failed to delete category:', error)
-        toast('Error', { description: error?.message || 'Failed to delete category. Please try again.' })
+        toast('Error', {
+          description:
+            error?.message || 'Failed to delete category. Please try again.',
+        })
       }
     }
   }
@@ -108,7 +123,7 @@ export default function AdminCategoriesPage() {
           <p className="text-muted-foreground">Manage product categories.</p>
         </div>
         <Link href="/admin/categories/new" className="w-full md:w-auto">
-          <Button className="w-full md:w-auto bg-orange-500 hover:bg-orange-600 text-white font-semibold">
+          <Button className="w-full md:w-auto bg-brand hover:bg-brand text-white font-semibold">
             <svg
               className="w-4 h-4 mr-2"
               fill="none"
@@ -131,10 +146,22 @@ export default function AdminCategoriesPage() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card className="">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Categories</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Total Categories
+            </CardTitle>
             <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                />
               </svg>
             </div>
           </CardHeader>
@@ -145,10 +172,22 @@ export default function AdminCategoriesPage() {
         </Card>
         <Card className="">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Categories</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Active Categories
+            </CardTitle>
             <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
               </svg>
             </div>
           </CardHeader>
@@ -159,10 +198,22 @@ export default function AdminCategoriesPage() {
         </Card>
         <Card className="">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Inactive Categories</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Inactive Categories
+            </CardTitle>
             <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+              <svg
+                className="h-4 w-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
+                />
               </svg>
             </div>
           </CardHeader>
@@ -199,7 +250,7 @@ export default function AdminCategoriesPage() {
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full md:w-[160px]">
+              <SelectTrigger className="w-full md:w-40">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -221,7 +272,8 @@ export default function AdminCategoriesPage() {
             <div>
               <CardTitle>All Categories</CardTitle>
               <CardDescription>
-                {filteredCategories.length} category{filteredCategories.length !== 1 ? 's' : ''} found
+                {filteredCategories.length} category
+                {filteredCategories.length !== 1 ? 's' : ''} found
               </CardDescription>
             </div>
           </div>
@@ -231,13 +283,20 @@ export default function AdminCategoriesPage() {
             {!categories || productCounts === undefined ? (
               <div className="col-span-full space-y-3">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="h-32 bg-muted rounded-lg animate-pulse" />
+                  <div
+                    key={i}
+                    className="h-32 bg-muted rounded-lg animate-pulse"
+                  />
                 ))}
               </div>
             ) : filteredCategories.length === 0 ? (
               <div className="col-span-full py-12 text-center bg-muted/30 rounded-xl border border-dashed">
-                <p className="text-muted-foreground font-medium">No categories found</p>
-                <p className="text-sm text-muted-foreground mt-1">Try adjusting your filters or add a new category.</p>
+                <p className="text-muted-foreground font-medium">
+                  No categories found
+                </p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Try adjusting your filters or add a new category.
+                </p>
               </div>
             ) : (
               filteredCategories.map((category) => {
@@ -249,11 +308,13 @@ export default function AdminCategoriesPage() {
                     className={`hover:shadow-md transition-shadow ${hasProducts ? 'border-amber-200 dark:border-amber-800' : ''}`}
                   >
                     <CardHeader className="flex flex-row items-center gap-4 pb-2">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/30 text-2xl">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-red-50 dark:bg-red-900/30 text-2xl">
                         {category.icon}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <CardTitle className="text-base truncate">{category.name}</CardTitle>
+                        <CardTitle className="text-base truncate">
+                          {category.name}
+                        </CardTitle>
                         <CardDescription>
                           {category.parentId ? 'Subcategory' : 'Top-level'}
                         </CardDescription>
@@ -269,33 +330,76 @@ export default function AdminCategoriesPage() {
                           </span>
                           {hasProducts && (
                             <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
-                              <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                              <svg
+                                className="h-3 w-3"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"
+                                />
                               </svg>
-                              {productCount} product{productCount !== 1 ? 's' : ''}
+                              {productCount} product
+                              {productCount !== 1 ? 's' : ''}
                             </span>
                           )}
                         </div>
                         {mounted && (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" id={`actions-${category._id}`}>
-                                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                id={`actions-${category._id}`}
+                              >
+                                <svg
+                                  className="h-4 w-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                                  />
                                 </svg>
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <div className="px-2 py-1.5 text-xs text-muted-foreground font-medium">Actions</div>
+                              <div className="px-2 py-1.5 text-xs text-muted-foreground font-medium">
+                                Actions
+                              </div>
                               <DropdownMenuSeparator />
                               <div
                                 className={`${hasProducts ? 'opacity-50 pointer-events-none' : ''}`}
-                                title={hasProducts ? 'Cannot edit: category has associated products' : undefined}
+                                title={
+                                  hasProducts
+                                    ? 'Cannot edit: category has associated products'
+                                    : undefined
+                                }
                               >
-                                <Link href={`/admin/categories/edit/${category._id}`}>
+                                <Link
+                                  href={`/admin/categories/edit/${category._id}`}
+                                >
                                   <DropdownMenuItem className="cursor-pointer">
-                                    <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                    <svg
+                                      className="mr-2 h-4 w-4"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                                      />
                                     </svg>
                                     Edit Category
                                   </DropdownMenuItem>
@@ -305,18 +409,41 @@ export default function AdminCategoriesPage() {
                                 className="cursor-pointer"
                                 onClick={() => handleToggleActive(category._id)}
                               >
-                                <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                <svg
+                                  className="mr-2 h-4 w-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"
+                                  />
                                 </svg>
                                 {category.active ? 'Deactivate' : 'Activate'}
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
                                 className={`${hasProducts ? 'opacity-50 cursor-not-allowed' : 'text-red-600 focus:text-red-600 cursor-pointer'}`}
-                                onClick={() => !hasProducts && handleDelete(category._id, category.image)}
+                                onClick={() =>
+                                  !hasProducts &&
+                                  handleDelete(category._id, category.image)
+                                }
                               >
-                                <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                <svg
+                                  className="mr-2 h-4 w-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                  />
                                 </svg>
                                 Delete Category
                               </DropdownMenuItem>

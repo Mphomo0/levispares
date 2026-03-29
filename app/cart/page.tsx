@@ -10,9 +10,9 @@ import { api } from '@/convex/_generated/api'
 import Link from 'next/link'
 import { SignInButton, SignUpButton } from '@clerk/nextjs'
 
-const OrderSummary = ({ totalPrice, taxEnabled, taxRate, shippingRate, freeShippingThreshold, onCheckout }: { totalPrice: number; taxEnabled: boolean; taxRate: number; shippingRate: number; freeShippingThreshold: number; onCheckout: () => void }) => {
+const OrderSummary = ({ totalPrice, taxEnabled, taxRate, shippingRate, onCheckout }: { totalPrice: number; taxEnabled: boolean; taxRate: number; shippingRate: number; onCheckout: () => void }) => {
   const [termsAccepted, setTermsAccepted] = useState(false)
-  const shipping = totalPrice >= freeShippingThreshold ? 0 : shippingRate
+  const shipping = shippingRate
   const tax = taxEnabled ? totalPrice * (taxRate / 100) : 0
   const grandTotal = totalPrice + shipping + tax
 
@@ -34,7 +34,7 @@ const OrderSummary = ({ totalPrice, taxEnabled, taxRate, shippingRate, freeShipp
         </div>
         <div className="flex justify-between text-muted-foreground">
           <span>Shipping</span>
-          <span>{totalPrice >= freeShippingThreshold ? 'Free' : `R${shippingRate.toFixed(2)}`}</span>
+          <span>R{shippingRate.toFixed(2)}</span>
         </div>
         {taxEnabled && (
           <div className="flex justify-between text-muted-foreground">
@@ -80,12 +80,8 @@ const OrderSummary = ({ totalPrice, taxEnabled, taxRate, shippingRate, freeShipp
         }`}
       >
         Proceed to Checkout
-      </button>
-
-      <p className="text-center text-muted-foreground text-xs mt-4">
-        Free shipping on orders over R{freeShippingThreshold.toFixed(2)}
-      </p>
-    </motion.div>
+</button>
+</motion.div>
   )
 }
 
@@ -96,12 +92,11 @@ export default function CartPage() {
   const { user } = useUser()
   const [showAuth, setShowAuth] = useState(false)
   const storeSettings = useQuery(api.settings.get)
-  const taxEnabled = storeSettings?.taxEnabled ?? false
-  const taxRate = storeSettings?.taxRate ?? 0
-  const shippingRate = storeSettings?.shippingRate ?? 250
-  const freeShippingThreshold = storeSettings?.freeShippingThreshold ?? 750
+const taxEnabled = storeSettings?.taxEnabled ?? false
+const taxRate = storeSettings?.taxRate ?? 0
+const shippingRate = storeSettings?.shippingRate ?? 250
 
-  const handleCheckout = () => {
+const handleCheckout = () => {
     if (!user) {
       setShowAuth(true)
       return
@@ -322,7 +317,7 @@ export default function CartPage() {
           </div>
 
           <div className="lg:col-span-1">
-            <OrderSummary totalPrice={totalPrice} taxEnabled={taxEnabled} taxRate={taxRate} shippingRate={shippingRate} freeShippingThreshold={freeShippingThreshold} onCheckout={handleCheckout} />
+            <OrderSummary totalPrice={totalPrice} taxEnabled={taxEnabled} taxRate={taxRate} shippingRate={shippingRate} onCheckout={handleCheckout} />
           </div>
         </div>
       </div>

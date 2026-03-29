@@ -206,7 +206,7 @@ export default function EditVariantPage({ params }: { params: Promise<{ id: stri
                     <Label htmlFor="slug">URL Slug *</Label>
                     <button
                       type="button"
-                      className="text-xs text-orange-500 hover:text-orange-600"
+                      className="text-xs text-brand hover:text-brand"
                       onClick={() => setSlugManual(!slugManual)}
                     >
                       {slugManual ? 'Auto-generate from value' : 'Enter manually'}
@@ -281,7 +281,7 @@ export default function EditVariantPage({ params }: { params: Promise<{ id: stri
           </Button>
           <Button
             type="submit"
-            className="bg-orange-500 hover:bg-orange-600 text-black font-semibold"
+            className="bg-brand hover:bg-brand text-black font-semibold"
             disabled={isSubmitting}
           >
             {isSubmitting ? (

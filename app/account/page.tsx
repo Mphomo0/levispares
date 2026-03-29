@@ -118,7 +118,7 @@ export default function UserAccountPage() {
           <p className="text-muted-foreground">Manage your account and orders.</p>
         </div>
         <Link href="/shop">
-          <Button className="bg-orange-500 hover:bg-orange-600 text-white font-semibold">
+          <Button className="bg-brand hover:bg-brand text-white font-semibold">
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
             </svg>
@@ -232,14 +232,14 @@ export default function UserAccountPage() {
             {accountLinks.map((link) => (
               <Link key={link.title} href={link.href}>
                 <div className="flex items-center gap-4 p-4 rounded-lg border border-border hover:bg-muted/50 hover:border-orange-200 transition-all group">
-                  <div className="p-2 rounded-lg bg-muted group-hover:bg-orange-100 text-muted-foreground group-hover:text-orange-600 transition-colors">
+                  <div className="p-2 rounded-lg bg-muted group-hover:bg-brand text-muted-foreground group-hover:text-brand transition-colors">
                     {link.icon}
                   </div>
                   <div>
                     <p className="font-medium">{link.title}</p>
                     <p className="text-sm text-muted-foreground">{link.description}</p>
                   </div>
-                  <svg className="w-4 h-4 ml-auto text-muted-foreground group-hover:text-orange-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 ml-auto text-muted-foreground group-hover:text-brand transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </div>

@@ -118,7 +118,7 @@ export default function AddressesPage() {
           </p>
         </div>
         {canAddMore && !showForm && (
-          <Button onClick={openAddForm} className="bg-orange-500 hover:bg-orange-600 text-white font-semibold">
+          <Button onClick={openAddForm} className="bg-brand hover:bg-brand text-white font-semibold">
             <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
@@ -222,12 +222,12 @@ export default function AddressesPage() {
                 id="isDefault"
                 checked={form.isDefault}
                 onChange={(e) => setForm({ ...form, isDefault: e.target.checked })}
-                className="h-4 w-4 rounded border-gray-300 text-orange-500 focus:ring-orange-500"
+                className="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
               />
               <Label htmlFor="isDefault" className="font-normal">Set as default address</Label>
             </div>
             <div className="flex gap-2 pt-2">
-              <Button onClick={handleSave} disabled={saving} className="bg-orange-500 hover:bg-orange-600 text-white font-semibold">
+              <Button onClick={handleSave} disabled={saving} className="bg-brand hover:bg-brand text-white font-semibold">
                 {saving ? 'Saving...' : editingId ? 'Update Address' : 'Save Address'}
               </Button>
               <Button variant="outline" onClick={() => { setShowForm(false); setEditingId(null); setForm(emptyForm) }}>
@@ -254,7 +254,7 @@ export default function AddressesPage() {
             </svg>
             <h3 className="mt-4 text-lg font-medium">No addresses yet</h3>
             <p className="text-sm text-muted-foreground mt-1">Add your first delivery address to get started.</p>
-            <Button onClick={openAddForm} className="mt-4 bg-orange-500 hover:bg-orange-600 text-white font-semibold">
+            <Button onClick={openAddForm} className="mt-4 bg-brand hover:bg-brand text-white font-semibold">
               Add Address
             </Button>
           </CardContent>
@@ -262,12 +262,12 @@ export default function AddressesPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {addresses.map((address) => (
-            <Card key={address._id} className={`card-shadow ${address.isDefault ? 'border-orange-500 border-2' : ''}`}>
+            <Card key={address._id} className={`card-shadow ${address.isDefault ? 'border-brand border-2' : ''}`}>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div className="flex items-center gap-2">
                   <CardTitle className="text-lg">{address.label}</CardTitle>
                   {address.isDefault && (
-                    <span className="bg-orange-100 text-orange-700 text-xs px-2 py-0.5 rounded-full font-medium dark:bg-orange-900/30 dark:text-orange-400">
+                    <span className="bg-brand text-orange-700 text-xs px-2 py-0.5 rounded-full font-medium dark:bg-orange-900/30 dark:text-brand">
                       Default
                     </span>
                   )}

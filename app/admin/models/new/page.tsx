@@ -154,7 +154,7 @@ export default function NewModelPage() {
                     <Label htmlFor="slug">URL Slug *</Label>
                     <button
                       type="button"
-                      className="text-xs text-orange-500 hover:text-orange-600"
+                      className="text-xs text-brand hover:text-brand"
                       onClick={() => setSlugManual(!slugManual)}
                     >
                       {slugManual ? 'Auto-generate from name' : 'Enter manually'}
@@ -202,7 +202,7 @@ export default function NewModelPage() {
                     type="checkbox"
                     checked={withVariants}
                     onChange={(e) => setWithVariants(e.target.checked)}
-                    className="text-orange-500 rounded"
+                    className="text-brand rounded"
                   />
                   <span className="text-sm font-medium">Add variants with model</span>
                 </label>
@@ -259,7 +259,7 @@ export default function NewModelPage() {
           </Button>
           <Button
             type="submit"
-            className="w-full md:w-auto bg-orange-500 hover:bg-orange-600 text-white font-semibold"
+            className="w-full md:w-auto bg-brand hover:bg-brand text-white font-semibold"
             disabled={isSubmitting}
           >
             {isSubmitting ? (

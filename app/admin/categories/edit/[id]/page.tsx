@@ -237,7 +237,7 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
                 <div className="flex items-center justify-between">
                   <button
                     type="button"
-                    className="text-xs text-orange-500 hover:text-orange-600"
+                    className="text-xs text-brand hover:text-brand"
                     onClick={() => setSlugManual(!slugManual)}
                   >
                     {slugManual ? 'Auto-generate from name' : 'Enter manually'}
@@ -270,8 +270,8 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
                       type="button"
                       className={`h-10 w-10 rounded-lg border flex items-center justify-center text-xl transition-colors ${
                         icon === emoji
-                          ? 'border-orange-500 bg-orange-50 dark:bg-orange-950'
-                          : 'border-border hover:border-orange-500 hover:bg-orange-50 dark:hover:bg-orange-950'
+                          ? 'border-brand bg-brand dark:bg-orange-950'
+                          : 'border-border hover:border-brand hover:bg-brand dark:hover:bg-orange-950'
                       }`}
                       onClick={() => {
                         setIcon(emoji)
@@ -362,7 +362,7 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
           </Button>
           <Button
             type="submit"
-            className="bg-orange-500 hover:bg-orange-600 text-black font-semibold"
+            className="bg-brand hover:bg-brand text-black font-semibold"
             disabled={isSubmitting || hasProducts === true}
           >
             {isSubmitting ? (
