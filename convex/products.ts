@@ -311,6 +311,229 @@ export const searchAdvanced = query({
   },
 });
 
+export const listShopPaginated = query({
+  args: {
+    paginationOpts: paginationOptsValidator,
+    categoryId: v.optional(v.id("categories")),
+    brandId: v.optional(v.id("brands")),
+    modelId: v.optional(v.id("models")),
+    variantId: v.optional(v.id("variants")),
+    minPrice: v.optional(v.number()),
+    maxPrice: v.optional(v.number()),
+    inStock: v.optional(v.boolean()),
+    searchQuery: v.optional(v.string()),
+    sort: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    let query;
+
+    // Use search index if searchQuery is provided
+    if (args.searchQuery) {
+      query = ctx.db
+        .query("products")
+        .withSearchIndex("search_name_description", (q) =>
+          q.search("name", args.searchQuery!)
+        );
+    } else if (args.variantId) {
+      query = ctx.db
+        .query("products")
+        .withIndex("by_variantId", (q) => q.eq("variantId", args.variantId!));
+    } else if (args.modelId) {
+      query = ctx.db
+        .query("products")
+        .withIndex("by_modelId", (q) => q.eq("modelId", args.modelId!));
+    } else if (args.categoryId) {
+      query = ctx.db
+        .query("products")
+        .withIndex("by_categoryId", (q) => q.eq("categoryId", args.categoryId!));
+    } else if (args.brandId) {
+      query = ctx.db
+        .query("products")
+        .withIndex("by_brandId", (q) => q.eq("brandId", args.brandId!));
+    } else {
+      query = ctx.db
+        .query("products")
+        .withIndex("by_active", (q) => q.eq("active", true));
+    }
+
+    // Apply other filters using .filter()
+    let resultsQuery = query.filter((q) => q.eq(q.field("active"), true));
+
+    if (args.categoryId && args.searchQuery) {
+      resultsQuery = resultsQuery.filter((q) =>
+        q.eq(q.field("categoryId"), args.categoryId!)
+      );
+    }
+    if (args.brandId && (args.searchQuery || args.categoryId || args.modelId || args.variantId)) {
+      resultsQuery = resultsQuery.filter((q) =>
+        q.eq(q.field("brandId"), args.brandId!)
+      );
+    }
+    if (args.modelId && (args.searchQuery || args.categoryId || args.variantId)) {
+        resultsQuery = resultsQuery.filter((q) =>
+          q.eq(q.field("modelId"), args.modelId!)
+        );
+      }
+    if (args.variantId && (args.searchQuery || args.categoryId || args.modelId)) {
+      resultsQuery = resultsQuery.filter((q) =>
+        q.eq(q.field("variantId"), args.variantId!)
+      );
+    }
+    if (args.minPrice !== undefined) {
+      resultsQuery = resultsQuery.filter((q) =>
+        q.gte(q.field("price"), args.minPrice!)
+      );
+    }
+    if (args.maxPrice !== undefined) {
+      resultsQuery = resultsQuery.filter((q) =>
+        q.lte(q.field("price"), args.maxPrice!)
+      );
+    }
+    if (args.inStock) {
+      resultsQuery = resultsQuery.filter((q) => q.gt(q.field("stockQty"), 0));
+    }
+
+    // Initial pagination
+    const paginatedResults = await resultsQuery.paginate(args.paginationOpts);
+
+    // Transform and map images
+    paginatedResults.page = paginatedResults.page.map((product) => ({
+      ...product,
+      image: product.image,
+    }));
+
+    // Sort the current page if requested
+    if (args.sort && args.sort !== "newest") {
+      paginatedResults.page.sort((a, b) => {
+        if (args.sort === "price-asc") return a.price - b.price;
+        if (args.sort === "price-desc") return b.price - a.price;
+        if (args.sort === "name") return a.name.localeCompare(b.name);
+        return 0;
+      });
+    }
+
+    return paginatedResults;
+  },
+});
+
+export const listShopNumbered = query({
+  args: {
+    page: v.number(),
+    pageSize: v.number(),
+    categoryId: v.optional(v.id("categories")),
+    brandId: v.optional(v.id("brands")),
+    modelId: v.optional(v.id("models")),
+    variantId: v.optional(v.id("variants")),
+    minPrice: v.optional(v.number()),
+    maxPrice: v.optional(v.number()),
+    inStock: v.optional(v.boolean()),
+    searchQuery: v.optional(v.string()),
+    sort: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    let query;
+
+    // Use search index if searchQuery is provided
+    if (args.searchQuery) {
+      query = ctx.db
+        .query("products")
+        .withSearchIndex("search_name_description", (q) =>
+          q.search("name", args.searchQuery!)
+        );
+    } else if (args.variantId) {
+      query = ctx.db
+        .query("products")
+        .withIndex("by_variantId", (q) => q.eq("variantId", args.variantId!));
+    } else if (args.modelId) {
+      query = ctx.db
+        .query("products")
+        .withIndex("by_modelId", (q) => q.eq("modelId", args.modelId!));
+    } else if (args.categoryId) {
+      query = ctx.db
+        .query("products")
+        .withIndex("by_categoryId", (q) => q.eq("categoryId", args.categoryId!));
+    } else if (args.brandId) {
+      query = ctx.db
+        .query("products")
+        .withIndex("by_brandId", (q) => q.eq("brandId", args.brandId!));
+    } else {
+      query = ctx.db
+        .query("products")
+        .withIndex("by_active", (q) => q.eq("active", true));
+    }
+
+    // Apply other filters using .filter()
+    let resultsQuery = query.filter((q) => q.eq(q.field("active"), true));
+
+    if (args.categoryId && (args.searchQuery || args.modelId || args.variantId || args.brandId)) {
+      resultsQuery = resultsQuery.filter((q) =>
+        q.eq(q.field("categoryId"), args.categoryId!)
+      );
+    }
+    if (args.brandId && (args.searchQuery || args.categoryId || args.modelId || args.variantId)) {
+      resultsQuery = resultsQuery.filter((q) =>
+        q.eq(q.field("brandId"), args.brandId!)
+      );
+    }
+    if (args.modelId && (args.searchQuery || args.categoryId || args.variantId || args.brandId)) {
+      resultsQuery = resultsQuery.filter((q) =>
+        q.eq(q.field("modelId"), args.modelId!)
+      );
+    }
+    if (args.variantId && (args.searchQuery || args.categoryId || args.modelId || args.brandId)) {
+      resultsQuery = resultsQuery.filter((q) =>
+        q.eq(q.field("variantId"), args.variantId!)
+      );
+    }
+    if (args.minPrice !== undefined) {
+      resultsQuery = resultsQuery.filter((q) =>
+        q.gte(q.field("price"), args.minPrice!)
+      );
+    }
+    if (args.maxPrice !== undefined) {
+      resultsQuery = resultsQuery.filter((q) =>
+        q.lte(q.field("price"), args.maxPrice!)
+      );
+    }
+    if (args.inStock) {
+      resultsQuery = resultsQuery.filter((q) => q.gt(q.field("stockQty"), 0));
+    }
+
+    // Since we need "Numbered Pagination" with page jumps, and Convex paginate is cursor-based:
+    // We fetch all matching items for now to calculate totalCount and slice.
+    // For extreme performance, we would need to maintain cursors per page or use a search index.
+    const allMatching = await resultsQuery.collect();
+
+    // Map images
+    const productsWithImages = allMatching.map((product) => ({
+      ...product,
+      image: product.image,
+    }));
+
+    // Global Sorting
+    if (args.sort && args.sort !== "newest") {
+      productsWithImages.sort((a, b) => {
+        if (args.sort === "price-asc") return a.price - b.price;
+        if (args.sort === "price-desc") return b.price - a.price;
+        if (args.sort === "name") return a.name.localeCompare(b.name);
+        return 0;
+      });
+    }
+
+    const totalCount = productsWithImages.length;
+    const totalPages = Math.ceil(totalCount / args.pageSize);
+    const start = (args.page - 1) * args.pageSize;
+    const end = start + args.pageSize;
+    const pageResults = productsWithImages.slice(start, end);
+
+    return {
+      products: pageResults,
+      totalCount,
+      totalPages,
+    };
+  },
+});
+
 export const listByBrandModelVariant = query({
   args: {
     brandId: v.id("brands"),
@@ -442,6 +665,7 @@ export const addWithRelations = mutation({
     modelId: v.optional(v.id("models")),
     variantId: v.optional(v.id("variants")),
     partNumber: v.optional(v.string()),
+    originalPrice: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     const category = await ctx.db.get(args.categoryId);
@@ -482,6 +706,7 @@ export const addWithRelations = mutation({
         partNumber: args.partNumber,
         description: args.description,
         price: args.price,
+        originalPrice: args.originalPrice,
         stockQty: args.stockQty ?? 0,
         image: args.image,
         specs: args.specs,
@@ -500,6 +725,7 @@ export const addWithRelations = mutation({
       partNumber: args.partNumber,
       description: args.description,
       price: args.price,
+      originalPrice: args.originalPrice,
       stockQty: args.stockQty ?? 0,
       image: args.image,
       specs: args.specs,
@@ -526,6 +752,7 @@ export const updateWithRelations = mutation({
     modelId: v.optional(v.id("models")),
     variantId: v.optional(v.id("variants")),
     partNumber: v.optional(v.string()),
+    originalPrice: v.optional(v.number()),
     active: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
@@ -544,6 +771,7 @@ export const updateWithRelations = mutation({
     if (args.modelId !== undefined) patchData.modelId = args.modelId;
     if (args.variantId !== undefined) patchData.variantId = args.variantId;
     if (args.partNumber !== undefined) patchData.partNumber = args.partNumber;
+    if (args.originalPrice !== undefined) patchData.originalPrice = args.originalPrice;
     if (args.active !== undefined) patchData.active = args.active;
 
     await ctx.db.patch(args.id, patchData);
@@ -790,6 +1018,7 @@ export const add = mutation({
     partNumber: v.optional(v.string()),
     description: v.optional(v.string()),
     price: v.number(),
+    originalPrice: v.optional(v.number()),
     stockQty: v.optional(v.number()),
     image: v.optional(v.string()),
     specs: v.optional(v.array(v.object({
@@ -827,6 +1056,7 @@ export const update = mutation({
     partNumber: v.optional(v.string()),
     description: v.optional(v.string()),
     price: v.optional(v.number()),
+    originalPrice: v.optional(v.number()),
     stockQty: v.optional(v.number()),
     image: v.optional(v.string()),
     specs: v.optional(v.array(v.object({

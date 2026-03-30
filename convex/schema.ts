@@ -65,6 +65,7 @@ export default defineSchema({
     partNumber: v.optional(v.string()),
     description: v.optional(v.string()),
     price: v.number(),
+    originalPrice: v.optional(v.number()),
     stockQty: v.optional(v.number()),
     image: v.optional(v.string()),
     specs: v.optional(v.array(v.object({

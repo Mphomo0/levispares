@@ -11,9 +11,10 @@ import { api } from '@/convex/_generated/api'
 interface Filters {
   category: string
   brand: string
+  model: string
+  variant: string
   minPrice: string
   maxPrice: string
-  inStock: boolean
   sort: string
 }
 
@@ -24,9 +25,10 @@ export default function FilterSidebar() {
   const [filters, setFilters] = useState<Filters>({
     category: '',
     brand: '',
+    model: '',
+    variant: '',
     minPrice: '',
     maxPrice: '',
-    inStock: false,
     sort: 'newest',
   })
 
@@ -34,6 +36,8 @@ export default function FilterSidebar() {
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     category: true,
     brand: true,
+    model: true,
+    variant: true,
     price: true,
   })
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
@@ -41,6 +45,25 @@ export default function FilterSidebar() {
 
   const dbCategories = useQuery(api.categories.listActive, {})
   const brands = useQuery(api.brands.list)
+  
+  const selectedBrandDoc = useMemo(() => {
+    if (!brands || !filters.brand) return null
+    return (brands as any).find((b: any) => b.slug === filters.brand)
+  }, [brands, filters.brand])
+
+  const models = useQuery(api.models.listActive, 
+    selectedBrandDoc ? { brandId: selectedBrandDoc._id } : "skip"
+  )
+
+  const selectedModelDoc = useMemo(() => {
+    if (!models || !filters.model) return null
+    return (models as any).find((m: any) => m.slug === filters.model)
+  }, [models, filters.model])
+
+  const variants = useQuery(api.variants.listActive,
+    selectedModelDoc ? { modelId: selectedModelDoc._id } : "skip"
+  )
+
   const allProducts = useQuery(api.products.listAll, {})
 
   const categoriesWithProducts = useMemo(() => {
@@ -54,9 +77,10 @@ export default function FilterSidebar() {
     setFilters({
       category: searchParams.get('category') || '',
       brand: searchParams.get('brand') || '',
+      model: searchParams.get('model') || '',
+      variant: searchParams.get('variant') || '',
       minPrice: searchParams.get('minPrice') || '',
       maxPrice: searchParams.get('maxPrice') || '',
-      inStock: searchParams.get('inStock') === 'true',
       sort: searchParams.get('sort') || 'newest',
     })
     setIsInitialized(true)
@@ -66,9 +90,10 @@ export default function FilterSidebar() {
     const params = new URLSearchParams()
     if (newFilters.category) params.set('category', newFilters.category)
     if (newFilters.brand) params.set('brand', newFilters.brand)
+    if (newFilters.model) params.set('model', newFilters.model)
+    if (newFilters.variant) params.set('variant', newFilters.variant)
     if (newFilters.minPrice) params.set('minPrice', newFilters.minPrice)
     if (newFilters.maxPrice) params.set('maxPrice', newFilters.maxPrice)
-    if (newFilters.inStock) params.set('inStock', 'true')
     if (newFilters.sort && newFilters.sort !== 'newest') params.set('sort', newFilters.sort)
     
     const query = searchParams.get('q')
@@ -79,6 +104,15 @@ export default function FilterSidebar() {
   }, [router, searchParams])
 
   const handleFilterChange = useCallback((updates: Partial<Filters>, immediate = false) => {
+    // When parent filter changes, reset children
+    if ('brand' in updates) {
+      updates.model = ''
+      updates.variant = ''
+    }
+    if ('model' in updates) {
+      updates.variant = ''
+    }
+
     const newFilters = { ...filters, ...updates }
     
     if (immediate) {
@@ -102,16 +136,17 @@ export default function FilterSidebar() {
     setFilters({
       category: '',
       brand: '',
+      model: '',
+      variant: '',
       minPrice: '',
       maxPrice: '',
-      inStock: false,
       sort: 'newest',
     })
     const query = searchParams.get('q')
     router.replace(`/shop${query ? `?q=${query}` : ''}`, { scroll: false })
   }
 
-  const hasActiveFilters = filters.category || filters.brand || filters.minPrice || filters.maxPrice || filters.inStock
+  const hasActiveFilters = filters.category || filters.brand || filters.model || filters.variant || filters.minPrice || filters.maxPrice
 
   const FilterContent = () => (
     <div className="space-y-6">
@@ -132,7 +167,7 @@ export default function FilterSidebar() {
       <motion.div
         initial={false}
         animate={{ height: 'auto', opacity: 1 }}
-        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       >
         <button
           onClick={() => toggleSection('category')}
@@ -153,7 +188,7 @@ export default function FilterSidebar() {
             height: expandedSections.category ? 'auto' : 0,
             opacity: expandedSections.category ? 1 : 0
           }}
-          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           className="overflow-hidden"
         >
           <div className="space-y-1 pb-2">
@@ -199,7 +234,7 @@ export default function FilterSidebar() {
       <motion.div
         initial={false}
         animate={{ height: 'auto', opacity: 1 }}
-        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       >
         <button
           onClick={() => toggleSection('brand')}
@@ -220,7 +255,7 @@ export default function FilterSidebar() {
             height: expandedSections.brand ? 'auto' : 0,
             opacity: expandedSections.brand ? 1 : 0
           }}
-          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           className="overflow-hidden"
         >
           <div className="space-y-1 pb-2 max-h-60 overflow-y-auto">
@@ -263,10 +298,156 @@ export default function FilterSidebar() {
 
       <div className="border-b border-slate-200" />
 
+      <AnimatePresence>
+        {filters.brand && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="border-b border-slate-200 mb-6" />
+            <button
+              onClick={() => toggleSection('model')}
+              className="flex items-center justify-between w-full text-left mb-3"
+            >
+              <h3 className="font-semibold text-base">Select Model</h3>
+              <motion.div
+                animate={{ rotate: expandedSections.model ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <ChevronDown className="w-4 h-4 text-slate-400" />
+              </motion.div>
+            </button>
+            
+            <motion.div
+              initial={false}
+              animate={{ 
+                height: expandedSections.model ? 'auto' : 0,
+                opacity: expandedSections.model ? 1 : 0
+              }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              className="overflow-hidden"
+            >
+              <div className="space-y-1 pb-2 max-h-60 overflow-y-auto custom-scrollbar">
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => handleFilterChange({ model: '' })}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    !filters.model
+                      ? 'bg-brand text-white'
+                      : 'hover:bg-secondary text-foreground'
+                  }`}
+                >
+                  <span>All Models</span>
+                  {!filters.model && <Check className="w-4 h-4 ml-auto" />}
+                </motion.button>
+                {models?.map((model: any, index: number) => {
+                  const isActive = filters.model === model.slug
+                  return (
+                    <motion.button
+                      key={model._id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.03 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => handleFilterChange({ model: isActive ? '' : model.slug })}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                        isActive
+                          ? 'bg-brand text-white'
+                          : 'hover:bg-secondary text-foreground'
+                      }`}
+                    >
+                      <span className="truncate">{model.name}</span>
+                      {isActive && <Check className="w-4 h-4 ml-auto shrink-0" />}
+                    </motion.button>
+                  )
+                })}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {filters.model && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="overflow-hidden"
+          >
+            <div className="border-b border-slate-200 mb-6" />
+            <button
+              onClick={() => toggleSection('variant')}
+              className="flex items-center justify-between w-full text-left mb-3"
+            >
+              <h3 className="font-semibold text-base">Select Variant</h3>
+              <motion.div
+                animate={{ rotate: expandedSections.variant ? 180 : 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <ChevronDown className="w-4 h-4 text-slate-400" />
+              </motion.div>
+            </button>
+            
+            <motion.div
+              initial={false}
+              animate={{ 
+                height: expandedSections.variant ? 'auto' : 0,
+                opacity: expandedSections.variant ? 1 : 0
+              }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              className="overflow-hidden"
+            >
+              <div className="space-y-1 pb-2 max-h-60 overflow-y-auto custom-scrollbar">
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => handleFilterChange({ variant: '' })}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                    !filters.variant
+                      ? 'bg-brand text-white'
+                      : 'hover:bg-secondary text-foreground'
+                  }`}
+                >
+                  <span>All Variants</span>
+                  {!filters.variant && <Check className="w-4 h-4 ml-auto" />}
+                </motion.button>
+                {variants?.map((variant: any, index: number) => {
+                  const isActive = filters.variant === variant.slug
+                  return (
+                    <motion.button
+                      key={variant._id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.03 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => handleFilterChange({ variant: isActive ? '' : variant.slug })}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                        isActive
+                          ? 'bg-brand text-white'
+                          : 'hover:bg-secondary text-foreground'
+                      }`}
+                    >
+                      <span className="truncate">{variant.variantValue}</span>
+                      {isActive && <Check className="w-4 h-4 ml-auto shrink-0" />}
+                    </motion.button>
+                  )
+                })}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="border-b border-slate-200" />
+
       <motion.div
         initial={false}
         animate={{ height: 'auto', opacity: 1 }}
-        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
       >
         <button
           onClick={() => toggleSection('price')}
@@ -287,7 +468,7 @@ export default function FilterSidebar() {
             height: expandedSections.price ? 'auto' : 0,
             opacity: expandedSections.price ? 1 : 0
           }}
-          transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
           className="overflow-hidden"
         >
           <div className="space-y-3 pb-2">
@@ -344,41 +525,6 @@ export default function FilterSidebar() {
             </div>
           </div>
         </motion.div>
-      </motion.div>
-
-      <div className="border-b border-slate-200" />
-
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
-      >
-        <label className="flex items-center gap-3 cursor-pointer group">
-          <motion.div
-            whileTap={{ scale: 0.95 }}
-            className="relative"
-          >
-            <input
-              type="checkbox"
-              checked={filters.inStock}
-              onChange={(e) => handleFilterChange({ inStock: e.target.checked })}
-              className="sr-only"
-            />
-            <motion.div 
-              animate={{ 
-                backgroundColor: filters.inStock ? 'rgb(249 115 22 / var(--tw-bg-opacity))' : '#e2e8f0'
-              }}
-              className="w-10 h-6 rounded-full transition-colors"
-            >
-              <motion.div 
-                animate={{ x: filters.inStock ? 20 : 4 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                className="absolute top-1 w-4 h-4 bg-white rounded-full shadow"
-              />
-            </motion.div>
-          </motion.div>
-          <span className="font-medium text-sm">In Stock Only</span>
-        </label>
       </motion.div>
 
       <div className="border-b border-slate-200" />

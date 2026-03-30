@@ -177,7 +177,7 @@ const brands = useQuery(api.brands.list, {})
             <div className="flex items-center gap-2 lg:gap-4">
               <a
                 href="tel:0127703389"
-                className="hidden xl:flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors"
+                className="hidden items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors"
               >
                 <Phone className="w-5 h-5 text-brand" />
                 <div className="text-sm">
@@ -313,7 +313,7 @@ const brands = useQuery(api.brands.list, {})
               {brands && brands.slice(0, 5).map((brand) => (
                 <Link
                   key={brand._id}
-                  href={`/shop?brand=${brand._id}`}
+                  href={`/shop?brand=${brand.slug}`}
                   className="text-sm font-medium text-slate-300 hover:text-brand transition-colors"
                 >
                   {brand.name}
@@ -362,7 +362,7 @@ const brands = useQuery(api.brands.list, {})
                   href={link.path}
                   className={`block py-3 px-4 rounded-lg text-base font-medium transition-colors ${
                     isActive(link.path)
-                      ? 'bg-brand text-brand'
+                      ? 'bg-brand text-white'
                       : 'text-slate-700 hover:bg-slate-50'
                   }`}
                   onClick={() => setIsMenuOpen(false)}
@@ -371,31 +371,16 @@ const brands = useQuery(api.brands.list, {})
                 </Link>
               ))}
 
-              <div className="pt-4 pb-2">
-                <p className="px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                  Brands
-                </p>
-              </div>
-              {brands?.map((brand) => (
-                <Link
-                  key={brand._id}
-                  href={`/shop?brand=${brand.slug}`}
-                  className="block py-2.5 px-4 text-sm text-slate-600 hover:bg-slate-50 hover:text-brand transition-colors"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {brand.name}
-                </Link>
-              ))}
 
               <div className="pt-4 border-t border-slate-200 mt-4 space-y-3">
                 <a
                   href="tel:0127703389"
-                  className="flex items-center gap-3 py-3 px-4 rounded-lg bg-slate-50"
+                  className="flex items-center gap-3 py-3 px-4 rounded-lg bg-slate-800"
                 >
                   <Phone className="w-5 h-5 text-brand" />
                   <div>
-                    <p className="text-xs text-slate-500">Need Help?</p>
-                    <p className="font-semibold text-slate-800">012 770 3389</p>
+                    <p className="text-xs text-white/70">Need Help?</p>
+                    <p className="font-semibold text-white">012 770 3389</p>
                   </div>
                 </a>
 
@@ -409,20 +394,20 @@ const brands = useQuery(api.brands.list, {})
                 <SignedIn>
                   <Link
                     href={isAdmin ? '/admin' : '/account'}
-                    className="flex items-center justify-between py-3 px-4 rounded-lg bg-slate-50"
+                    className="flex items-center justify-between py-3 px-4 rounded-lg bg-slate-900"
                     onClick={() => setIsMenuOpen(false)}
                   >
                     <div className="flex items-center gap-3">
                       {isAdmin ? (
                         <LayoutDashboard className="w-5 h-5 text-brand" />
                       ) : (
-                        <User className="w-5 h-5 text-slate-600" />
+                        <User className="w-5 h-5 text-white/80" />
                       )}
                       <div>
-                        <p className="text-xs text-slate-500">
+                        <p className="text-xs text-white/60">
                           {isAdmin ? 'Admin Access' : 'Welcome back'}
                         </p>
-                        <p className="font-semibold text-slate-800">
+                        <p className="font-semibold text-white">
                           {isAdmin ? 'Go to Dashboard' : 'My Account'}
                         </p>
                       </div>
@@ -437,35 +422,35 @@ const brands = useQuery(api.brands.list, {})
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <div className="flex items-center gap-3">
-                    <ShoppingBag className="w-5 h-5 text-brand" />
+                    <ShoppingBag className="w-5 h-5 text-white" />
                     <div>
-                      <p className="text-xs text-slate-500">Shopping Cart</p>
-                      <p className="font-semibold text-slate-800">
+                      <p className="text-xs text-white/80">Shopping Cart</p>
+                      <p className="font-semibold text-white">
                         {totalItems} item{totalItems !== 1 ? 's' : ''}
                       </p>
                     </div>
                   </div>
-                  <span className="font-bold text-brand">
+                  <span className="font-bold text-white">
                     R{totalPrice.toFixed(2)}
                   </span>
                 </Link>
 
                 <Link
                   href="/favorites"
-                  className="flex items-center justify-between py-3 px-4 rounded-lg bg-red-50 border border-red-100"
+                  className="flex items-center justify-between py-3 px-4 rounded-lg bg-red-600 border border-red-600"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <div className="flex items-center gap-3">
-                    <Heart className="w-5 h-5 text-red-500" />
+                    <Heart className="w-5 h-5 text-white fill-white" />
                     <div>
-                      <p className="text-xs text-slate-500">My Favorites</p>
-                      <p className="font-semibold text-slate-800">
+                      <p className="text-xs text-white/80">My Favorites</p>
+                      <p className="font-semibold text-white">
                         {favoritesCount} item{favoritesCount !== 1 ? 's' : ''}
                       </p>
                     </div>
                   </div>
                   {favoritesCount > 0 && (
-                    <span className="font-bold text-red-500">
+                    <span className="font-bold text-white">
                       {favoritesCount}
                     </span>
                   )}

@@ -49,6 +49,7 @@ const productSchema = z.object({
   categoryId: z.string().min(1, 'Category is required'),
   description: z.string().optional(),
   price: z.preprocess((val) => Number(val), z.number().min(0.01, 'Price must be greater than 0')),
+  originalPrice: z.preprocess((val) => val === '' ? undefined : Number(val), z.number().min(0).optional()),
   stockQty: z.preprocess((val) => parseInt(String(val), 10) || 0, z.number().int().min(0)),
   partNumber: z.string().optional(),
 })
@@ -75,6 +76,7 @@ export default function ProductForm({ initialData, isEditing }: ProductFormProps
       categoryId: initialData?.categoryId || initialData?.category?._id || '',
       description: initialData?.description || '',
       price: initialData?.price || '',
+      originalPrice: initialData?.originalPrice || '',
       stockQty: initialData?.stockQty ?? initialData?.inventory ?? 0,
       partNumber: initialData?.partNumber || '',
     },
@@ -257,6 +259,7 @@ export default function ProductForm({ initialData, isEditing }: ProductFormProps
         name: data.name,
         description: data.description || undefined,
         price: data.price,
+        originalPrice: data.originalPrice,
         stockQty: data.stockQty ?? 0,
         categoryId: data.categoryId as Id<'categories'>,
         brandId: data.brandId as Id<'brands'>,
@@ -410,6 +413,22 @@ export default function ProductForm({ initialData, isEditing }: ProductFormProps
                 />
               </div>
               <div className="space-y-2">
+                <Label htmlFor="originalPrice">Original Price (R) <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
+                <Controller
+                  name="originalPrice"
+                  control={control}
+                  render={({ field }) => (
+                    <>
+                      <Input {...field} id="originalPrice" type="number" step="0.01" placeholder="0.00" />
+                      {errors.originalPrice && <p className="text-sm text-destructive">{errors.originalPrice.message}</p>}
+                    </>
+                  )}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
                 <Label htmlFor="stockQty">Inventory</Label>
                 <Controller
                   name="stockQty"
@@ -422,17 +441,16 @@ export default function ProductForm({ initialData, isEditing }: ProductFormProps
                   )}
                 />
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="partNumber">Part Number</Label>
-              <Controller
-                name="partNumber"
-                control={control}
-                render={({ field }) => (
-                  <Input {...field} id="partNumber" placeholder="e.g., BP-12345" />
-                )}
-              />
+              <div className="space-y-2">
+                <Label htmlFor="partNumber">Part Number</Label>
+                <Controller
+                  name="partNumber"
+                  control={control}
+                  render={({ field }) => (
+                    <Input {...field} id="partNumber" placeholder="e.g., BP-12345" />
+                  )}
+                />
+              </div>
             </div>
 
             <div className="space-y-2">
