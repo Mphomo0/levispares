@@ -18,11 +18,10 @@ import {
 import { useCart } from '@/lib/CartContext'
 import { useFavorites } from '@/lib/FavoritesContext'
 import {
-  SignedIn,
-  SignedOut,
   SignInButton,
   UserButton,
   useUser,
+  useAuth,
 } from '@clerk/nextjs'
 import { motion, AnimatePresence } from 'motion/react'
 import { useQuery } from 'convex/react'
@@ -36,9 +35,11 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
+  const { userId } = useAuth()
   const { user } = useUser()
   const currentUser = useQuery(api.users.getCurrent)
   const isAdmin = currentUser?.role === 'admin'
+  const isSignedIn = !!userId
 
 const storeSettings = useQuery(api.settings.get)
 
@@ -190,7 +191,7 @@ const brands = useQuery(api.brands.list, {})
 
               <div className="h-8 w-px bg-slate-700 hidden xl:block" />
 
-              <SignedOut>
+              {!isSignedIn ? (
                 <SignInButton mode="modal" forceRedirectUrl="/auth-redirect">
                   <button className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors">
                     <User className="w-5 h-5 text-slate-300" />
@@ -202,32 +203,33 @@ const brands = useQuery(api.brands.list, {})
                     </div>
                   </button>
                 </SignInButton>
-              </SignedOut>
-              <SignedIn>
-                <Link
-                  href={isAdmin ? '/admin' : '/account'}
-                  className="relative group"
-                >
-                  <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors">
-                    {isAdmin ? (
-                      <LayoutDashboard className="w-5 h-5 text-brand" />
-                    ) : (
-                      <User className="w-5 h-5 text-slate-300" />
-                    )}
-                    <div className="hidden sm:block text-sm text-left">
-                      <p className="text-xs text-slate-400 leading-none">
-                        {isAdmin ? 'Admin' : 'Welcome back'}
-                      </p>
-                      <p className="font-semibold text-white">
-                        {isAdmin ? 'Dashboard' : 'My Account'}
-                      </p>
+              ) : (
+                <>
+                  <Link
+                    href={isAdmin ? '/admin' : '/account'}
+                    className="relative group"
+                  >
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors">
+                      {isAdmin ? (
+                        <LayoutDashboard className="w-5 h-5 text-brand" />
+                      ) : (
+                        <User className="w-5 h-5 text-slate-300" />
+                      )}
+                      <div className="hidden sm:block text-sm text-left">
+                        <p className="text-xs text-slate-400 leading-none">
+                          {isAdmin ? 'Admin' : 'Welcome back'}
+                        </p>
+                        <p className="font-semibold text-white">
+                          {isAdmin ? 'Dashboard' : 'My Account'}
+                        </p>
+                      </div>
                     </div>
+                  </Link>
+                  <div className="hidden lg:block">
+                    <UserButton />
                   </div>
-                </Link>
-                <div className="hidden lg:block">
-                  <UserButton afterSignOutUrl="/" />
-                </div>
-              </SignedIn>
+                </>
+              )}
 
               <div className="h-8 w-px bg-slate-700" />
 
@@ -384,14 +386,13 @@ const brands = useQuery(api.brands.list, {})
                   </div>
                 </a>
 
-                <SignedOut>
+                {!isSignedIn ? (
                   <SignInButton mode="modal" forceRedirectUrl="/auth-redirect">
                     <button className="w-full py-3 px-4 rounded-lg bg-slate-900 text-white font-medium hover:bg-slate-800 transition-colors">
                       Sign In / Register
                     </button>
                   </SignInButton>
-                </SignedOut>
-                <SignedIn>
+                ) : (
                   <Link
                     href={isAdmin ? '/admin' : '/account'}
                     className="flex items-center justify-between py-3 px-4 rounded-lg bg-slate-900"
@@ -412,9 +413,9 @@ const brands = useQuery(api.brands.list, {})
                         </p>
                       </div>
                     </div>
-                    <UserButton afterSignOutUrl="/" />
+                    <UserButton />
                   </Link>
-                </SignedIn>
+                )}
 
                 <Link
                   href="/cart"

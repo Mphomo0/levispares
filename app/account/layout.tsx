@@ -76,7 +76,7 @@ export default function UserAccountLayout({
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="bg-gradient-to-r from-brand to-brand text-white py-12">
+      <div className="bg-linear-to-r from-brand to-brand text-white py-12">
         <div className="container mx-auto px-4">
           <div className="flex items-center gap-4">
             <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center overflow-hidden shrink-0">
@@ -111,14 +111,14 @@ export default function UserAccountLayout({
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium whitespace-nowrap transition-colors",
-                    pathname === item.href
-                      ? "bg-brand text-orange-700 dark:bg-orange-900/30 dark:text-brand"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  )}
-                >
-                  {item.icon}
+className={cn(
+  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium whitespace-nowrap transition-colors",
+  pathname === item.href
+    ? "bg-brand text-white [&_svg]:text-white"
+    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+)}
+        >
+          {item.icon}
                   <span className="hidden sm:inline">{item.title}</span>
                 </Link>
               ))}

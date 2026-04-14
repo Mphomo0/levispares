@@ -46,7 +46,9 @@ export default function AddressesPage() {
     setShowForm(true)
   }
 
-  const openEditForm = (addr: typeof addresses extends (infer T)[] | undefined ? T : never) => {
+  const openEditForm = (
+    addr: typeof addresses extends (infer T)[] | undefined ? T : never,
+  ) => {
     if (!addr) return
     setEditingId(addr._id)
     setForm({
@@ -65,7 +67,14 @@ export default function AddressesPage() {
 
   const handleSave = async () => {
     if (!user?.id) return
-    if (!form.name.trim() || !form.street.trim() || !form.city.trim() || !form.province.trim() || !form.postalCode.trim() || !form.phone.trim()) {
+    if (
+      !form.name.trim() ||
+      !form.street.trim() ||
+      !form.city.trim() ||
+      !form.province.trim() ||
+      !form.postalCode.trim() ||
+      !form.phone.trim()
+    ) {
       toast.error('Please fill in all required fields.')
       return
     }
@@ -114,13 +123,27 @@ export default function AddressesPage() {
         <div>
           <h2 className="text-2xl font-bold tracking-tight">My Addresses</h2>
           <p className="text-muted-foreground">
-            Manage your delivery addresses ({addresses?.length ?? 0}/{MAX_ADDRESSES}).
+            Manage your delivery addresses ({addresses?.length ?? 0}/
+            {MAX_ADDRESSES}).
           </p>
         </div>
         {canAddMore && !showForm && (
-          <Button onClick={openAddForm} className="bg-brand hover:bg-brand text-white font-semibold">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          <Button
+            onClick={openAddForm}
+            className="bg-brand hover:bg-brand/90 text-white font-semibold"
+          >
+            <svg
+              className="w-4 h-4 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
             </svg>
             Add New Address
           </Button>
@@ -131,7 +154,9 @@ export default function AddressesPage() {
       {showForm && (
         <Card className="card-shadow border-orange-200 dark:border-orange-900/50">
           <CardHeader>
-            <CardTitle>{editingId ? 'Edit Address' : 'Add New Address'}</CardTitle>
+            <CardTitle>
+              {editingId ? 'Edit Address' : 'Add New Address'}
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
@@ -182,7 +207,9 @@ export default function AddressesPage() {
                 <Input
                   id="province"
                   value={form.province}
-                  onChange={(e) => setForm({ ...form, province: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, province: e.target.value })
+                  }
                   placeholder="Gauteng"
                 />
               </div>
@@ -193,7 +220,9 @@ export default function AddressesPage() {
                 <Input
                   id="postalCode"
                   value={form.postalCode}
-                  onChange={(e) => setForm({ ...form, postalCode: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, postalCode: e.target.value })
+                  }
                   placeholder="2000"
                 />
               </div>
@@ -221,16 +250,35 @@ export default function AddressesPage() {
                 type="checkbox"
                 id="isDefault"
                 checked={form.isDefault}
-                onChange={(e) => setForm({ ...form, isDefault: e.target.checked })}
-                className="h-4 w-4 rounded border-gray-300 text-brand focus:ring-brand"
+                onChange={(e) =>
+                  setForm({ ...form, isDefault: e.target.checked })
+                }
+                className="h-4 w-4 rounded border-gray-300 text-white focus:ring-brand"
               />
-              <Label htmlFor="isDefault" className="font-normal">Set as default address</Label>
+              <Label htmlFor="isDefault" className="font-normal">
+                Set as default address
+              </Label>
             </div>
             <div className="flex gap-2 pt-2">
-              <Button onClick={handleSave} disabled={saving} className="bg-brand hover:bg-brand text-white font-semibold">
-                {saving ? 'Saving...' : editingId ? 'Update Address' : 'Save Address'}
+              <Button
+                onClick={handleSave}
+                disabled={saving}
+                className="bg-brand hover:bg-brand text-white font-semibold"
+              >
+                {saving
+                  ? 'Saving...'
+                  : editingId
+                    ? 'Update Address'
+                    : 'Save Address'}
               </Button>
-              <Button variant="outline" onClick={() => { setShowForm(false); setEditingId(null); setForm(emptyForm) }}>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowForm(false)
+                  setEditingId(null)
+                  setForm(emptyForm)
+                }}
+              >
                 Cancel
               </Button>
             </div>
@@ -248,13 +296,33 @@ export default function AddressesPage() {
       ) : addresses.length === 0 && !showForm ? (
         <Card className="card-shadow">
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <svg className="h-16 w-16 text-muted-foreground/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            <svg
+              className="h-16 w-16 text-muted-foreground/40"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+              />
             </svg>
             <h3 className="mt-4 text-lg font-medium">No addresses yet</h3>
-            <p className="text-sm text-muted-foreground mt-1">Add your first delivery address to get started.</p>
-            <Button onClick={openAddForm} className="mt-4 bg-brand hover:bg-brand text-white font-semibold">
+            <p className="text-sm text-muted-foreground mt-1">
+              Add your first delivery address to get started.
+            </p>
+            <Button
+              onClick={openAddForm}
+              className="mt-4 bg-brand hover:bg-brand text-white font-semibold"
+            >
               Add Address
             </Button>
           </CardContent>
@@ -262,25 +330,58 @@ export default function AddressesPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {addresses.map((address) => (
-            <Card key={address._id} className={`card-shadow ${address.isDefault ? 'border-brand border-2' : ''}`}>
+            <Card
+              key={address._id}
+              className={`card-shadow ${address.isDefault ? 'border-brand border-2' : ''}`}
+            >
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <div className="flex items-center gap-2">
                   <CardTitle className="text-lg">{address.label}</CardTitle>
                   {address.isDefault && (
-                    <span className="bg-brand text-orange-700 text-xs px-2 py-0.5 rounded-full font-medium dark:bg-orange-900/30 dark:text-brand">
+                    <span className="bg-brand text-white text-xs px-2 py-0.5 rounded-full font-medium dark:bg-orange-900/30 dark:text-white">
                       Default
                     </span>
                   )}
                 </div>
                 <div className="flex gap-1">
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEditForm(address)}>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => openEditForm(address)}
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                      />
                     </svg>
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => handleDelete(address._id)}>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-destructive"
+                    onClick={() => handleDelete(address._id)}
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                      />
                     </svg>
                   </Button>
                 </div>
@@ -288,15 +389,24 @@ export default function AddressesPage() {
               <CardContent>
                 <div className="space-y-1">
                   <p className="font-medium">{address.name}</p>
-                  <p className="text-sm text-muted-foreground">{address.street}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {address.street}
+                  </p>
                   <p className="text-sm text-muted-foreground">
                     {address.city}, {address.province} {address.postalCode}
                   </p>
-                  <p className="text-sm text-muted-foreground">{address.country}</p>
-                  <p className="text-sm text-muted-foreground mt-2">{address.phone}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {address.country}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    {address.phone}
+                  </p>
                 </div>
                 {!address.isDefault && (
-                  <Button variant="outline" size="sm" className="w-full mt-4" onClick={() => handleSetDefault(address._id)}>
+                  <Button
+                    className="w-full mt-4 bg-brand text-white font-semibold"
+                    onClick={() => handleSetDefault(address._id)}
+                  >
                     Set as Default
                   </Button>
                 )}
@@ -312,12 +422,26 @@ export default function AddressesPage() {
             >
               <CardContent className="flex flex-col items-center justify-center h-full min-h-[200px] py-8">
                 <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
-                  <svg className="w-6 h-6 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  <svg
+                    className="w-6 h-6 text-muted-foreground"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 4v16m8-8H4"
+                    />
                   </svg>
                 </div>
-                <p className="font-medium text-muted-foreground">Add New Address</p>
-                <p className="text-sm text-muted-foreground">Save a new delivery location</p>
+                <p className="font-medium text-muted-foreground">
+                  Add New Address
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Save a new delivery location
+                </p>
               </CardContent>
             </Card>
           )}
