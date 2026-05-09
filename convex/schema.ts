@@ -219,6 +219,10 @@ export default defineSchema({
     taxEnabled: v.optional(v.boolean()),
     taxRate: v.optional(v.number()),
     shippingRate: v.optional(v.number()),
+    statsYearsBusiness: v.optional(v.string()),
+    statsPartsStock: v.optional(v.string()),
+    statsHappyCustomers: v.optional(v.string()),
+    statsSatisfactionRate: v.optional(v.string()),
   })
     .index("by_key", ["key"]),
 });

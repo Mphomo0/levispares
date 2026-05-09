@@ -27,6 +27,13 @@ const [shippingRate, setShippingRate] = useState('')
 const [savingShipping, setSavingShipping] = useState(false)
   const [showSavedShippingMessage, setShowSavedShippingMessage] = useState(false)
 
+  const [statsYearsBusiness, setStatsYearsBusiness] = useState('')
+  const [statsPartsStock, setStatsPartsStock] = useState('')
+  const [statsHappyCustomers, setStatsHappyCustomers] = useState('')
+  const [statsSatisfactionRate, setStatsSatisfactionRate] = useState('')
+  const [savingStats, setSavingStats] = useState(false)
+  const [showSavedStatsMessage, setShowSavedStatsMessage] = useState(false)
+
   const [showConfirm, setShowConfirm] = useState(false)
   const [confirmText, setConfirmText] = useState('')
   const [resetting, setResetting] = useState(false)
@@ -36,6 +43,10 @@ const [savingShipping, setSavingShipping] = useState(false)
       setTaxEnabled(storeSettings.taxEnabled ?? false)
       setTaxRate((storeSettings.taxRate ?? 0) > 0 ? String(storeSettings.taxRate) : '')
 setShippingRate(String(storeSettings.shippingRate ?? 250))
+      setStatsYearsBusiness(storeSettings.statsYearsBusiness ?? '15+')
+      setStatsPartsStock(storeSettings.statsPartsStock ?? '300+')
+      setStatsHappyCustomers(storeSettings.statsHappyCustomers ?? '500+')
+      setStatsSatisfactionRate(storeSettings.statsSatisfactionRate ?? '99%')
   }
   }, [storeSettings])
 
@@ -87,6 +98,28 @@ async function handleSaveShipping() {
     }
   }
 
+async function handleSaveStats() {
+  setSavingStats(true)
+  try {
+    await updateSettings({
+      taxEnabled,
+      taxRate: taxEnabled ? parseFloat(taxRate) || 0 : 0,
+      shippingRate: parseFloat(shippingRate) || 0,
+      statsYearsBusiness,
+      statsPartsStock,
+      statsHappyCustomers,
+      statsSatisfactionRate,
+    })
+    toast.success('Store stats saved.')
+    setShowSavedStatsMessage(true)
+    setTimeout(() => setShowSavedStatsMessage(false), 3000)
+  } catch {
+    toast.error('Failed to save store stats.')
+  } finally {
+    setSavingStats(false)
+  }
+}
+
   async function handleReset() {
     if (confirmText !== 'RESET') return
     setResetting(true)
@@ -110,6 +143,92 @@ async function handleSaveShipping() {
           Manage your admin panel preferences.
         </p>
       </div>
+
+      {/* Store Stats Configuration */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <svg className="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            Store Statistics
+          </CardTitle>
+          <CardDescription>
+            Configure the statistics displayed on your About page.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="p-4 rounded-lg border border-border bg-secondary/30 space-y-2">
+              <label htmlFor="stats-years" className="block text-sm font-medium text-foreground">
+                Years in Business
+              </label>
+              <input
+                id="stats-years"
+                type="text"
+                value={statsYearsBusiness}
+                onChange={(e) => setStatsYearsBusiness(e.target.value)}
+                placeholder="e.g. 15+"
+                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent/50"
+              />
+            </div>
+            <div className="p-4 rounded-lg border border-border bg-secondary/30 space-y-2">
+              <label htmlFor="stats-parts" className="block text-sm font-medium text-foreground">
+                Parts in Stock
+              </label>
+              <input
+                id="stats-parts"
+                type="text"
+                value={statsPartsStock}
+                onChange={(e) => setStatsPartsStock(e.target.value)}
+                placeholder="e.g. 300+"
+                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent/50"
+              />
+            </div>
+            <div className="p-4 rounded-lg border border-border bg-secondary/30 space-y-2">
+              <label htmlFor="stats-customers" className="block text-sm font-medium text-foreground">
+                Happy Customers
+              </label>
+              <input
+                id="stats-customers"
+                type="text"
+                value={statsHappyCustomers}
+                onChange={(e) => setStatsHappyCustomers(e.target.value)}
+                placeholder="e.g. 500+"
+                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent/50"
+              />
+            </div>
+            <div className="p-4 rounded-lg border border-border bg-secondary/30 space-y-2">
+              <label htmlFor="stats-satisfaction" className="block text-sm font-medium text-foreground">
+                Satisfaction Rate
+              </label>
+              <input
+                id="stats-satisfaction"
+                type="text"
+                value={statsSatisfactionRate}
+                onChange={(e) => setStatsSatisfactionRate(e.target.value)}
+                placeholder="e.g. 99%"
+                className="w-full px-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent/50"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <Button
+              onClick={handleSaveStats}
+              disabled={savingStats}
+              className="bg-brand text-white hover:bg-brand"
+            >
+              {savingStats ? 'Saving...' : 'Save Store Stats'}
+            </Button>
+            {showSavedStatsMessage && (
+              <span className="text-sm font-medium text-green-600 dark:text-green-500 animate-in fade-in duration-300">
+                ✓ Stats saved successfully
+              </span>
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Tax Configuration */}
       <Card>

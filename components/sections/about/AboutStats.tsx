@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from 'react'
 import { motion, useInView, useSpring, useTransform } from 'motion/react'
+import { useQuery } from 'convex/react'
+import { api } from '@/convex/_generated/api'
 
 function AnimatedNumber({ value }: { value: string }) {
   const ref = useRef<HTMLDivElement>(null)
@@ -33,11 +35,13 @@ function AnimatedNumber({ value }: { value: string }) {
 }
 
 export default function AboutStats() {
+  const storeSettings = useQuery(api.settings.get)
+
   const stats = [
-    { number: '15+', label: 'Years in Business' },
-    { number: '300+', label: 'Parts in Stock' },
-    { number: '500+', label: 'Happy Customers' },
-    { number: '99%', label: 'Satisfaction Rate' },
+    { number: storeSettings?.statsYearsBusiness ?? '15+', label: 'Years in Business' },
+    { number: storeSettings?.statsPartsStock ?? '300+', label: 'Parts in Stock' },
+    { number: storeSettings?.statsHappyCustomers ?? '500+', label: 'Happy Customers' },
+    { number: storeSettings?.statsSatisfactionRate ?? '99%', label: 'Satisfaction Rate' },
   ]
 
   return (

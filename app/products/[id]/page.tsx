@@ -294,7 +294,7 @@ export default function ProductPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="flex items-center gap-3 p-4 bg-white rounded-2xl border border-slate-100">
                 <ShieldCheck className="w-5 h-5 text-accent" />
-                <span className="text-xs font-bold text-slate-600 uppercase tracking-wide leading-tight">Authentic OEM Quality</span>
+                <span className="text-xs font-bold text-slate-600 uppercase tracking-wide leading-tight">Quality Assured</span>
               </div>
               <div className="flex items-center gap-3 p-4 bg-white rounded-2xl border border-slate-100">
                 <Truck className="w-5 h-5 text-accent" />

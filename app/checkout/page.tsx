@@ -716,6 +716,9 @@ interface PaymentStepProps {
 }
 
 function PaymentStep({ items, shipping, tax, grandTotal, convexOrderId, onSuccess, onBack }: PaymentStepProps) {
+  const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!
+  const currency = process.env.NEXT_PUBLIC_PAYPAL_CURRENCY || 'ZAR'
+
   return (
     <motion.div
       initial={{ opacity: 0, x: -20 }}
@@ -743,8 +746,8 @@ function PaymentStep({ items, shipping, tax, grandTotal, convexOrderId, onSucces
 
         <PayPalScriptProvider
           options={{
-            clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!,
-            currency: process.env.NEXT_PUBLIC_PAYPAL_CURRENCY || 'USD',
+            clientId,
+            currency,
             intent: 'capture',
           }}
         >

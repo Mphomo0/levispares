@@ -47,12 +47,13 @@ export default function Hero() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
-              className="text-lg md:text-xl text-white/80 mb-8 max-w-xl"
+              className="text-lg md:text-xl mb-8 max-w-xl"
             >
-              After market parts for Isuzu / Nissan / fuso / hino / FAW /
-              Toyota. From heavy-duty brakes to reliable batteries, we provide
+              After market parts for{' '}
+              <span className="font-bold text-white">Isuzu / Nissan / fuso / hino / FAW / Toyota.</span>{' '}
+              <span className="text-white">From heavy-duty brakes to reliable batteries, we provide
               everything your truck needs to stay powerful, efficient, and
-              road-ready.
+              road-ready.</span>
             </motion.p>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
