@@ -205,7 +205,7 @@ export default function TermsConditions() {
           <br />
           <strong>Phone:</strong> 012 770 3389
           <br />
-          <strong>Address:</strong> Stand 11 Zambezi Auto Mart, Montana, Pretoria, 0182
+          <strong>Address:</strong> Stand 10 Zambezi, Montana, Pretoria, 0182
         </p>
       ),
     },

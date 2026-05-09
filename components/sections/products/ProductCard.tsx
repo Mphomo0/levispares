@@ -41,7 +41,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -4 }}
-      className="product-card group relative bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300"
+      className="product-card group relative bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 h-full w-full"
     >
       <Link href={`/products/${product._id}`} className="block">
         <div className="relative aspect-square overflow-hidden bg-slate-50 p-6 flex items-center justify-center">

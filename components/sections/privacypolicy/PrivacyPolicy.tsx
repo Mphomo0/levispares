@@ -300,7 +300,7 @@ export default function PrivacyPolicy() {
               <strong>Phone:</strong> 012 770 3389
             </p>
             <p>
-              <strong>Address:</strong> Stand 11 Zambezi Auto Mart, Montana,
+              <strong>Address:</strong> Stand 10 Zambezi, Montana,
               Pretoria, 0182
             </p>
           </div>

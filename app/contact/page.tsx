@@ -10,7 +10,7 @@ export default function ContactPage() {
     {
       type: 'address' as const,
       title: 'Address',
-      content: 'Stand 11 Zambezi Auto Mart,\nMontana , Pretoria , 0182',
+      content: 'Stand 10 Zambezi,\nMontana, Pretoria, 0182',
     },
     {
       type: 'phone' as const,
