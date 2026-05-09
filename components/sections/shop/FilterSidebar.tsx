@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { motion, AnimatePresence } from 'motion/react'
 import { ChevronDown, SlidersHorizontal, X, Check } from 'lucide-react'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
@@ -149,481 +148,345 @@ export default function FilterSidebar() {
   const hasActiveFilters = filters.category || filters.brand || filters.model || filters.variant || filters.minPrice || filters.maxPrice
 
   const FilterContent = () => (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {hasActiveFilters && (
-        <motion.button
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          onClick={clearFilters}
-          className="w-full flex items-center justify-center gap-2 py-2 px-4 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium text-slate-700 transition-colors"
-        >
-          <X className="w-4 h-4" />
-          Clear All Filters
-        </motion.button>
+        <div className="space-y-3">
+          <div className="flex flex-wrap gap-2">
+            {filters.brand && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-brand/10 text-brand text-xs font-medium rounded-md">
+                {brands?.find(b => b.slug === filters.brand)?.name}
+                <button onClick={() => handleFilterChange({ brand: '' })} className="hover:text-brand/70">
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+            {filters.model && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-brand/10 text-brand text-xs font-medium rounded-md">
+                {models?.find(m => m.slug === filters.model)?.name}
+                <button onClick={() => handleFilterChange({ model: '' })} className="hover:text-brand/70">
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+            {filters.category && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-brand/10 text-brand text-xs font-medium rounded-md">
+                {categoriesWithProducts?.find(c => c.slug === filters.category)?.name}
+                <button onClick={() => handleFilterChange({ category: '' })} className="hover:text-brand/70">
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+          </div>
+          <button
+            onClick={clearFilters}
+            className="text-xs text-slate-500 hover:text-slate-700 font-medium transition-colors"
+          >
+            Clear all
+          </button>
+        </div>
       )}
 
-      <div className="border-b border-slate-200" />
-
-      <motion.div
-        initial={false}
-        animate={{ height: 'auto', opacity: 1 }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-      >
-        <button
-          onClick={() => toggleSection('category')}
-          className="flex items-center justify-between w-full text-left mb-3"
-        >
-          <h3 className="font-semibold text-base">Categories</h3>
-          <motion.div
-            animate={{ rotate: expandedSections.category ? 180 : 0 }}
-            transition={{ duration: 0.2 }}
+      <div className="space-y-5">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => toggleSection('brand')}
+            className="flex items-center gap-2"
           >
-            <ChevronDown className="w-4 h-4 text-slate-400" />
-          </motion.div>
-        </button>
+            <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">Brand</h3>
+            <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${expandedSections.brand ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
         
-        <motion.div
-          initial={false}
-          animate={{ 
-            height: expandedSections.category ? 'auto' : 0,
-            opacity: expandedSections.category ? 1 : 0
-          }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="overflow-hidden"
-        >
-          <div className="space-y-1 pb-2">
-            <motion.button
-              whileTap={{ scale: 0.98 }}
-              onClick={() => handleFilterChange({ category: '' })}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                !filters.category
-                  ? 'bg-brand text-white'
-                  : 'hover:bg-secondary text-foreground'
-              }`}
-            >
-              <span>All Parts</span>
-              {!filters.category && <Check className="w-4 h-4 ml-auto" />}
-            </motion.button>
-            {categoriesWithProducts?.map((cat, index) => {
-              const isActive = filters.category === cat._id
+        {expandedSections.brand && (
+          <div className="space-y-1">
+            {brands?.map((brand) => {
+              const isActive = filters.brand === brand.slug
               return (
-                <motion.button
-                  key={cat._id}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.03 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => handleFilterChange({ category: isActive ? '' : cat.slug })}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-brand text-white'
-                      : 'hover:bg-secondary text-foreground'
-                  }`}
-                >
-                  <span className="truncate">{cat.name}</span>
-                  {isActive && <Check className="w-4 h-4 ml-auto shrink-0" />}
-                </motion.button>
-              )
-            })}
-          </div>
-        </motion.div>
-      </motion.div>
-
-      <div className="border-b border-slate-200" />
-
-      <motion.div
-        initial={false}
-        animate={{ height: 'auto', opacity: 1 }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-      >
-        <button
-          onClick={() => toggleSection('brand')}
-          className="flex items-center justify-between w-full text-left mb-3"
-        >
-          <h3 className="font-semibold text-base">Brands</h3>
-          <motion.div
-            animate={{ rotate: expandedSections.brand ? 180 : 0 }}
-            transition={{ duration: 0.2 }}
-          >
-            <ChevronDown className="w-4 h-4 text-slate-400" />
-          </motion.div>
-        </button>
-        
-        <motion.div
-          initial={false}
-          animate={{ 
-            height: expandedSections.brand ? 'auto' : 0,
-            opacity: expandedSections.brand ? 1 : 0
-          }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="overflow-hidden"
-        >
-          <div className="space-y-1 pb-2 max-h-60 overflow-y-auto">
-            <motion.button
-              whileTap={{ scale: 0.98 }}
-              onClick={() => handleFilterChange({ brand: '' })}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                !filters.brand
-                  ? 'bg-brand text-white'
-                  : 'hover:bg-secondary text-foreground'
-              }`}
-            >
-              <span>All Brands</span>
-              {!filters.brand && <Check className="w-4 h-4 ml-auto" />}
-            </motion.button>
-            {brands?.map((brand, index) => {
-              const isActive = filters.brand === brand._id
-              return (
-                <motion.button
+                <button
                   key={brand._id}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.03 }}
-                  whileTap={{ scale: 0.98 }}
                   onClick={() => handleFilterChange({ brand: isActive ? '' : brand.slug })}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                    isActive
-                      ? 'bg-brand text-white'
-                      : 'hover:bg-secondary text-foreground'
+                  className={`w-full flex items-center gap-3 px-2 py-1.5 rounded-md cursor-pointer transition-colors text-left ${
+                    isActive ? 'bg-brand/5' : 'hover:bg-slate-50'
                   }`}
                 >
-                  <span className="truncate">{brand.name}</span>
-                  {isActive && <Check className="w-4 h-4 ml-auto shrink-0" />}
-                </motion.button>
+                  <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
+                    isActive ? 'bg-brand border-brand' : 'border-slate-300'
+                  }`}>
+                    {isActive && <Check className="w-2.5 h-2.5 text-white" />}
+                  </div>
+                  <span className={`text-sm flex-1 truncate ${isActive ? 'font-medium text-slate-900' : 'text-slate-600'}`}>
+                    {brand.name}
+                  </span>
+                </button>
               )
             })}
           </div>
-        </motion.div>
-      </motion.div>
+        )}
+      </div>
 
-      <div className="border-b border-slate-200" />
+      <div className="h-px bg-slate-200" />
 
-      <AnimatePresence>
-        {filters.brand && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="overflow-hidden"
-          >
-            <div className="border-b border-slate-200 mb-6" />
+      {filters.brand && (
+        <div className="space-y-5">
+          <div className="flex items-center justify-between">
             <button
               onClick={() => toggleSection('model')}
-              className="flex items-center justify-between w-full text-left mb-3"
+              className="flex items-center gap-2"
             >
-              <h3 className="font-semibold text-base">Select Model</h3>
-              <motion.div
-                animate={{ rotate: expandedSections.model ? 180 : 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <ChevronDown className="w-4 h-4 text-slate-400" />
-              </motion.div>
+              <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">Model</h3>
+              <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${expandedSections.model ? 'rotate-180' : ''}`} />
             </button>
-            
-            <motion.div
-              initial={false}
-              animate={{ 
-                height: expandedSections.model ? 'auto' : 0,
-                opacity: expandedSections.model ? 1 : 0
-              }}
-              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              className="overflow-hidden"
-            >
-              <div className="space-y-1 pb-2 max-h-60 overflow-y-auto custom-scrollbar">
-                <motion.button
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => handleFilterChange({ model: '' })}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                    !filters.model
-                      ? 'bg-brand text-white'
-                      : 'hover:bg-secondary text-foreground'
-                  }`}
-                >
-                  <span>All Models</span>
-                  {!filters.model && <Check className="w-4 h-4 ml-auto" />}
-                </motion.button>
-                {models?.map((model: any, index: number) => {
-                  const isActive = filters.model === model.slug
-                  return (
-                    <motion.button
-                      key={model._id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.03 }}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => handleFilterChange({ model: isActive ? '' : model.slug })}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                        isActive
-                          ? 'bg-brand text-white'
-                          : 'hover:bg-secondary text-foreground'
-                      }`}
-                    >
-                      <span className="truncate">{model.name}</span>
-                      {isActive && <Check className="w-4 h-4 ml-auto shrink-0" />}
-                    </motion.button>
-                  )
-                })}
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+          
+          {expandedSections.model && (
+            <div className="space-y-1">
+              {models?.map((model: any) => {
+                const isActive = filters.model === model.slug
+                return (
+                  <button
+                    key={model._id}
+                    onClick={() => handleFilterChange({ model: isActive ? '' : model.slug })}
+                    className={`w-full flex items-center gap-3 px-2 py-1.5 rounded-md cursor-pointer transition-colors text-left ${
+                      isActive ? 'bg-brand/5' : 'hover:bg-slate-50'
+                    }`}
+                  >
+                    <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
+                      isActive ? 'bg-brand border-brand' : 'border-slate-300'
+                    }`}>
+                      {isActive && <Check className="w-2.5 h-2.5 text-white" />}
+                    </div>
+                    <span className={`text-sm flex-1 truncate ${isActive ? 'font-medium text-slate-900' : 'text-slate-600'}`}>
+                      {model.name}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
-      <AnimatePresence>
-        {filters.model && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-            className="overflow-hidden"
-          >
-            <div className="border-b border-slate-200 mb-6" />
-            <button
-              onClick={() => toggleSection('variant')}
-              className="flex items-center justify-between w-full text-left mb-3"
-            >
-              <h3 className="font-semibold text-base">Select Variant</h3>
-              <motion.div
-                animate={{ rotate: expandedSections.variant ? 180 : 0 }}
-                transition={{ duration: 0.2 }}
+      {filters.model && (
+        <>
+          <div className="h-px bg-slate-200" />
+          <div className="space-y-5">
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => toggleSection('variant')}
+                className="flex items-center gap-2"
               >
-                <ChevronDown className="w-4 h-4 text-slate-400" />
-              </motion.div>
-            </button>
+                <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">Variant</h3>
+                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${expandedSections.variant ? 'rotate-180' : ''}`} />
+              </button>
+            </div>
             
-            <motion.div
-              initial={false}
-              animate={{ 
-                height: expandedSections.variant ? 'auto' : 0,
-                opacity: expandedSections.variant ? 1 : 0
-              }}
-              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              className="overflow-hidden"
-            >
-              <div className="space-y-1 pb-2 max-h-60 overflow-y-auto custom-scrollbar">
-                <motion.button
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => handleFilterChange({ variant: '' })}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                    !filters.variant
-                      ? 'bg-brand text-white'
-                      : 'hover:bg-secondary text-foreground'
-                  }`}
-                >
-                  <span>All Variants</span>
-                  {!filters.variant && <Check className="w-4 h-4 ml-auto" />}
-                </motion.button>
-                {variants?.map((variant: any, index: number) => {
+            {expandedSections.variant && (
+              <div className="space-y-1">
+                {variants?.map((variant: any) => {
                   const isActive = filters.variant === variant.slug
                   return (
-                    <motion.button
+                    <button
                       key={variant._id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.03 }}
-                      whileTap={{ scale: 0.98 }}
                       onClick={() => handleFilterChange({ variant: isActive ? '' : variant.slug })}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                        isActive
-                          ? 'bg-brand text-white'
-                          : 'hover:bg-secondary text-foreground'
+                      className={`w-full flex items-center gap-3 px-2 py-1.5 rounded-md cursor-pointer transition-colors text-left ${
+                        isActive ? 'bg-brand/5' : 'hover:bg-slate-50'
                       }`}
                     >
-                      <span className="truncate">{variant.variantValue}</span>
-                      {isActive && <Check className="w-4 h-4 ml-auto shrink-0" />}
-                    </motion.button>
+                      <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
+                        isActive ? 'bg-brand border-brand' : 'border-slate-300'
+                      }`}>
+                        {isActive && <Check className="w-2.5 h-2.5 text-white" />}
+                      </div>
+                      <span className={`text-sm flex-1 truncate ${isActive ? 'font-medium text-slate-900' : 'text-slate-600'}`}>
+                        {variant.variantValue}
+                      </span>
+                    </button>
                   )
                 })}
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            )}
+          </div>
+        </>
+      )}
 
-      <div className="border-b border-slate-200" />
+      {filters.brand && (
+        <>
+          <div className="h-px bg-slate-200" />
+          <div className="space-y-5">
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => toggleSection('category')}
+                className="flex items-center gap-2"
+              >
+                <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">Category</h3>
+                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${expandedSections.category ? 'rotate-180' : ''}`} />
+              </button>
+            </div>
+            
+            {expandedSections.category && (
+              <div className="space-y-1">
+                {categoriesWithProducts?.map((cat) => {
+                  const isActive = filters.category === cat.slug
+                  return (
+                    <button
+                      key={cat._id}
+                      onClick={() => handleFilterChange({ category: isActive ? '' : cat.slug })}
+                      className={`w-full flex items-center gap-3 px-2 py-1.5 rounded-md cursor-pointer transition-colors text-left ${
+                        isActive ? 'bg-brand/5' : 'hover:bg-slate-50'
+                      }`}
+                    >
+                      <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
+                        isActive ? 'bg-brand border-brand' : 'border-slate-300'
+                      }`}>
+                        {isActive && <Check className="w-2.5 h-2.5 text-white" />}
+                      </div>
+                      <span className={`text-sm flex-1 truncate ${isActive ? 'font-medium text-slate-900' : 'text-slate-600'}`}>
+                        {cat.name}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        </>
+      )}
 
-      <motion.div
-        initial={false}
-        animate={{ height: 'auto', opacity: 1 }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-      >
-        <button
-          onClick={() => toggleSection('price')}
-          className="flex items-center justify-between w-full text-left mb-3"
-        >
-          <h3 className="font-semibold text-base">Price Range</h3>
-          <motion.div
-            animate={{ rotate: expandedSections.price ? 180 : 0 }}
-            transition={{ duration: 0.2 }}
+      <div className="h-px bg-slate-200" />
+
+      <div className="space-y-5">
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => toggleSection('price')}
+            className="flex items-center gap-2"
           >
-            <ChevronDown className="w-4 h-4 text-slate-400" />
-          </motion.div>
-        </button>
+            <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">Price</h3>
+            <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${expandedSections.price ? 'rotate-180' : ''}`} />
+          </button>
+        </div>
         
-        <motion.div
-          initial={false}
-          animate={{ 
-            height: expandedSections.price ? 'auto' : 0,
-            opacity: expandedSections.price ? 1 : 0
-          }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="overflow-hidden"
-        >
-          <div className="space-y-3 pb-2">
-            <div className="flex gap-2">
+        {expandedSections.price && (
+          <div className="space-y-4">
+            <div className="flex gap-3">
               <div className="flex-1">
-                <label className="text-xs text-slate-500 mb-1 block">Min</label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">R</span>
                   <input
                     type="number"
-                    placeholder="0"
+                    placeholder="Min"
                     value={filters.minPrice}
                     onChange={(e) => handleFilterChange({ minPrice: e.target.value })}
-                    className="w-full pl-7 pr-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
+                    className="w-full pl-7 pr-2 py-2 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all"
                   />
                 </div>
               </div>
               <div className="flex-1">
-                <label className="text-xs text-slate-500 mb-1 block">Max</label>
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">R</span>
                   <input
                     type="number"
-                    placeholder="Any"
+                    placeholder="Max"
                     value={filters.maxPrice}
                     onChange={(e) => handleFilterChange({ maxPrice: e.target.value })}
-                    className="w-full pl-7 pr-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-all"
+                    className="w-full pl-7 pr-2 py-2 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all"
                   />
                 </div>
               </div>
             </div>
-            <div className="flex gap-2">
-              <motion.button
-                whileTap={{ scale: 0.95 }}
+            <div className="grid grid-cols-3 gap-2">
+              <button
                 onClick={() => handleFilterChange({ minPrice: '', maxPrice: '500' })}
-                className="flex-1 px-3 py-1.5 text-xs bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+                className="px-2 py-1.5 text-xs border border-slate-200 hover:border-brand hover:text-brand rounded-md transition-colors"
               >
                 Under R500
-              </motion.button>
-              <motion.button
-                whileTap={{ scale: 0.95 }}
+              </button>
+              <button
                 onClick={() => handleFilterChange({ minPrice: '500', maxPrice: '2000' })}
-                className="flex-1 px-3 py-1.5 text-xs bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+                className="px-2 py-1.5 text-xs border border-slate-200 hover:border-brand hover:text-brand rounded-md transition-colors"
               >
                 R500-2k
-              </motion.button>
-              <motion.button
-                whileTap={{ scale: 0.95 }}
+              </button>
+              <button
                 onClick={() => handleFilterChange({ minPrice: '2000', maxPrice: '' })}
-                className="flex-1 px-3 py-1.5 text-xs bg-slate-100 hover:bg-slate-200 rounded-md transition-colors"
+                className="px-2 py-1.5 text-xs border border-slate-200 hover:border-brand hover:text-brand rounded-md transition-colors"
               >
                 R2k+
-              </motion.button>
+              </button>
             </div>
           </div>
-        </motion.div>
-      </motion.div>
+        )}
+      </div>
 
-      <div className="border-b border-slate-200" />
+      <div className="h-px bg-slate-200" />
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.25 }}
-      >
-        <h3 className="font-semibold text-base mb-3">Sort By</h3>
-        <motion.select
-          whileTap={{ scale: 0.98 }}
+      <div className="space-y-3">
+        <label className="text-sm font-semibold text-slate-900 uppercase tracking-wide">Sort</label>
+        <select
           value={filters.sort}
           onChange={(e) => handleFilterChange({ sort: e.target.value })}
-          className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent bg-white transition-all"
+          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all"
         >
           <option value="newest">Newest First</option>
           <option value="price-asc">Price: Low to High</option>
           <option value="price-desc">Price: High to Low</option>
           <option value="name">Name: A-Z</option>
-        </motion.select>
-      </motion.div>
+        </select>
+      </div>
     </div>
   )
 
   return (
     <>
       <div className="lg:hidden mb-4">
-        <motion.button
-          whileTap={{ scale: 0.98 }}
+        <button
           onClick={() => setMobileFiltersOpen(true)}
-          className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors"
+          className="flex items-center gap-2 px-4 py-2.5 bg-slate-900 text-white rounded-lg text-sm font-medium hover:bg-slate-800 transition-colors"
         >
           <SlidersHorizontal className="w-4 h-4" />
           Filters
           {hasActiveFilters && (
-            <span className="w-5 h-5 bg-accent text-accent-foreground text-xs rounded-full flex items-center justify-center">
-              !
+            <span className="w-5 h-5 bg-brand text-white text-xs rounded-full flex items-center justify-center">
+              {Object.values(filters).filter(v => v && v !== 'newest').length}
             </span>
           )}
-        </motion.button>
+        </button>
       </div>
 
-      <AnimatePresence>
-        {mobileFiltersOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setMobileFiltersOpen(false)}
-              className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-            />
-            <motion.div
-              initial={{ x: '-100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="fixed left-0 top-0 h-full w-80 max-w-[85vw] bg-white z-50 overflow-y-auto lg:hidden"
-            >
-              <div className="sticky top-0 bg-white border-b border-slate-200 px-4 py-4 flex items-center justify-between">
-                <h2 className="font-semibold text-lg">Filters</h2>
-                <motion.button
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => setMobileFiltersOpen(false)}
-                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </motion.button>
-              </div>
-              <div className="p-4">
-                <FilterContent />
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
-      <aside className="lg:w-72 shrink-0 hidden lg:block">
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          className="bg-card rounded-xl p-6 card-shadow sticky top-24"
-        >
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="font-semibold text-lg flex items-center gap-2">
-              <motion.div
-                initial={{ rotate: 0 }}
-                animate={{ rotate: hasActiveFilters ? 10 : 0 }}
-                transition={{ type: 'spring' }}
+      {mobileFiltersOpen && (
+        <>
+          <div
+            onClick={() => setMobileFiltersOpen(false)}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+          />
+          <div
+            className="fixed left-0 top-0 h-full w-80 max-w-[85vw] bg-white z-50 overflow-y-auto lg:hidden shadow-xl"
+          >
+            <div className="sticky top-0 bg-white border-b border-slate-100 px-5 py-4 flex items-center justify-between">
+              <h2 className="font-semibold text-lg text-slate-900">Filter</h2>
+              <button
+                onClick={() => setMobileFiltersOpen(false)}
+                className="p-1.5 hover:bg-slate-100 rounded-md transition-colors"
               >
-                <SlidersHorizontal className="w-5 h-5" />
-              </motion.div>
-              Filters
-            </h2>
+                <X className="w-5 h-5 text-slate-500" />
+              </button>
+            </div>
+            <div className="p-5">
+              <FilterContent />
+            </div>
+          </div>
+        </>
+      )}
+
+      <aside className="lg:w-64 shrink-0 hidden lg:block">
+        <div
+          className="bg-white rounded-xl border border-slate-200 p-5 sticky top-24"
+        >
+          <div className="flex items-center gap-2 mb-6">
+            <SlidersHorizontal className="w-4 h-4 text-slate-900" />
+            <h2 className="font-semibold text-slate-900">Filters</h2>
           </div>
           <FilterContent />
-        </motion.div>
+        </div>
       </aside>
     </>
   )

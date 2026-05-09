@@ -9,10 +9,12 @@ import { api } from '@/convex/_generated/api'
 import { categories } from '@/lib/products'
 import ProductCard from '@/components/sections/products/ProductCard'
 import CategoryCard from '@/components/sections/products/CategoryCard'
+import BrandCard from '@/components/sections/products/BrandCard'
 // import SeedData from '@/components/SeedData'
 
 export default function Home() {
   const featuredProducts = useQuery((api as any).products.listFeatured)
+  const brands = useQuery(api.brands.list)
 
   return (
     <>
@@ -40,7 +42,7 @@ export default function Home() {
             </Link>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {!featuredProducts ? (
               <p>Loading featured products...</p>
             ) : (
@@ -89,6 +91,45 @@ export default function Home() {
                 <CategoryCard {...category} />
               </motion.div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Brands - Marquee */}
+      <section className="py-16 md:py-24 bg-white overflow-hidden">
+        <div className="container mx-auto px-4 mb-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
+            className="text-center"
+          >
+            <h2 className="section-title">Shop by Brand</h2>
+            <p className="section-subtitle">
+              Browse parts from your favorite brands
+            </p>
+          </motion.div>
+        </div>
+
+        <div className="relative">
+          <div className="flex animate-marquee">
+            {!brands ? (
+              <p className="px-4">Loading brands...</p>
+            ) : (
+              <>
+                {(brands as any[]).map((brand: any) => (
+                  <div key={brand._id} className="flex-shrink-0 mx-6">
+                    <BrandCard brand={brand} />
+                  </div>
+                ))}
+                {(brands as any[]).map((brand: any) => (
+                  <div key={`${brand._id}-dup`} className="flex-shrink-0 mx-6">
+                    <BrandCard brand={brand} />
+                  </div>
+                ))}
+              </>
+            )}
           </div>
         </div>
       </section>
