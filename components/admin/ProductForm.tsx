@@ -413,7 +413,7 @@ export default function ProductForm({ initialData, isEditing }: ProductFormProps
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="originalPrice">Original Price (R) <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
+                <Label htmlFor="originalPrice">Promo Price (R) <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
                 <Controller
                   name="originalPrice"
                   control={control}
