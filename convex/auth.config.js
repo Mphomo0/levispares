@@ -1,10 +1,8 @@
-export default ({ deploymentType }) => ({
+export default {
   providers: [
     {
-      domain: deploymentType === "production"
-        ? "https://clerk.levispares.co.za/"
-        : "https://talented-dane-13.clerk.accounts.dev/",
+      domain: "https://clerk.levispares.co.za/",
       applicationID: "convex",
     },
   ],
-});
+};
