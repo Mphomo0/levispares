@@ -53,12 +53,13 @@ export default function AboutStory() {
             className="relative aspect-square bg-secondary rounded-2xl overflow-hidden"
           >
             <Image
-              src="https://images.unsplash.com/photo-1487754180451-c456f719a1fc"
+              src="https://images.unsplash.com/photo-1487754180451-c456f719a1fc?auto=format&fit=crop&w=1200&q=75"
               alt="Auto shop"
               fill
               className="object-cover"
               sizes="(max-width: 1024px) 100vw, 50vw"
               priority={false}
+              unoptimized
             />
           </motion.div>
         </div>

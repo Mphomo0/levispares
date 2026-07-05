@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import imagekitLoader from '@/lib/imagekitLoader'
 import { usePathname } from 'next/navigation'
 import {
   ShoppingBag,
@@ -119,6 +120,7 @@ const brands = useQuery(api.brands.list, {})
               >
                 <div className="absolute -inset-2 bg-brand/20 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity -z-10" />
                 <Image
+                  loader={imagekitLoader}
                   src="https://ik.imagekit.io/qvmqqewsu/logo.webp"
                   alt="Levi's Spares"
                   width={160}

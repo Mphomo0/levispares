@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { MapPin, Phone, Mail } from 'lucide-react'
 import Image from 'next/image'
+import imagekitLoader from '@/lib/imagekitLoader'
 
 export default function Footer() {
   return (
@@ -13,6 +14,7 @@ export default function Footer() {
           <div className="space-y-4">
             <Link href="/" className="flex items-center gap-2">
               <Image
+                loader={imagekitLoader}
                 src="https://ik.imagekit.io/qvmqqewsu/logo.webp"
                 alt="Levi Truck Spares Logo"
                 width={160}

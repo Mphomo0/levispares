@@ -3,6 +3,7 @@
 import { ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
+import imagekitLoader from '@/lib/imagekitLoader'
 
 interface BrandCardProps {
   brand: {
@@ -24,9 +25,15 @@ export default function BrandCard({ brand }: BrandCardProps) {
       <div className="w-20 h-20 relative flex items-center justify-center">
         {brand.logo || brand.imageKitFileId ? (
           <Image
+            loader={
+              (brand.logo || '').includes('ik.imagekit.io') || !brand.logo
+                ? imagekitLoader
+                : undefined
+            }
             src={brand.logo || `https://ik.imagekit.io/carparts/${brand.imageKitFileId}`}
             alt={brand.name}
             fill
+            sizes="80px"
             className="object-contain p-2"
           />
         ) : (
