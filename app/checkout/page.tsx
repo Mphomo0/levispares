@@ -15,6 +15,7 @@ import { SignInButton, SignUpButton } from '@clerk/nextjs'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import SmartImage from '@/components/ui/SmartImage'
 
 const STEPS = ['Address', 'Review', 'Payment'] as const
 type Step = (typeof STEPS)[number]
@@ -628,8 +629,8 @@ function ReviewStep({
         <div className="space-y-4">
           {items.map((item) => (
             <div key={item._id} className="flex gap-4">
-              <div className="w-16 h-16 bg-secondary rounded-lg overflow-hidden shrink-0">
-                <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+              <div className="relative w-16 h-16 bg-secondary rounded-lg overflow-hidden shrink-0">
+                <SmartImage src={item.image || '/images/spares.webp'} alt={item.name} fill sizes="64px" className="object-cover" />
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-foreground truncate">{item.name}</p>
@@ -843,8 +844,8 @@ function OrderSidebar({ items, totalPrice, shipping, tax, taxEnabled, taxRatePer
       <div className="space-y-3 mb-4 max-h-60 overflow-y-auto">
         {items.map((item) => (
           <div key={item._id} className="flex gap-3">
-            <div className="w-12 h-12 bg-secondary rounded-lg overflow-hidden shrink-0">
-              <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+            <div className="relative w-12 h-12 bg-secondary rounded-lg overflow-hidden shrink-0">
+              <SmartImage src={item.image || '/images/spares.webp'} alt={item.name} fill sizes="48px" className="object-cover" />
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground truncate">{item.name}</p>

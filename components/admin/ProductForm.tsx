@@ -27,6 +27,7 @@ import {
   upload,
 } from '@imagekit/next'
 import { Id } from '@/convex/_generated/dataModel'
+import SmartImage from '@/components/ui/SmartImage'
 import { toast } from 'sonner'
 
 interface ImageItem {
@@ -489,7 +490,12 @@ export default function ProductForm({ initialData, isEditing }: ProductFormProps
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {images.map((image, index) => (
                 <div key={index} className="aspect-square rounded-lg border bg-muted relative group overflow-hidden">
-                  <img src={image.url} alt={`Preview ${index}`} className="h-full w-full object-cover" />
+                  {image.url.startsWith('blob:') ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={image.url} alt={`Preview ${index}`} className="h-full w-full object-cover" />
+                  ) : (
+                    <SmartImage src={image.url} alt={`Preview ${index}`} fill sizes="(min-width: 768px) 33vw, 50vw" className="object-cover" />
+                  )}
                   {image.uploading && (
                     <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                       <div className="text-center">

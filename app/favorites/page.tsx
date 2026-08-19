@@ -9,6 +9,7 @@ import { useFavorites, Product } from '@/lib/FavoritesContext'
 import { useCart } from '@/lib/CartContext'
 import { toast } from 'sonner'
 import { motion } from 'motion/react'
+import SmartImage from '@/components/ui/SmartImage'
 
 export default function FavoritesPage() {
   const { user, isLoaded: isUserLoaded } = useUser()
@@ -148,10 +149,12 @@ export default function FavoritesPage() {
                   {item.product && (
                     <>
                       <div className="relative aspect-4/3 bg-slate-100 overflow-hidden">
-                        <img
-                          src={item.product.image}
+                        <SmartImage
+                          src={item.product.image || '/images/spares.webp'}
                           alt={item.product.name}
-                          className="w-full h-full object-cover"
+                          fill
+                          sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+                          className="object-cover"
                         />
                         <button
                           onClick={() => handleRemove(item)}

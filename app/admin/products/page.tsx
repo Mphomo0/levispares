@@ -41,6 +41,7 @@ import Link from 'next/link'
 import { useQuery, useMutation, useAction } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
+import SmartImage from '@/components/ui/SmartImage'
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -254,9 +255,9 @@ export default function AdminProductsPage() {
               return (
                 <div key={product._id} className="rounded-lg border border-border p-4 space-y-3">
                   <div className="flex items-start gap-3">
-                    <div className="h-14 w-14 rounded-lg bg-muted flex items-center justify-center overflow-hidden shrink-0">
+                    <div className="relative h-14 w-14 rounded-lg bg-muted flex items-center justify-center overflow-hidden shrink-0">
                       {product.image ? (
-                        <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
+                        <SmartImage src={product.image} alt={product.name} fill sizes="56px" className="object-cover" />
                       ) : (
                         <svg className="h-6 w-6 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -354,9 +355,9 @@ export default function AdminProductsPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center overflow-hidden shrink-0">
+                        <div className="relative h-10 w-10 rounded-lg bg-muted flex items-center justify-center overflow-hidden shrink-0">
                           {product.image ? (
-                            <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
+                            <SmartImage src={product.image} alt={product.name} fill sizes="40px" className="object-cover" />
                           ) : (
                             <svg className="h-5 w-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />

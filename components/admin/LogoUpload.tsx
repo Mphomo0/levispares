@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import { Label } from '@/components/ui/label'
 import { X, ImageIcon } from 'lucide-react'
+import SmartImage from '@/components/ui/SmartImage'
 import {
   ImageKitAbortError,
   ImageKitInvalidRequestError,
@@ -102,10 +103,12 @@ export default function LogoUpload({ value, onChange, folder = '/brands', label 
       
       {value ? (
         <div className="relative w-32 h-32 rounded-lg border-2 border-dashed border-border overflow-hidden bg-muted">
-          <img
+          <SmartImage
             src={value}
             alt="Logo preview"
-            className="w-full h-full object-contain p-2"
+            fill
+            sizes="128px"
+            className="object-contain p-2"
           />
           {uploading && (
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center">

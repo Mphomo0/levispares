@@ -17,6 +17,7 @@ import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
 import { use } from 'react'
+import SmartImage from '@/components/ui/SmartImage'
 
 export default function EditModelPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
@@ -228,9 +229,9 @@ export default function EditModelPage({ params }: { params: Promise<{ id: string
               {model.brand && (
                 <div className="p-4 border rounded-lg bg-muted/50">
                   <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-lg bg-white flex items-center justify-center overflow-hidden">
+                    <div className="relative h-12 w-12 rounded-lg bg-white flex items-center justify-center overflow-hidden">
                       {model.brand.logo ? (
-                        <img src={model.brand.logo} alt={model.brand.name} className="h-full w-full object-contain p-1" />
+                        <SmartImage src={model.brand.logo} alt={model.brand.name} fill sizes="48px" className="object-contain p-1" />
                       ) : (
                         <span className="text-lg font-bold text-muted-foreground">
                           {model.brand.name.charAt(0).toUpperCase()}

@@ -9,6 +9,7 @@ import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import Link from 'next/link'
 import { SignInButton, SignUpButton } from '@clerk/nextjs'
+import SmartImage from '@/components/ui/SmartImage'
 
 const OrderSummary = ({ totalPrice, taxEnabled, taxRate, shippingRate, onCheckout }: { totalPrice: number; taxEnabled: boolean; taxRate: number; shippingRate: number; onCheckout: () => void }) => {
   const [termsAccepted, setTermsAccepted] = useState(false)
@@ -208,12 +209,14 @@ const handleCheckout = () => {
               >
                 <Link
                   href={`/product/${item._id}`}
-                  className="w-full sm:w-32 h-32 bg-secondary rounded-lg overflow-hidden shrink-0"
+                  className="relative w-full sm:w-32 h-32 bg-secondary rounded-lg overflow-hidden shrink-0"
                 >
-                  <img
-                    src={item.image}
+                  <SmartImage
+                    src={item.image || '/images/spares.webp'}
                     alt={item.name}
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="128px"
+                    className="object-cover"
                   />
                 </Link>
 

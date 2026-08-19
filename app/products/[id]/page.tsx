@@ -7,6 +7,7 @@ import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
 import { useCart } from '@/lib/CartContext'
 import { useFavorites } from '@/lib/FavoritesContext'
+import SmartImage from '@/components/ui/SmartImage'
 import { useUser, SignInButton } from '@clerk/nextjs'
 import { motion, AnimatePresence } from 'motion/react'
 import { 
@@ -78,7 +79,7 @@ export default function ProductPage() {
     )
   }
 
-  const mainImage = selectedImage || product.image || 'https://placehold.co/600x600?text=No+Image'
+  const mainImage = selectedImage || product.image || '/images/spares.webp'
   const isFavorited = isFavorite(product._id)
 
   const handleAddToCart = () => {
@@ -146,10 +147,13 @@ export default function ProductPage() {
               layoutId="product-image"
               className="relative aspect-square bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-200 group"
             >
-              <img 
-                src={mainImage} 
+              <SmartImage
+                src={mainImage}
                 alt={product.name}
-                className="w-full h-full object-contain p-8 transition-transform duration-700 group-hover:scale-110"
+                fill
+                sizes="(min-width: 1024px) 58vw, 100vw"
+                priority
+                className="object-contain p-8 transition-transform duration-700 group-hover:scale-110"
               />
               <button 
                 onClick={() => toggleFavorite(product as any)}
@@ -176,7 +180,7 @@ export default function ProductPage() {
                       mainImage === url ? 'border-accent shadow-lg scale-105' : 'border-transparent hover:border-slate-300'
                     } bg-white shadow-sm`}
                   >
-                    <img src={url!} alt={`${product.name} ${idx}`} className="w-full h-full object-cover p-2" />
+                    <SmartImage src={url!} alt={`${product.name} ${idx}`} fill sizes="96px" className="object-cover p-2" />
                   </button>
                 ))}
               </div>

@@ -5,6 +5,7 @@ import { useCart } from '@/lib/CartContext'
 import { useFavorites } from '@/lib/FavoritesContext'
 import { motion } from 'motion/react'
 import { toast } from 'sonner'
+import SmartImage from '@/components/ui/SmartImage'
 
 interface Product {
   _id: string
@@ -45,10 +46,12 @@ export default function ProductCard({ product }: ProductCardProps) {
     >
       <Link href={`/products/${product._id}`} className="block">
         <div className="relative aspect-square overflow-hidden bg-slate-50 p-6 flex items-center justify-center">
-          <img
-            src={product.image || 'https://placehold.co/400x400?text=No+Image'}
+          <SmartImage
+            src={product.image || '/images/spares.webp'}
             alt={product.name}
-            className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-110"
+            fill
+            sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+            className="object-contain transition-transform duration-700 group-hover:scale-110"
           />
           
           <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/5 transition-colors duration-300" />

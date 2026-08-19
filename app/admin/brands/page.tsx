@@ -39,6 +39,7 @@ import { useEffect } from 'react'
 import { useQuery, useMutation, useAction } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
+import SmartImage from '@/components/ui/SmartImage'
 
 const statuses = ['All', 'Active', 'Inactive']
 
@@ -245,9 +246,9 @@ export default function AdminBrandsPage() {
               filteredBrands.map((brand) => (
                 <div key={brand._id} className="rounded-lg border border-border p-4 space-y-3">
                   <div className="flex items-start gap-3">
-                    <div className="h-14 w-14 rounded-lg bg-muted flex items-center justify-center overflow-hidden shrink-0">
+                    <div className="relative h-14 w-14 rounded-lg bg-muted flex items-center justify-center overflow-hidden shrink-0">
                       {brand.logo ? (
-                        <img src={brand.logo} alt={brand.name} className="h-full w-full object-contain p-1" />
+                        <SmartImage src={brand.logo} alt={brand.name} fill sizes="56px" className="object-contain p-1" />
                       ) : (
                         <span className="text-2xl font-bold text-muted-foreground">
                           {brand.name.charAt(0).toUpperCase()}
@@ -357,9 +358,9 @@ export default function AdminBrandsPage() {
                     <TableRow key={brand._id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center overflow-hidden shrink-0">
+                          <div className="relative h-10 w-10 rounded-lg bg-muted flex items-center justify-center overflow-hidden shrink-0">
                             {brand.logo ? (
-                              <img src={brand.logo} alt={brand.name} className="h-full w-full object-contain p-1" />
+                              <SmartImage src={brand.logo} alt={brand.name} fill sizes="40px" className="object-contain p-1" />
                             ) : (
                               <span className="text-lg font-bold text-muted-foreground">
                                 {brand.name.charAt(0).toUpperCase()}

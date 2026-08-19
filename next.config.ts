@@ -1,6 +1,16 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'levispares.co.za' }],
+        destination: 'https://www.levispares.co.za/:path*',
+        permanent: true,
+      },
+    ]
+  },
   images: {
     // Cache optimized images for 31 days to cut repeat transformations
     // and cache writes on Vercel Image Optimization.
