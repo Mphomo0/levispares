@@ -1,5 +1,7 @@
 import type { NextConfig } from 'next'
 
+console.log('DEBUG_CONVEX_URL_AT_BUILD:', JSON.stringify(process.env.NEXT_PUBLIC_CONVEX_URL))
+
 const nextConfig: NextConfig = {
   async redirects() {
     return [
