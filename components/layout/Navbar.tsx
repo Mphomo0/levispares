@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import imagekitLoader from '@/lib/imagekitLoader'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   ShoppingBag,
   Search,
@@ -21,7 +21,6 @@ import { useFavorites } from '@/lib/FavoritesContext'
 import {
   SignInButton,
   UserButton,
-  useUser,
   useAuth,
 } from '@clerk/nextjs'
 import { motion, AnimatePresence } from 'motion/react'
@@ -32,17 +31,15 @@ export default function Navbar() {
   const { totalItems, totalPrice } = useCart()
   const { count: favoritesCount } = useFavorites()
   const pathname = usePathname()
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
   const { userId } = useAuth()
-  const { user } = useUser()
   const currentUser = useQuery(api.users.getCurrent)
   const isAdmin = currentUser?.role === 'admin'
   const isSignedIn = !!userId
-
-const storeSettings = useQuery(api.settings.get)
 
 const brands = useQuery(api.brands.list, {})
 
@@ -52,16 +49,20 @@ const brands = useQuery(api.brands.list, {})
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  useEffect(() => {
+  // Close the mobile menu on route change. Adjusting state during render
+  // (rather than in an effect) avoids an extra cascading render.
+  const [prevPathname, setPrevPathname] = useState(pathname)
+  if (pathname !== prevPathname) {
+    setPrevPathname(pathname)
     if (isMenuOpen) {
       setIsMenuOpen(false)
     }
-  }, [pathname])
+  }
 
   const handleSearch = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (searchQuery.trim()) {
-      window.location.href = `/shop?q=${encodeURIComponent(searchQuery)}`
+      router.push(`/shop?q=${encodeURIComponent(searchQuery)}`)
     }
   }
 

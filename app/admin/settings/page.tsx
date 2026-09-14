@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import {
   Card,
   CardContent,
@@ -39,7 +39,11 @@ export default function AdminSettingsPage() {
   const [confirmText, setConfirmText] = useState('')
   const [resetting, setResetting] = useState(false)
 
-  useEffect(() => {
+  // Sync the editable fields from the loaded settings. Adjusting state
+  // during render (rather than in an effect) avoids an extra cascading render.
+  const [prevStoreSettings, setPrevStoreSettings] = useState(storeSettings)
+  if (storeSettings !== prevStoreSettings) {
+    setPrevStoreSettings(storeSettings)
     if (storeSettings) {
       setTaxEnabled(storeSettings.taxEnabled ?? false)
       setTaxRate(
@@ -51,7 +55,7 @@ export default function AdminSettingsPage() {
       setStatsHappyCustomers(storeSettings.statsHappyCustomers ?? '500+')
       setStatsSatisfactionRate(storeSettings.statsSatisfactionRate ?? '99%')
     }
-  }, [storeSettings])
+  }
 
   async function handleSaveTax() {
     const rate = parseFloat(taxRate)

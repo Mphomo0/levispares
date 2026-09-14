@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/select'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import type { Id } from '@/convex/_generated/dataModel'
 import { toast } from 'sonner'
 
 export default function NewCategoryPage() {
@@ -70,13 +71,13 @@ export default function NewCategoryPage() {
         description: categoryDescription || undefined,
         icon,
         slug,
-        parentId: categoryParentId && categoryParentId !== '__none__' ? (categoryParentId as any) : undefined,
+        parentId: categoryParentId && categoryParentId !== '__none__' ? (categoryParentId as Id<'categories'>) : undefined,
       })
       toast('Category created', { description: `"${categoryName}" has been added.` })
       router.push('/admin/categories')
-    } catch (err: any) {
+    } catch (err) {
       console.error('Failed to add category:', err)
-      const message = err?.message || 'Failed to add category. Please try again.'
+      const message = err instanceof Error ? err.message : 'Failed to add category. Please try again.'
       setError(message)
       toast('Error', { description: message })
       setIsSubmitting(false)

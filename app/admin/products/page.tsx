@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useMounted } from '@/lib/useMounted'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -63,7 +64,7 @@ export default function AdminProductsPage() {
   const [statusFilter, setStatusFilter] = useState('All')
   const [categoryFilter, setCategoryFilter] = useState('All')
   const [currentPage, setCurrentPage] = useState(1)
-  const [mounted, setMounted] = useState(false)
+  const mounted = useMounted()
 
   const productsResult = useQuery(api.products.listAdmin, {
     paginationOpts: { numItems: 50, cursor: null },
@@ -72,10 +73,6 @@ export default function AdminProductsPage() {
   const categoriesDocs = useQuery(api.categories.list, {})
   const removeProduct = useMutation(api.products.remove)
   const deleteImages = useAction(api.imageActions.deleteImages)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -94,16 +91,15 @@ export default function AdminProductsPage() {
   const categories = useMemo(() => ['All', ...(categoriesDocs?.map(c => c.name) || [])], [categoriesDocs])
   const statuses = ['All', 'Active', 'Low Stock', 'Out of Stock']
 
-  const allProducts = productsResult?.page || []
-
   const filteredProducts = useMemo(() => {
-    return allProducts.filter((product: any) => {
+    const allProducts = productsResult?.page || []
+    return allProducts.filter((product) => {
       const status = product.inventory === 0 ? 'Out of Stock' : product.inventory < 10 ? 'Low Stock' : 'Active'
       const matchesStatus = statusFilter === 'All' || status === statusFilter
       const matchesCategory = categoryFilter === 'All' || product.category === categoryFilter
       return matchesStatus && matchesCategory
     })
-  }, [allProducts, statusFilter, categoryFilter])
+  }, [productsResult, statusFilter, categoryFilter])
 
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage)
   const paginatedProducts = filteredProducts.slice(
@@ -115,7 +111,7 @@ export default function AdminProductsPage() {
     if (selectedProducts.length === paginatedProducts.length) {
       setSelectedProducts([])
     } else {
-      setSelectedProducts(paginatedProducts.map((p: any) => p._id))
+      setSelectedProducts(paginatedProducts.map((p) => p._id))
     }
   }
 
@@ -250,7 +246,7 @@ export default function AdminProductsPage() {
               </div>
             ) : paginatedProducts.length === 0 ? (
               <p className="text-center py-8 text-muted-foreground italic">No products found</p>
-            ) : paginatedProducts.map((product: any) => {
+            ) : paginatedProducts.map((product) => {
               const status = product.inventory === 0 ? 'Out of Stock' : product.inventory < 10 ? 'Low Stock' : 'Active'
               return (
                 <div key={product._id} className="rounded-lg border border-border p-4 space-y-3">
@@ -343,7 +339,7 @@ export default function AdminProductsPage() {
                     <p className="text-muted-foreground italic">No products found</p>
                   </TableCell>
                 </TableRow>
-              ) : paginatedProducts.map((product: any) => {
+              ) : paginatedProducts.map((product) => {
                 const status = product.inventory === 0 ? 'Out of Stock' : product.inventory < 10 ? 'Low Stock' : 'Active'
                 return (
                   <TableRow key={product._id} className={selectedProducts.includes(product._id) ? 'bg-muted/50' : ''}>

@@ -41,9 +41,10 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination'
-import { useEffect } from 'react'
+import { useMounted } from '@/lib/useMounted'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import type { Id } from '@/convex/_generated/dataModel'
 import Link from 'next/link'
 import { useUser } from '@clerk/nextjs'
 import { toast } from 'sonner'
@@ -72,15 +73,11 @@ export default function AdminUsersPage() {
   const [roleFilter, setRoleFilter] = useState('All')
   const [statusFilter, setStatusFilter] = useState('All')
   const [currentPage, setCurrentPage] = useState(1)
-  const [mounted, setMounted] = useState(false)
+  const mounted = useMounted()
 
   const users = useQuery(api.users.list)
   const toggleUserStatus = useMutation(api.users.toggleStatus)
   const deleteUser = useMutation(api.users.deleteById)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   const itemsPerPage = 8
 
@@ -101,7 +98,7 @@ export default function AdminUsersPage() {
     currentPage * itemsPerPage,
   )
 
-  const handleToggleStatus = async (id: any, isSelf: boolean) => {
+  const handleToggleStatus = async (id: Id<'users'>, isSelf: boolean) => {
     if (isSelf) {
       toast.error("You cannot deactivate your own account.")
       return
@@ -110,12 +107,12 @@ export default function AdminUsersPage() {
     try {
       await toggleUserStatus({ id })
       toast.success("User status updated successfully")
-    } catch (error: any) {
-      toast.error(error.message || "Failed to update user status")
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update user status")
     }
   }
 
-  const handleDeleteUser = async (id: any, isSelf: boolean) => {
+  const handleDeleteUser = async (id: Id<'users'>, isSelf: boolean) => {
     if (isSelf) {
       toast.error("You cannot delete your own account.")
       return
@@ -124,8 +121,8 @@ export default function AdminUsersPage() {
     try {
       await deleteUser({ id })
       toast.success("User record deleted")
-    } catch (error: any) {
-      toast.error(error.message || "Failed to delete user")
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to delete user")
     }
   }
 

@@ -1,25 +1,14 @@
 'use client'
 
 import Link from 'next/link'
-import { useCart } from '@/lib/CartContext'
+import { useCart, type Product } from '@/lib/CartContext'
 import { useFavorites } from '@/lib/FavoritesContext'
 import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import SmartImage from '@/components/ui/SmartImage'
 
-interface Product {
-  _id: string
-  name: string
-  description: string
-  price: number
-  originalPrice?: number
-  category: string
-  image: string
-  specs?: { label: string; value: string }[]
-}
-
 interface ProductCardProps {
-  product: any // Temporarily use any to avoid strict Convex types in shared component, or import Doc
+  product: Product
 }
 
 export default function ProductCard({ product }: ProductCardProps) {

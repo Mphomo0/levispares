@@ -75,13 +75,6 @@ export default function EditBrandPage({
     }
   }
 
-  const generateSlug = (name: string) => {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '')
-  }
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
@@ -108,9 +101,9 @@ export default function EditBrandPage({
         description: description !== (brand.description || '') ? description || undefined : undefined,
       })
       router.push('/admin/brands')
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to update brand:', error)
-      alert(error.message || 'Failed to update brand. Please try again.')
+      alert(error instanceof Error ? error.message : 'Failed to update brand. Please try again.')
       setIsSubmitting(false)
     }
   }

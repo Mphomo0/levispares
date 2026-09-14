@@ -34,7 +34,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { useEffect } from 'react'
+import { useMounted } from '@/lib/useMounted'
 
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
@@ -54,7 +54,7 @@ const getStatusLabel = (active: boolean | undefined) => {
 
 export default function AdminVariantsPage() {
   const [searchQuery, setSearchQuery] = useState('')
-  const [mounted, setMounted] = useState(false)
+  const mounted = useMounted()
   const [statusFilter, setStatusFilter] = useState('All')
   const [modelFilter, setModelFilter] = useState<string>('All')
 
@@ -62,10 +62,6 @@ export default function AdminVariantsPage() {
   const models = useQuery(api.models.list, {})
   const removeVariant = useMutation(api.variants.remove)
   const toggleActive = useMutation(api.variants.toggleActive)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   const filteredVariants = (variants || []).filter((variant) => {
     const matchesSearch = variant.variantValue.toLowerCase().includes(searchQuery.toLowerCase())

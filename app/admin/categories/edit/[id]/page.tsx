@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -37,11 +37,15 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
 
   const emojiOptions = ['🛑', '💧', '🔧', '⚡', '💡', '🛞', '🔋', '🌧️', '🔩', '🧰', '💺', '🎯', '🚗', '🔑', '🛢️', '⚙️']
 
-  useEffect(() => {
+  // Sync the editable icon from the loaded category. Adjusting state during
+  // render (rather than in an effect) avoids an extra cascading render.
+  const [prevCategory, setPrevCategory] = useState(category)
+  if (category !== prevCategory) {
+    setPrevCategory(category)
     if (category?.icon) {
       setIcon(category.icon)
     }
-  }, [category])
+  }
 
   if (category === undefined) {
     return (
@@ -98,9 +102,9 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
       })
       toast('Category updated', { description: 'Your changes have been saved.' })
       router.push('/admin/categories')
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to update category:', error)
-      toast('Error', { description: error?.message || 'Failed to update category. Please try again.' })
+      toast('Error', { description: error instanceof Error ? error.message : 'Failed to update category. Please try again.' })
       setIsSubmitting(false)
     }
   }
@@ -111,11 +115,6 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
     } catch (error) {
       console.error('Failed to toggle category status:', error)
     }
-  }
-
-  const getParentName = (parentId: Id<'categories'>) => {
-    const parent = categories?.find(c => c._id === parentId)
-    return parent?.name || 'Unknown'
   }
 
   return (
@@ -312,7 +311,7 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
                 <div className="space-y-2">
                   <Label>Subcategories ({category.subcategories.length})</Label>
                   <div className="flex flex-wrap gap-2">
-                    {category.subcategories.map((sub: any) => (
+                    {category.subcategories.map((sub) => (
                       <span
                         key={sub._id}
                         className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300"

@@ -5,12 +5,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRight, Shield, Truck, HeadphonesIcon } from 'lucide-react'
 import { motion } from 'motion/react'
-import { useQuery } from 'convex/react'
-import { api } from '@/convex/_generated/api'
 
 export default function Hero() {
-  const storeSettings = useQuery(api.settings.get)
-
   return (
     <section className="relative hero-gradient text-primary-foreground overflow-hidden">
       <div className="absolute inset-0 opacity-10">

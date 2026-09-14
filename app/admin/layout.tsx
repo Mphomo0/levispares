@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
+import { useMounted } from '@/lib/useMounted'
 import { usePathname, useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import {
@@ -229,7 +230,7 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [mounted, setMounted] = useState(false)
+  const mounted = useMounted()
   const [searchQuery, setSearchQuery] = useState('')
   const [showResults, setShowResults] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
@@ -247,26 +248,27 @@ export default function AdminLayout({
   const recentOrders = useQuery(api.orders.listRecent, { limit: 10 })
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  useEffect(() => {
+    // localStorage isn't available during SSR, so this must stay an effect
+    // (reading it eagerly during render would cause a hydration mismatch).
     if (typeof window !== 'undefined') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setViewedOrders(localStorage.getItem('viewedOrders') || '')
     }
   }, [])
 
-  useEffect(() => {
-    if (searchQuery.length >= 2) {
-      setShowResults(true)
-    } else {
-      setShowResults(false)
-    }
-  }, [searchQuery])
+  // Keep the search-results dropdown's visibility in sync with the query.
+  // Adjusting state during render (rather than in an effect) avoids an
+  // extra cascading render. (onFocus/onBlur/onClick below can still toggle
+  // showResults directly, independent of this sync.)
+  const [prevSearchQueryForResults, setPrevSearchQueryForResults] = useState(searchQuery)
+  if (searchQuery !== prevSearchQueryForResults) {
+    setPrevSearchQueryForResults(searchQuery)
+    setShowResults(searchQuery.length >= 2)
+  }
 
   const markOrdersAsViewed = () => {
     if (recentOrders && recentOrders.length > 0) {
-      const orderIds = recentOrders.map((o: any) => o._id).join(',')
+      const orderIds = recentOrders.map((o) => o._id).join(',')
       localStorage.setItem('viewedOrders', orderIds)
       setViewedOrders(orderIds)
     }
@@ -274,7 +276,7 @@ export default function AdminLayout({
 
   const getUnreadCount = () => {
     if (!recentOrders || !viewedOrders) return 0
-    return recentOrders.filter((o: any) => !viewedOrders.includes(o._id)).length
+    return recentOrders.filter((o) => !viewedOrders.includes(o._id)).length
   }
 
   const isActive = (href: string) => {
@@ -458,7 +460,7 @@ className={cn(
             {/* Search Results Dropdown */}
             {showResults && searchResults && searchResults.length > 0 && (
               <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto">
-                {searchResults.slice(0, 8).map((product: any) => (
+                {searchResults.slice(0, 8).map((product) => (
                   <button
                     key={product._id}
                     className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-slate-700/50 text-left border-b border-slate-100 dark:border-slate-700 last:border-0"
@@ -549,7 +551,7 @@ className={cn(
                     </div>
                   ) : (
                     <div className="divide-y divide-slate-100 dark:divide-slate-700">
-                      {recentOrders.slice(0, 5).map((order: any) => {
+                      {recentOrders.slice(0, 5).map((order) => {
                         const isNew = !viewedOrders.includes(order._id)
                         return (
                           <button

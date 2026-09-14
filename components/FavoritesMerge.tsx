@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import type { Id } from '@/convex/_generated/dataModel'
 import { useFavorites } from '@/lib/FavoritesContext'
 import { toast } from 'sonner'
 
@@ -22,9 +23,10 @@ export default function FavoritesMerge() {
     const merge = async () => {
       for (const product of guestFavorites) {
         try {
-          await addToWishlist({ productId: product._id as any })
-        } catch (e: any) {
-          if (!e.message?.includes('already in wishlist')) {
+          await addToWishlist({ productId: product._id as Id<'products'> })
+        } catch (e) {
+          const message = e instanceof Error ? e.message : ''
+          if (!message.includes('already in wishlist')) {
             console.error('Failed to merge favorite:', e)
           }
         }

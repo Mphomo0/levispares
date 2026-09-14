@@ -15,7 +15,7 @@ export const store = mutation({
     // Role detection: 
     // 1. Try to get role from Clerk JWT claims (if user added it to the template)
     // 2. Fallback to "user"
-    const role = (identity as any).role || "user";
+    const role = (identity as { role?: string }).role || "user";
 
     // Check if we've already stored this user.
     const user = await ctx.db

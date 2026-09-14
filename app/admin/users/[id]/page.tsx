@@ -1,6 +1,6 @@
 'use client'
 
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import {
@@ -35,6 +35,7 @@ const statusStyles: Record<string, string> = {
 
 export default function UserProfilePage() {
   const params = useParams()
+  const router = useRouter()
   const id = params.id as Id<'users'>
   const { user: currentUser } = useUser()
 
@@ -87,8 +88,8 @@ export default function UserProfilePage() {
     try {
       await toggleUserStatus({ id: user._id })
       toast.success(`User ${isActive ? 'deactivated' : 'activated'} successfully`)
-    } catch (error: any) {
-      toast.error(error.message || "Failed to update user status")
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to update user status")
     }
   }
 
@@ -101,9 +102,9 @@ export default function UserProfilePage() {
     try {
       await deleteUser({ id: user._id })
       toast.success("User record deleted")
-      window.location.href = '/admin/users'
-    } catch (error: any) {
-      toast.error(error.message || "Failed to delete user")
+      router.push('/admin/users')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to delete user")
     }
   }
 

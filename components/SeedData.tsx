@@ -7,8 +7,11 @@ import { products, categories } from '@/lib/products'
 import { useUser } from '@clerk/nextjs'
 
 export default function SeedData() {
+  // products.seed has no corresponding Convex mutation defined; this dev-only
+  // tool is already disabled (see the commented-out usage in app/page.tsx).
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const seed = useMutation((api as any).products.seed)
-  const setAdmin = useMutation((api as any).users.setAdmin)
+  const setAdmin = useMutation(api.users.setAdmin)
   const { user } = useUser()
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
 

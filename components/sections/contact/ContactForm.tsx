@@ -24,7 +24,7 @@ export default function ContactForm() {
     resolver: zodResolver(schema),
   })
 
-  const onSubmit = (_data: FormData) => {
+  const onSubmit = () => {
     toast.success("Message sent successfully! We'll get back to you soon.")
   }
 

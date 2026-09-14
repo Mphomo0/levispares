@@ -432,27 +432,36 @@ export const listShopNumbered = query({
   },
   handler: async (ctx, args) => {
     let query;
+    let indexedField: "search" | "modelId" | "variantId" | "categoryId" | "brandId" | "active" = "active";
 
     // Use search index if searchQuery is provided
     if (args.searchQuery) {
+      indexedField = "search";
       query = ctx.db
         .query("products")
         .withSearchIndex("search_name_description", (q) =>
           q.search("name", args.searchQuery!)
         );
-    } else if (args.variantId) {
-      query = ctx.db
-        .query("products")
-        .withIndex("by_variantId", (q) => q.eq("variantId", args.variantId!));
     } else if (args.modelId) {
+      // Index by model (not variant) so that products deliberately left
+      // without a variant ("fits every variant of this model") are still
+      // included below when filtering by a specific variant.
+      indexedField = "modelId";
       query = ctx.db
         .query("products")
         .withIndex("by_modelId", (q) => q.eq("modelId", args.modelId!));
+    } else if (args.variantId) {
+      indexedField = "variantId";
+      query = ctx.db
+        .query("products")
+        .withIndex("by_variantId", (q) => q.eq("variantId", args.variantId!));
     } else if (args.categoryId) {
+      indexedField = "categoryId";
       query = ctx.db
         .query("products")
         .withIndex("by_categoryId", (q) => q.eq("categoryId", args.categoryId!));
     } else if (args.brandId) {
+      indexedField = "brandId";
       query = ctx.db
         .query("products")
         .withIndex("by_brandId", (q) => q.eq("brandId", args.brandId!));
@@ -465,25 +474,36 @@ export const listShopNumbered = query({
     // Apply other filters using .filter()
     let resultsQuery = query.filter((q) => q.eq(q.field("active"), true));
 
-    if (args.categoryId && (args.searchQuery || args.modelId || args.variantId || args.brandId)) {
+    if (args.categoryId && indexedField !== "categoryId") {
       resultsQuery = resultsQuery.filter((q) =>
         q.eq(q.field("categoryId"), args.categoryId!)
       );
     }
-    if (args.brandId && (args.searchQuery || args.categoryId || args.modelId || args.variantId)) {
+    if (args.brandId && indexedField !== "brandId") {
       resultsQuery = resultsQuery.filter((q) =>
         q.eq(q.field("brandId"), args.brandId!)
       );
     }
-    if (args.modelId && (args.searchQuery || args.categoryId || args.variantId || args.brandId)) {
+    if (args.modelId && indexedField !== "modelId") {
       resultsQuery = resultsQuery.filter((q) =>
         q.eq(q.field("modelId"), args.modelId!)
       );
     }
-    if (args.variantId && (args.searchQuery || args.categoryId || args.modelId || args.brandId)) {
-      resultsQuery = resultsQuery.filter((q) =>
-        q.eq(q.field("variantId"), args.variantId!)
-      );
+    if (args.variantId) {
+      if (args.modelId) {
+        // Include products scoped to this exact variant, plus products
+        // deliberately left variant-less (they fit every variant of the model).
+        resultsQuery = resultsQuery.filter((q) =>
+          q.or(
+            q.eq(q.field("variantId"), args.variantId!),
+            q.eq(q.field("variantId"), undefined)
+          )
+        );
+      } else if (indexedField !== "variantId") {
+        resultsQuery = resultsQuery.filter((q) =>
+          q.eq(q.field("variantId"), args.variantId!)
+        );
+      }
     }
     if (args.minPrice !== undefined) {
       resultsQuery = resultsQuery.filter((q) =>
@@ -551,7 +571,11 @@ export const listByBrandModelVariant = query({
       products = products.filter((p) => p.modelId === args.modelId);
     }
     if (args.variantId) {
-      products = products.filter((p) => p.variantId === args.variantId);
+      // Include products scoped to this exact variant, plus products
+      // deliberately left variant-less (they fit every variant of the model).
+      products = products.filter(
+        (p) => p.variantId === args.variantId || p.variantId === undefined
+      );
     }
 
     const enriched = await Promise.all(

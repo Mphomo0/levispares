@@ -73,15 +73,15 @@ export default function EditVariantPage({ params }: { params: Promise<{ id: stri
     try {
       await updateVariant({
         id: variantId,
-        modelId: modelId !== variant.modelId ? modelId as any : undefined,
+        modelId: modelId !== variant.modelId ? modelId as Id<'models'> : undefined,
         variantType: variantType !== variant.variantType ? variantType as 'GVM' | 'Engine' | 'Chassis' : undefined,
         variantValue: variantValue !== variant.variantValue ? variantValue : undefined,
         slug: slug !== variant.slug ? slug : undefined,
       })
       router.push('/admin/variants')
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to update variant:', error)
-      alert(error.message || 'Failed to update variant. Please try again.')
+      alert(error instanceof Error ? error.message : 'Failed to update variant. Please try again.')
       setIsSubmitting(false)
     }
   }
@@ -251,7 +251,7 @@ export default function EditVariantPage({ params }: { params: Promise<{ id: stri
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                     <p className="text-sm text-blue-800 dark:text-blue-300">
-                      This variant has <strong>{(variant as any).productCount}</strong> associated product{(variant as any).productCount !== 1 ? 's' : ''}.
+                      This variant has <strong>{variant.productCount}</strong> associated product{variant.productCount !== 1 ? 's' : ''}.
                     </p>
                   </div>
                 </div>

@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import type { Id } from '@/convex/_generated/dataModel'
 
 export default function NewModelPage() {
   const router = useRouter()
@@ -73,7 +74,7 @@ export default function NewModelPage() {
           .filter(v => v.trim() !== '')
         
         await addWithVariants({
-          brandId: brandId as any,
+          brandId: brandId as Id<'brands'>,
           name,
           yearFrom: yearFrom ? parseInt(yearFrom) : undefined,
           yearTo: yearTo ? parseInt(yearTo) : undefined,
@@ -81,7 +82,7 @@ export default function NewModelPage() {
         })
       } else {
         await addModel({
-          brandId: brandId as any,
+          brandId: brandId as Id<'brands'>,
           name,
           slug,
           yearFrom: yearFrom ? parseInt(yearFrom) : undefined,
@@ -89,9 +90,9 @@ export default function NewModelPage() {
         })
       }
       router.push('/admin/models')
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to add model:', error)
-      alert(error.message || 'Failed to add model. Please try again.')
+      alert(error instanceof Error ? error.message : 'Failed to add model. Please try again.')
       setIsSubmitting(false)
     }
   }
@@ -221,7 +222,7 @@ export default function NewModelPage() {
                   </div>
                   
                   {variants.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">Click "Add Variant" to add variants.</p>
+                    <p className="text-sm text-muted-foreground">Click &quot;Add Variant&quot; to add variants.</p>
                   ) : (
                     <div className="space-y-3">
                       {variants.map((variant, index) => (

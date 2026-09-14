@@ -3,6 +3,7 @@
 import { Trash2, Minus, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { CartItem } from '@/lib/CartContext'
+import SmartImage from '@/components/ui/SmartImage'
 
 interface CartItemsProps {
   items: CartItem[]
@@ -21,12 +22,14 @@ const CartItems = ({ items, removeFromCart, updateQuantity }: CartItemsProps) =>
         >
           <Link
             href={`/product/${item._id}`}
-            className="w-full sm:w-32 h-32 bg-secondary rounded-lg overflow-hidden shrink-0"
+            className="relative w-full sm:w-32 h-32 bg-secondary rounded-lg overflow-hidden shrink-0"
           >
-            <img
-              src={item.image}
+            <SmartImage
+              src={item.image || '/images/spares.webp'}
               alt={item.name}
-              className="w-full h-full object-cover"
+              fill
+              sizes="(min-width: 640px) 128px, 100vw"
+              className="object-cover"
             />
           </Link>
 

@@ -1,16 +1,9 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
+import type { Product } from './CartContext'
 
-export interface Product {
-  _id: string
-  name: string
-  price: number
-  image: string
-  category: string
-  description: string
-  specs?: { label: string; value: string }[]
-}
+export type { Product }
 
 interface FavoritesContextType {
   items: Product[]
@@ -32,6 +25,9 @@ export const FavoritesProvider: React.FC<{ children: ReactNode }> = ({ children 
   const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
+    // localStorage isn't available during SSR, so this must stay an effect
+    // (reading it eagerly during render would cause a hydration mismatch).
+    /* eslint-disable react-hooks/set-state-in-effect */
     const saved = localStorage.getItem(GUEST_FAVORITES_KEY)
     if (saved) {
       try {
@@ -41,6 +37,7 @@ export const FavoritesProvider: React.FC<{ children: ReactNode }> = ({ children 
       }
     }
     setIsLoaded(true)
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [])
 
   useEffect(() => {

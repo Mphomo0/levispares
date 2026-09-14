@@ -6,7 +6,7 @@ const isAccountRoute = createRouteMatcher(["/account(.*)"]);
 
 export default clerkMiddleware(async (auth, req) => {
   const { userId, sessionClaims } = await auth();
-  const role = (sessionClaims?.metadata as { role?: string })?.role || (sessionClaims as any)?.publicMetadata?.role;
+  const role = (sessionClaims?.metadata as { role?: string })?.role || (sessionClaims as { publicMetadata?: { role?: string } })?.publicMetadata?.role;
 
   // Handle post-auth redirection
   if (req.nextUrl.pathname === "/auth-redirect") {

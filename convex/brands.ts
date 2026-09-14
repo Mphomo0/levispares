@@ -1,7 +1,6 @@
 import { v } from "convex/values";
 import { query, mutation, internalMutation, internalQuery, action } from "./_generated/server";
 import { internal } from "./_generated/api";
-import { Id } from "./_generated/dataModel";
 
 export const list = query({
   handler: async (ctx) => {

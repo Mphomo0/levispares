@@ -2,7 +2,7 @@
 
 import { useRef, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, useWatch, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -37,8 +37,25 @@ interface ImageItem {
   uploading?: boolean
 }
 
+interface ProductFormInitialData {
+  _id?: string
+  name?: string
+  brand?: { _id: string } | null
+  model?: { _id: string } | null
+  variant?: { _id: string } | null
+  categoryId?: string
+  category?: { _id: string } | null
+  description?: string
+  price?: number
+  originalPrice?: number
+  stockQty?: number
+  partNumber?: string
+  image?: string
+  images?: (string | { url: string })[]
+}
+
 interface ProductFormProps {
-  initialData?: any
+  initialData?: ProductFormInitialData
   isEditing?: boolean
 }
 
@@ -67,7 +84,11 @@ export default function ProductForm({ initialData, isEditing }: ProductFormProps
   const brands = useQuery(api.brands.list, {})
   const deleteImages = useAction(api.imageActions.deleteImages)
 
-  const { control, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<ProductFormData>({
+  const { control, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<ProductFormData>({
+    // zod's `preprocess` gives the resolver an input type (unknown) that differs
+    // from the form's output type (number), a known react-hook-form/zod typing
+    // gap with no clean fix short of restructuring the schema.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(productSchema) as any,
     defaultValues: {
       name: initialData?.name || '',
@@ -76,16 +97,17 @@ export default function ProductForm({ initialData, isEditing }: ProductFormProps
       variantId: initialData?.variant?._id || '',
       categoryId: initialData?.categoryId || initialData?.category?._id || '',
       description: initialData?.description || '',
-      price: initialData?.price || '',
-      originalPrice: initialData?.originalPrice || '',
-      stockQty: initialData?.stockQty ?? initialData?.inventory ?? 0,
+      // The number inputs below need a string default ('') to stay controlled;
+      // productSchema's z.preprocess coerces it back to a number on submit.
+      price: (initialData?.price || '') as unknown as number,
+      originalPrice: (initialData?.originalPrice || '') as unknown as number,
+      stockQty: initialData?.stockQty ?? 0,
       partNumber: initialData?.partNumber || '',
     },
   })
 
-  const selectedBrandId = watch('brandId')
-  const selectedModelId = watch('modelId')
-  const selectedVariantId = watch('variantId')
+  const selectedBrandId = useWatch({ control, name: 'brandId' })
+  const selectedModelId = useWatch({ control, name: 'modelId' })
 
   const models = useQuery(api.models.listActive, { brandId: selectedBrandId ? selectedBrandId as Id<'brands'> : undefined })
   const variants = useQuery(api.variants.listActive, { modelId: selectedModelId ? selectedModelId as Id<'models'> : undefined })
@@ -93,16 +115,18 @@ export default function ProductForm({ initialData, isEditing }: ProductFormProps
   const addWithRelations = useMutation(api.products.addWithRelations)
   const updateWithRelations = useMutation(api.products.updateWithRelations)
 
-  useEffect(() => {
-    let loadedImages: ImageItem[] = []
-    let loadedUrls: string[] = []
-    
+  // Load the initial images from initialData. Adjusting state during render
+  // (rather than in an effect) avoids an extra cascading render.
+  const [prevInitialDataForImages, setPrevInitialDataForImages] = useState(initialData)
+  if (initialData !== prevInitialDataForImages) {
+    setPrevInitialDataForImages(initialData)
+
     const urls: string[] = []
-    
+
     if (initialData?.image) {
       urls.push(initialData.image)
     }
-    
+
     if (initialData?.images?.length) {
       for (const img of initialData.images) {
         const url = typeof img === 'string' ? img : img.url
@@ -111,15 +135,10 @@ export default function ProductForm({ initialData, isEditing }: ProductFormProps
         }
       }
     }
-    
-    if (urls.length > 0) {
-      loadedImages = urls.map(url => ({ url }))
-      loadedUrls = urls
-    }
-    
-    setImages(loadedImages)
-    setOriginalImages(loadedUrls)
-  }, [initialData])
+
+    setImages(urls.map(url => ({ url })))
+    setOriginalImages(urls)
+  }
 
   useEffect(() => {
     if (isEditing && initialData) {
@@ -289,9 +308,9 @@ export default function ProductForm({ initialData, isEditing }: ProductFormProps
 
       router.push('/admin/products')
       router.refresh()
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to save product:', error)
-      const message = error?.message || 'Failed to save product. Please try again.'
+      const message = error instanceof Error ? error.message : 'Failed to save product. Please try again.'
       toast(message, { description: 'Failed to save product.' })
     }
   }

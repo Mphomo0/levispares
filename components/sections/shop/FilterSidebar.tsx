@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
-import Link from 'next/link'
+import { useState, useCallback, useMemo } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ChevronDown, SlidersHorizontal, X, Check } from 'lucide-react'
 import { useQuery } from 'convex/react'
@@ -21,17 +20,16 @@ export default function FilterSidebar() {
   const router = useRouter()
   const searchParams = useSearchParams()
   
-  const [filters, setFilters] = useState<Filters>({
-    category: '',
-    brand: '',
-    model: '',
-    variant: '',
-    minPrice: '',
-    maxPrice: '',
-    sort: 'newest',
-  })
+  const [filters, setFilters] = useState<Filters>(() => ({
+    category: searchParams.get('category') || '',
+    brand: searchParams.get('brand') || '',
+    model: searchParams.get('model') || '',
+    variant: searchParams.get('variant') || '',
+    minPrice: searchParams.get('minPrice') || '',
+    maxPrice: searchParams.get('maxPrice') || '',
+    sort: searchParams.get('sort') || 'newest',
+  }))
 
-  const [isInitialized, setIsInitialized] = useState(false)
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     category: true,
     brand: true,
@@ -40,23 +38,22 @@ export default function FilterSidebar() {
     price: true,
   })
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
-  const [pendingFilter, setPendingFilter] = useState<Partial<Filters> | null>(null)
 
   const dbCategories = useQuery(api.categories.listActive, {})
   const brands = useQuery(api.brands.list)
   
   const selectedBrandDoc = useMemo(() => {
     if (!brands || !filters.brand) return null
-    return (brands as any).find((b: any) => b.slug === filters.brand)
+    return brands.find((b) => b.slug === filters.brand)
   }, [brands, filters.brand])
 
-  const models = useQuery(api.models.listActive, 
+  const models = useQuery(api.models.listActive,
     selectedBrandDoc ? { brandId: selectedBrandDoc._id } : "skip"
   )
 
   const selectedModelDoc = useMemo(() => {
     if (!models || !filters.model) return null
-    return (models as any).find((m: any) => m.slug === filters.model)
+    return models.find((m) => m.slug === filters.model)
   }, [models, filters.model])
 
   const variants = useQuery(api.variants.listActive,
@@ -67,12 +64,16 @@ export default function FilterSidebar() {
 
   const categoriesWithProducts = useMemo(() => {
     if (!dbCategories || !allProducts) return []
-    
-    const productCategoryIds = new Set(allProducts.map((p: any) => p.categoryId))
+
+    const productCategoryIds = new Set(allProducts.map((p) => p.categoryId))
     return dbCategories.filter((cat) => productCategoryIds.has(cat._id))
   }, [dbCategories, allProducts])
 
-  useEffect(() => {
+  // Keep filters in sync with the URL. Adjusting state during render (rather
+  // than in an effect) avoids the extra cascading render an effect would cause.
+  const [prevSearchParams, setPrevSearchParams] = useState(searchParams)
+  if (searchParams !== prevSearchParams) {
+    setPrevSearchParams(searchParams)
     setFilters({
       category: searchParams.get('category') || '',
       brand: searchParams.get('brand') || '',
@@ -82,8 +83,7 @@ export default function FilterSidebar() {
       maxPrice: searchParams.get('maxPrice') || '',
       sort: searchParams.get('sort') || 'newest',
     })
-    setIsInitialized(true)
-  }, [searchParams])
+  }
 
   const updateURL = useCallback((newFilters: Filters) => {
     const params = new URLSearchParams()
@@ -118,11 +118,9 @@ export default function FilterSidebar() {
       setFilters(newFilters)
       updateURL(newFilters)
     } else {
-      setPendingFilter(updates)
       setFilters(newFilters)
       setTimeout(() => {
         updateURL(newFilters)
-        setPendingFilter(null)
       }, 50)
     }
   }, [filters, updateURL])
@@ -147,7 +145,7 @@ export default function FilterSidebar() {
 
   const hasActiveFilters = filters.category || filters.brand || filters.model || filters.variant || filters.minPrice || filters.maxPrice
 
-  const FilterContent = () => (
+  const filterContent = (
     <div className="space-y-5">
       {hasActiveFilters && (
         <div className="space-y-3">
@@ -240,7 +238,7 @@ export default function FilterSidebar() {
           
           {expandedSections.model && (
             <div className="space-y-1">
-              {models?.map((model: any) => {
+              {models?.map((model) => {
                 const isActive = filters.model === model.slug
                 return (
                   <button
@@ -282,7 +280,7 @@ export default function FilterSidebar() {
             
             {expandedSections.variant && (
               <div className="space-y-1">
-                {variants?.map((variant: any) => {
+                {variants?.map((variant) => {
                   const isActive = filters.variant === variant.slug
                   return (
                     <button
@@ -471,7 +469,7 @@ export default function FilterSidebar() {
               </button>
             </div>
             <div className="p-5">
-              <FilterContent />
+              {filterContent}
             </div>
           </div>
         </>
@@ -485,7 +483,7 @@ export default function FilterSidebar() {
             <SlidersHorizontal className="w-4 h-4 text-slate-900" />
             <h2 className="font-semibold text-slate-900">Filters</h2>
           </div>
-          <FilterContent />
+          {filterContent}
         </div>
       </aside>
     </>

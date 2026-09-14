@@ -53,9 +53,9 @@ export default function NewBrandPage() {
         description: description || undefined,
       })
       router.push('/admin/brands')
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to add brand:', error)
-      alert(error.message || 'Failed to add brand. Please try again.')
+      alert(error instanceof Error ? error.message : 'Failed to add brand. Please try again.')
       setIsSubmitting(false)
     }
   }

@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/select'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import type { Id } from '@/convex/_generated/dataModel'
 
 export default function NewVariantPage() {
   const router = useRouter()
@@ -72,20 +73,20 @@ export default function NewVariantPage() {
           .filter(v => v.trim() !== '')
         
         await addBulkVariants({
-          modelId: modelId as any,
+          modelId: modelId as Id<'models'>,
           variants: validVariants,
         })
       } else {
         await addVariant({
-          modelId: modelId as any,
+          modelId: modelId as Id<'models'>,
           variantValue,
           slug,
         })
       }
       router.push('/admin/variants')
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to add variant:', error)
-      alert(error.message || 'Failed to add variant. Please try again.')
+      alert(error instanceof Error ? error.message : 'Failed to add variant. Please try again.')
       setIsSubmitting(false)
     }
   }
@@ -203,7 +204,7 @@ export default function NewVariantPage() {
                   </div>
                   
                   {bulkVariants.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">Click "Add Variant" to add multiple variants at once.</p>
+                    <p className="text-sm text-muted-foreground">Click &quot;Add Variant&quot; to add multiple variants at once.</p>
                   ) : (
                     <div className="space-y-3">
                       {bulkVariants.map((variant, index) => (

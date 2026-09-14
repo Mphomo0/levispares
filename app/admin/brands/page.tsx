@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useMounted } from '@/lib/useMounted'
 import Link from 'next/link'
 import {
   Card,
@@ -34,7 +35,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { useEffect } from 'react'
 
 import { useQuery, useMutation, useAction } from 'convex/react'
 import { api } from '@/convex/_generated/api'
@@ -55,18 +55,13 @@ const getStatusLabel = (active: boolean | undefined) => {
 
 export default function AdminBrandsPage() {
   const [searchQuery, setSearchQuery] = useState('')
-  const [mounted, setMounted] = useState(false)
+  const mounted = useMounted()
   const [statusFilter, setStatusFilter] = useState('All')
 
   const brands = useQuery(api.brands.listAll)
-  const removeBrand = useMutation(api.brands.remove)
   const deleteBrandAndImage = useAction(api.brands.deleteBrandAndImage)
   const toggleActive = useMutation(api.brands.toggleActive)
   const [deletingId, setDeletingId] = useState<string | null>(null)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   const filteredBrands = (brands || []).filter((brand) => {
     const matchesSearch = brand.name.toLowerCase().includes(searchQuery.toLowerCase())

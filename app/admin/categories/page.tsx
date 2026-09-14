@@ -25,7 +25,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useEffect } from 'react'
+import { useMounted } from '@/lib/useMounted'
 import { useQuery, useMutation, useAction } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
@@ -45,7 +45,7 @@ const getStatusLabel = (active: boolean | undefined) => {
 
 export default function AdminCategoriesPage() {
   const [searchQuery, setSearchQuery] = useState('')
-  const [mounted, setMounted] = useState(false)
+  const mounted = useMounted()
   const [statusFilter, setStatusFilter] = useState('All')
 
   const categories = useQuery(api.categories.list, {})
@@ -53,12 +53,6 @@ export default function AdminCategoriesPage() {
   const removeCategory = useMutation(api.categories.remove)
   const toggleActive = useMutation(api.categories.toggleActive)
   const deleteImage = useAction(api.imageActions.deleteImage)
-
-  useEffect(() => {
-    if (!mounted) {
-      setMounted(true)
-    }
-  }, [mounted])
 
   const filteredCategories = (categories || []).filter((category) => {
     const matchesSearch = category.name
@@ -75,10 +69,7 @@ export default function AdminCategoriesPage() {
     inactive: categories?.filter((c) => !c.active).length || 0,
   }
 
-  const handleDelete = async (
-    id: Id<'categories'>,
-    imageUrl?: string | null,
-  ) => {
+  const handleDelete = async (id: Id<'categories'>) => {
     const count = productCounts?.[id] || 0
     if (count > 0) {
       toast('Cannot delete', {
@@ -97,11 +88,11 @@ export default function AdminCategoriesPage() {
           await deleteImage({ url: result.imageUrl })
         }
         toast('Category deleted')
-      } catch (error: any) {
+      } catch (error) {
         console.error('Failed to delete category:', error)
         toast('Error', {
           description:
-            error?.message || 'Failed to delete category. Please try again.',
+            error instanceof Error ? error.message : 'Failed to delete category. Please try again.',
         })
       }
     }
@@ -429,7 +420,7 @@ export default function AdminCategoriesPage() {
                                 className={`${hasProducts ? 'opacity-50 cursor-not-allowed' : 'text-red-600 focus:text-red-600 cursor-pointer'}`}
                                 onClick={() =>
                                   !hasProducts &&
-                                  handleDelete(category._id, category.image)
+                                  handleDelete(category._id)
                                 }
                               >
                                 <svg

@@ -1,4 +1,4 @@
-export default {
+const authConfig = {
   providers: [
     {
       domain: "https://clerk.levispares.co.za",
@@ -6,3 +6,5 @@ export default {
     },
   ],
 };
+
+export default authConfig;

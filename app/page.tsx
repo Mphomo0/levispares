@@ -13,7 +13,7 @@ import BrandCard from '@/components/sections/products/BrandCard'
 // import SeedData from '@/components/SeedData'
 
 export default function Home() {
-  const featuredProducts = useQuery((api as any).products.listFeatured)
+  const featuredProducts = useQuery(api.products.listFeatured)
   const brands = useQuery(api.brands.list)
 
   return (
@@ -46,7 +46,7 @@ export default function Home() {
             {!featuredProducts ? (
               <p>Loading featured products...</p>
             ) : (
-              (featuredProducts as any[]).map((product: any, index: number) => (
+              featuredProducts.map((product, index) => (
                 <motion.div
                   key={product._id}
                   initial={{ opacity: 0, y: 30 }}
@@ -119,12 +119,12 @@ export default function Home() {
               <p className="px-4">Loading brands...</p>
             ) : (
               <>
-                {(brands as any[]).map((brand: any) => (
+                {brands.map((brand) => (
                   <div key={brand._id} className="flex-shrink-0 mx-6">
                     <BrandCard brand={brand} />
                   </div>
                 ))}
-                {(brands as any[]).map((brand: any) => (
+                {brands.map((brand) => (
                   <div key={`${brand._id}-dup`} className="flex-shrink-0 mx-6">
                     <BrandCard brand={brand} />
                   </div>

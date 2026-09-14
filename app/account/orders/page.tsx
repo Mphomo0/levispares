@@ -8,7 +8,7 @@ import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 
 export default function OrdersPage() {
-  const { user, isLoaded } = useUser()
+  const { isLoaded } = useUser()
   const orders = useQuery(api.orders.listByUser)
 
   const orderCount = orders?.length ?? 0

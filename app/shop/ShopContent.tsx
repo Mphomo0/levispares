@@ -1,8 +1,8 @@
 'use client'
 
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState } from 'react'
 import { motion } from 'motion/react'
-import { usePaginatedQuery, useQuery } from 'convex/react'
+import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import FilterSidebar from '@/components/sections/shop/FilterSidebar'
 import ProductGrid from '@/components/sections/shop/ProductGrid'
@@ -33,7 +33,7 @@ export default function ShopContent() {
   // Get models for the selected brand to find ID by slug
   const selectedBrandDoc = useMemo(() => {
     if (!allBrands || !selectedBrand) return null
-    return (allBrands as any).find((b: any) => b.slug === selectedBrand)
+    return allBrands.find((b) => b.slug === selectedBrand)
   }, [allBrands, selectedBrand])
 
   const modelsForBrand = useQuery(api.models.listActive, 
@@ -42,7 +42,7 @@ export default function ShopContent() {
 
   const selectedModelDoc = useMemo(() => {
     if (!modelsForBrand || !selectedModel) return null
-    return (modelsForBrand as any).find((m: any) => m.slug === selectedModel)
+    return modelsForBrand.find((m) => m.slug === selectedModel)
   }, [modelsForBrand, selectedModel])
 
   const variantsForModel = useQuery(api.variants.listActive,
@@ -51,13 +51,13 @@ export default function ShopContent() {
 
   const selectedVariantDoc = useMemo(() => {
     if (!variantsForModel || !selectedVariant) return null
-    return (variantsForModel as any).find((v: any) => v.slug === selectedVariant)
+    return variantsForModel.find((v) => v.slug === selectedVariant)
   }, [variantsForModel, selectedVariant])
 
   // Convert slug to ID and get name
   const selectedCategoryData = useMemo(() => {
     if (!selectedCategory || !allCategories) return { id: null, name: null }
-    const cat = allCategories.find((c: any) => c.slug === selectedCategory)
+    const cat = allCategories.find((c) => c.slug === selectedCategory)
     return { id: cat?._id || null, name: cat?.name || null }
   }, [selectedCategory, allCategories])
 
@@ -68,15 +68,17 @@ export default function ShopContent() {
   const modelIdForQuery = selectedModelDoc?._id || null
   const variantIdForQuery = selectedVariantDoc?._id || null
 
-  const hasFilters = brandIdForQuery || minPrice || maxPrice || modelIdForQuery || variantIdForQuery
-
-  useEffect(() => {
-    // Reset page to 1 when filters change (except when page itself is changed)
+  // Reset the page to match the URL (e.g. to 1 when filters change) whenever
+  // the URL changes. Adjusting state during render (rather than in an
+  // effect) avoids an extra cascading render.
+  const [prevSearchParams, setPrevSearchParams] = useState(searchParams)
+  if (searchParams !== prevSearchParams) {
+    setPrevSearchParams(searchParams)
     const pageFromUrl = Number(searchParams.get('page')) || 1
     if (currentPage !== pageFromUrl) {
       setCurrentPage(pageFromUrl)
     }
-  }, [searchParams])
+  }
 
   const shopData = useQuery(api.products.listShopNumbered, {
     page: currentPage,

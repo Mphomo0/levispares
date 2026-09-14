@@ -6,9 +6,11 @@ export interface Product {
   _id: string
   name: string
   price: number
-  image: string
-  category: string
-  description: string
+  originalPrice?: number
+  image?: string
+  category?: string
+  description?: string
+  sku?: string
   specs?: { label: string; value: string }[]
 }
 

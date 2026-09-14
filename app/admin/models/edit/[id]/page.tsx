@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -57,10 +57,6 @@ export default function EditModelPage({ params }: { params: Promise<{ id: string
     }
   }
 
-  const generateSlug = (name: string) => {
-    return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
-  }
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
@@ -78,15 +74,15 @@ export default function EditModelPage({ params }: { params: Promise<{ id: string
       await updateModel({
         id: modelId,
         name: name !== model.name ? name : undefined,
-        brandId: brandId !== model.brandId ? brandId as any : undefined,
+        brandId: brandId !== model.brandId ? brandId as Id<'brands'> : undefined,
         slug: slug !== model.slug ? slug : undefined,
         yearFrom: yearFrom ? parseInt(yearFrom) : undefined,
         yearTo: yearTo ? parseInt(yearTo) : undefined,
       })
       router.push('/admin/models')
-    } catch (error: any) {
+    } catch (error) {
       console.error('Failed to update model:', error)
-      alert(error.message || 'Failed to update model. Please try again.')
+      alert(error instanceof Error ? error.message : 'Failed to update model. Please try again.')
       setIsSubmitting(false)
     }
   }
@@ -250,7 +246,7 @@ export default function EditModelPage({ params }: { params: Promise<{ id: string
                 <div className="space-y-2">
                   <Label>Associated Variants ({model.variants.length})</Label>
                   <div className="flex flex-wrap gap-2">
-                    {model.variants.map((variant: any) => (
+                    {model.variants.map((variant) => (
                       <span
                         key={variant._id}
                         className="inline-flex items-center px-3 py-1 rounded-full text-sm bg-brand text-orange-800 dark:bg-orange-900/30 dark:text-brand"

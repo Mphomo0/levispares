@@ -59,7 +59,6 @@ const shippingRateSetting = storeSettings?.shippingRate ?? 250
 const [currentStep, setCurrentStep] = useState<Step>('Address')
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null)
   const [showAddForm, setShowAddForm] = useState(false)
-  const [addressForm, setAddressForm] = useState<AddressFormData>(defaultAddressValues)
   const [savingAddress, setSavingAddress] = useState(false)
   const [convexOrderId, setConvexOrderId] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
@@ -75,20 +74,20 @@ const tax = taxEnabled ? totalPrice * (taxRatePercent / 100) : 0
     }
   }, [items.length, isUserLoaded, router])
 
-  // Auto-select default address
-  useEffect(() => {
+  // Auto-select a default address, or show the add form, once addresses load.
+  // Adjusting state during render (rather than in an effect) avoids an extra
+  // cascading render.
+  const [prevAddresses, setPrevAddresses] = useState(addresses)
+  if (addresses !== prevAddresses) {
+    setPrevAddresses(addresses)
     if (addresses && addresses.length > 0 && !selectedAddressId) {
       const defaultAddr = addresses.find((a) => a.isDefault)
       setSelectedAddressId(defaultAddr?._id ?? addresses[0]._id)
     }
-  }, [addresses, selectedAddressId])
-
-  // Show add form automatically if no addresses
-  useEffect(() => {
     if (addresses && addresses.length === 0) {
       setShowAddForm(true)
     }
-  }, [addresses])
+  }
 
   const selectedAddress = addresses?.find((a) => a._id === selectedAddressId)
 
@@ -103,7 +102,6 @@ const tax = taxEnabled ? totalPrice * (taxRatePercent / 100) : 0
       })
       setSelectedAddressId(newId)
       setShowAddForm(false)
-      setAddressForm(defaultAddressValues)
       toast.success('Address saved')
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to save address')
@@ -557,7 +555,7 @@ function AddressStep({
 
 /* ─── Review Step ─── */
 interface ReviewStepProps {
-  items: Array<{ _id: string; name: string; price: number; quantity: number; image: string; category: string }>
+  items: Array<{ _id: string; name: string; price: number; quantity: number; image?: string; category?: string }>
   selectedAddress: {
     label?: string
     name: string
@@ -822,7 +820,7 @@ function PaymentStep({ items, shipping, tax, grandTotal, convexOrderId, onSucces
 
 /* ─── Order Sidebar ─── */
 interface OrderSidebarProps {
-  items: Array<{ _id: string; name: string; price: number; quantity: number; image: string }>
+  items: Array<{ _id: string; name: string; price: number; quantity: number; image?: string }>
   totalPrice: number
   shipping: number
   tax: number

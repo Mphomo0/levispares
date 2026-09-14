@@ -71,7 +71,7 @@ export default function ProductPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 px-4">
         <h1 className="text-4xl font-display font-bold text-slate-800 mb-4">Product Not Found</h1>
-        <p className="text-slate-500 mb-8 text-center max-w-md">We couldn't find the part you're looking for. It might have been removed or the link is incorrect.</p>
+        <p className="text-slate-500 mb-8 text-center max-w-md">We couldn&apos;t find the part you&apos;re looking for. It might have been removed or the link is incorrect.</p>
         <Link href="/shop" className="bg-accent text-white px-8 py-3 rounded-lg font-bold hover:brightness-110 transition-all shadow-lg shadow-accent/20">
           Back to Shop
         </Link>
@@ -82,17 +82,19 @@ export default function ProductPage() {
   const mainImage = selectedImage || product.image || '/images/spares.webp'
   const isFavorited = isFavorite(product._id)
 
+  const cartProduct = {
+    _id: product._id,
+    name: product.name,
+    price: product.price,
+    image: product.image || '',
+    category: product.category?.name || 'General',
+    description: product.description || '',
+    specs: product.specs,
+  }
+
   const handleAddToCart = () => {
     for (let i = 0; i < quantity; i++) {
-      addToCart({
-        _id: product._id,
-        name: product.name,
-        price: product.price,
-        image: product.image || '',
-        category: (product.category as any)?.name || 'General',
-        description: product.description || '',
-        specs: product.specs
-      })
+      addToCart(cartProduct)
     }
     toast.success(`Added ${quantity} ${quantity === 1 ? 'item' : 'items'} to cart`, {
       description: `${product.name} is ready for checkout.`,
@@ -116,8 +118,9 @@ export default function ProductPage() {
       setReviewTitle('')
       setReviewComment('')
       setReviewRating(5)
-    } catch (err: any) {
-      toast.error('Failed to submit review', { description: err.message })
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Please try again.'
+      toast.error('Failed to submit review', { description: message })
     } finally {
       setIsSubmitting(false)
     }
@@ -132,7 +135,7 @@ export default function ProductPage() {
           <ChevronRight className="w-4 h-4 flex-shrink-0" />
           <Link href="/shop" className="hover:text-accent transition-colors">Shop</Link>
           <ChevronRight className="w-4 h-4 flex-shrink-0" />
-          <span className="text-slate-400 capitalize">{(product.category as any)?.name}</span>
+          <span className="text-slate-400 capitalize">{product.category?.name}</span>
           <ChevronRight className="w-4 h-4 flex-shrink-0" />
           <span className="text-slate-900 font-semibold truncate">{product.name}</span>
         </div>
@@ -155,8 +158,8 @@ export default function ProductPage() {
                 priority
                 className="object-contain p-8 transition-transform duration-700 group-hover:scale-110"
               />
-              <button 
-                onClick={() => toggleFavorite(product as any)}
+              <button
+                onClick={() => toggleFavorite(cartProduct)}
                 className="absolute top-6 right-6 p-4 bg-white/90 backdrop-blur-md rounded-2xl shadow-xl hover:bg-white transition-all transform group-hover:translate-x-0"
               >
                 <Heart className={`w-6 h-6 transition-all ${isFavorited ? 'fill-red-500 text-red-500 scale-125' : 'text-slate-400'}`} />
@@ -192,10 +195,10 @@ export default function ProductPage() {
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <span className="px-3 py-1 bg-accent/10 text-accent text-xs font-bold rounded-full uppercase tracking-widest">
-                  {(product.brand as any)?.name}
+                  {product.brand?.name}
                 </span>
                 <span className="px-3 py-1 bg-slate-100 text-slate-500 text-xs font-bold rounded-full uppercase tracking-widest">
-                  {(product.model as any)?.name}
+                  {product.model?.name}
                 </span>
               </div>
               
@@ -275,8 +278,8 @@ export default function ProductPage() {
                 </button>
                 
                 <div className="grid grid-cols-2 gap-4">
-                  <button 
-                    onClick={() => toggleFavorite(product as any)}
+                  <button
+                    onClick={() => toggleFavorite(cartProduct)}
                     className={`flex items-center justify-center gap-2 py-4 rounded-2xl font-bold transition-all border-2 ${
                       isFavorited 
                       ? 'border-red-500 bg-red-50 text-red-500' 
@@ -393,15 +396,15 @@ export default function ProductPage() {
                         </tr>
                         <tr>
                           <td className="px-6 py-4 text-sm text-slate-500 font-medium">Brand</td>
-                          <td className="px-6 py-4 text-sm text-slate-900 font-bold">{(product.brand as any)?.name}</td>
+                          <td className="px-6 py-4 text-sm text-slate-900 font-bold">{product.brand?.name}</td>
                         </tr>
                         <tr>
                           <td className="px-6 py-4 text-sm text-slate-500 font-medium">Vehicle Model</td>
-                          <td className="px-6 py-4 text-sm text-slate-900 font-bold">{(product.model as any)?.name}</td>
+                          <td className="px-6 py-4 text-sm text-slate-900 font-bold">{product.model?.name}</td>
                         </tr>
                         <tr>
                           <td className="px-6 py-4 text-sm text-slate-500 font-medium">Category</td>
-                          <td className="px-6 py-4 text-sm text-slate-900 font-bold capitalize">{(product.category as any)?.name}</td>
+                          <td className="px-6 py-4 text-sm text-slate-900 font-bold capitalize">{product.category?.name}</td>
                         </tr>
                         {product.specs?.map((spec, i) => (
                           <tr key={i}>
@@ -440,8 +443,8 @@ export default function ProductPage() {
                     </div>
                     
                     <div className="flex-1 w-full space-y-4 pt-4">
-                      {[5, 4, 3, 2, 1].map((stars) => {
-                        const count = (reviewStats?.distribution as any)?.[stars] || 0;
+                      {([5, 4, 3, 2, 1] as const).map((stars) => {
+                        const count = reviewStats?.distribution[stars] || 0;
                         const percentage = reviewStats?.total ? (count / reviewStats.total) * 100 : 0;
                         return (
                           <div key={stars} className="flex items-center gap-4">
@@ -484,7 +487,7 @@ export default function ProductPage() {
                                     <User className="w-5 h-5 text-slate-400" />
                                   </div>
                                   <div>
-                                    <p className="text-sm font-bold text-slate-900">{(r.user as any)?.name || 'Verified Mechanic'}</p>
+                                    <p className="text-sm font-bold text-slate-900">{r.user?.name || 'Verified Mechanic'}</p>
                                     <p className="text-xs text-slate-400">
                                       {new Date(r._creationTime).toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' })}
                                     </p>
@@ -613,7 +616,7 @@ export default function ProductPage() {
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {product.relatedProducts.map((p) => (
-                <ProductCard key={p._id} product={p as any} />
+                <ProductCard key={p._id} product={p} />
               ))}
             </div>
           </div>

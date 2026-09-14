@@ -4,9 +4,10 @@ import Link from 'next/link'
 import { motion } from 'motion/react'
 import { Loader2 } from 'lucide-react'
 import ProductCard from '@/components/sections/products/ProductCard'
+import type { Product } from '@/lib/CartContext'
 
 interface Props {
-  products: any[]
+  products: Product[]
   selectedCategoryName: string
   isLoading?: boolean
   loadMore?: () => void

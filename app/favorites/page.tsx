@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useUser } from '@clerk/nextjs'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import type { Id } from '@/convex/_generated/dataModel'
 import { useFavorites, Product } from '@/lib/FavoritesContext'
 import { useCart } from '@/lib/CartContext'
 import { toast } from 'sonner'
@@ -12,7 +13,7 @@ import { motion } from 'motion/react'
 import SmartImage from '@/components/ui/SmartImage'
 
 export default function FavoritesPage() {
-  const { user, isLoaded: isUserLoaded } = useUser()
+  const { isLoaded: isUserLoaded } = useUser()
   const { items: guestFavorites, removeFromFavorites } = useFavorites()
   const { addToCart } = useCart()
   const [removingId, setRemovingId] = useState<string | null>(null)
@@ -45,11 +46,11 @@ export default function FavoritesPage() {
         removeFromFavorites(item.id)
         toast.success('Removed from favorites')
       } else if (wishlist) {
-        await removeFromWishlist({ wishlistId: wishlist._id, productId: item.product._id as any })
+        await removeFromWishlist({ wishlistId: wishlist._id, productId: item.product._id as Id<'products'> })
         toast.success('Removed from favorites')
       }
-    } catch (e: any) {
-      toast.error(e.message || 'Failed to remove')
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to remove')
     } finally {
       setRemovingId(null)
     }
@@ -65,8 +66,8 @@ export default function FavoritesPage() {
       }
       await handleRemove(item)
       toast.success('Moved to cart')
-    } catch (e: any) {
-      toast.error(e.message || 'Failed to move to cart')
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Failed to move to cart')
     }
   }
 
@@ -78,7 +79,7 @@ export default function FavoritesPage() {
         } else if (item.source === 'guest' && item.product) {
           addToCart(item.product)
         }
-      } catch (e) {
+      } catch {
         // skip duplicates
       }
     }
@@ -87,9 +88,9 @@ export default function FavoritesPage() {
       for (const item of wishlist.items) {
         try {
           if (item.product) {
-            await removeFromWishlist({ wishlistId: wishlist._id, productId: item.product._id as any })
+            await removeFromWishlist({ wishlistId: wishlist._id, productId: item.product._id as Id<'products'> })
           }
-        } catch (e) {
+        } catch {
           // skip
         }
       }

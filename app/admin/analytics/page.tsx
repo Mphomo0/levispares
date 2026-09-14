@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo } from 'react'
 import {
   Card,
   CardContent,
@@ -10,10 +10,10 @@ import {
 } from '@/components/ui/card'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import { useMounted } from '@/lib/useMounted'
 
 export default function AdminAnalyticsPage() {
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => { setMounted(true) }, [])
+  const mounted = useMounted()
 
   const allOrders = useQuery(api.orders.listAll)
   const allProducts = useQuery(api.products.listAll, {})
