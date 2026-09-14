@@ -7,11 +7,7 @@ import { ReactNode } from "react";
 
 import { SyncUser } from "./SyncUser";
 
-const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL!;
-if (typeof window !== "undefined") {
-  console.log("RUNTIME_CONVEX_URL_CACHEBUST_v2:", convexUrl);
-}
-const convex = new ConvexReactClient(convexUrl);
+const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 export function ConvexClientProvider({ children }: { children: ReactNode }) {
   return (

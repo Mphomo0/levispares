@@ -1,14 +1,5 @@
 import type { NextConfig } from 'next'
 
-{
-  const url = process.env.NEXT_PUBLIC_CONVEX_URL ?? ''
-  console.log('DEBUG_CONVEX_URL_LENGTH:', url.length)
-  console.log('DEBUG_CONVEX_URL_MATCHES_RIGHTFUL:', url.includes('rightful-axolotl-603'))
-  console.log('DEBUG_CONVEX_URL_MATCHES_HAPPY:', url.includes('happy-otter-123'))
-  console.log('DEBUG_CONVEX_URL_REVERSED:', url.split('').reverse().join(''))
-  console.log('DEBUG_CONVEX_DEPLOYMENT_VAR:', JSON.stringify(process.env.CONVEX_DEPLOYMENT))
-}
-
 const nextConfig: NextConfig = {
   async redirects() {
     return [
