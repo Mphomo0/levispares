@@ -29,6 +29,7 @@ import {
 import { Id } from '@/convex/_generated/dataModel'
 import SmartImage from '@/components/ui/SmartImage'
 import { toast } from 'sonner'
+import { getErrorMessage } from '@/lib/errors'
 
 interface ImageItem {
   file?: File
@@ -310,7 +311,7 @@ export default function ProductForm({ initialData, isEditing }: ProductFormProps
       router.refresh()
     } catch (error) {
       console.error('Failed to save product:', error)
-      const message = error instanceof Error ? error.message : 'Failed to save product. Please try again.'
+      const message = getErrorMessage(error, 'Failed to save product. Please try again.')
       toast(message, { description: 'Failed to save product.' })
     }
   }
@@ -433,7 +434,7 @@ export default function ProductForm({ initialData, isEditing }: ProductFormProps
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="originalPrice">Promo Price (R) <span className="text-xs text-muted-foreground font-normal">(optional)</span></Label>
+                <Label htmlFor="originalPrice">Original Price (R) <span className="text-xs text-muted-foreground font-normal">(optional, shown crossed out)</span></Label>
                 <Controller
                   name="originalPrice"
                   control={control}
@@ -444,6 +445,7 @@ export default function ProductForm({ initialData, isEditing }: ProductFormProps
                     </>
                   )}
                 />
+                <p className="text-xs text-muted-foreground">To show a sale, enter the old, higher price here. Customers pay the Price.</p>
               </div>
             </div>
 

@@ -1,6 +1,7 @@
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import { query, mutation } from "./_generated/server";
 
+import { requireAdmin } from "./lib/auth";
 export const list = query({
   args: { brandId: v.optional(v.id("brands")) },
   handler: async (ctx, args) => {
@@ -142,12 +143,13 @@ export const add = mutation({
     slug: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const existing = await ctx.db
       .query("models")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .unique();
     if (existing) {
-      throw new Error("Model with this slug already exists");
+      throw new ConvexError("Model with this slug already exists");
     }
 
     return await ctx.db.insert("models", {
@@ -166,8 +168,9 @@ export const addWithVariants = mutation({
     variants: v.array(v.string()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const brand = await ctx.db.get(args.brandId);
-    if (!brand) throw new Error("Brand not found");
+    if (!brand) throw new ConvexError("Brand not found");
 
     const modelSlug = `${brand.slug}-${args.name.toLowerCase().replace(/\s+/g, "-")}`;
     
@@ -176,7 +179,7 @@ export const addWithVariants = mutation({
       .withIndex("by_slug", (q) => q.eq("slug", modelSlug))
       .unique();
     if (existing) {
-      throw new Error("Model with this slug already exists");
+      throw new ConvexError("Model with this slug already exists");
     }
 
     const modelId = await ctx.db.insert("models", {
@@ -214,6 +217,7 @@ export const update = mutation({
     active: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const { id, ...data } = args;
     await ctx.db.patch(id, data);
   },
@@ -222,8 +226,9 @@ export const update = mutation({
 export const toggleActive = mutation({
   args: { id: v.id("models") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const model = await ctx.db.get(args.id);
-    if (!model) throw new Error("Model not found");
+    if (!model) throw new ConvexError("Model not found");
     await ctx.db.patch(args.id, { active: !model.active });
   },
 });
@@ -231,6 +236,7 @@ export const toggleActive = mutation({
 export const remove = mutation({
   args: { id: v.id("models") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const variants = await ctx.db
       .query("variants")
       .withIndex("by_modelId", (q) => q.eq("modelId", args.id))

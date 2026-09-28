@@ -18,6 +18,7 @@ import { useQuery, useMutation, useAction } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
 import { use } from 'react'
+import { getErrorMessage } from '@/lib/errors'
 
 export default function EditBrandPage({
   params,
@@ -103,7 +104,7 @@ export default function EditBrandPage({
       router.push('/admin/brands')
     } catch (error) {
       console.error('Failed to update brand:', error)
-      alert(error instanceof Error ? error.message : 'Failed to update brand. Please try again.')
+      alert(getErrorMessage(error, 'Failed to update brand. Please try again.'))
       setIsSubmitting(false)
     }
   }

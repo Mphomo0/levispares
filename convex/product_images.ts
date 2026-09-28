@@ -1,6 +1,7 @@
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import { query, mutation } from "./_generated/server";
 
+import { requireAdmin } from "./lib/auth";
 export const listByProduct = query({
   args: { productId: v.id("products") },
   handler: async (ctx, args) => {
@@ -27,6 +28,7 @@ export const add = mutation({
     sortOrder: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     if (args.isPrimary) {
       const existing = await ctx.db
         .query("productImages")
@@ -49,6 +51,7 @@ export const addMultiple = mutation({
     urls: v.array(v.string()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const existing = await ctx.db
       .query("productImages")
       .withIndex("by_productId", (q) => q.eq("productId", args.productId))
@@ -73,9 +76,10 @@ export const update = mutation({
     sortOrder: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const { id, ...data } = args;
     const image = await ctx.db.get(id);
-    if (!image) throw new Error("Image not found");
+    if (!image) throw new ConvexError("Image not found");
 
     if (data.isPrimary) {
       const siblings = await ctx.db
@@ -96,8 +100,9 @@ export const update = mutation({
 export const remove = mutation({
   args: { id: v.id("productImages") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const image = await ctx.db.get(args.id);
-    if (!image) throw new Error("Image not found");
+    if (!image) throw new ConvexError("Image not found");
     
     const imageUrl = image.url;
     await ctx.db.delete(args.id);
@@ -109,6 +114,7 @@ export const remove = mutation({
 export const removeAllForProduct = mutation({
   args: { productId: v.id("products") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const images = await ctx.db
       .query("productImages")
       .withIndex("by_productId", (q) => q.eq("productId", args.productId))

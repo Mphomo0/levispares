@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import { isPaidOrder } from '@/lib/orders'
 
 export default function AdminDashboardPage() {
   const allOrders = useQuery(api.orders.listAll)
@@ -23,7 +24,7 @@ export default function AdminDashboardPage() {
 
   // Compute stats from real data
   const totalRevenue = allOrders?.reduce((sum, o) => {
-    if (o.status !== 'cancelled') return sum + o.total
+    if (isPaidOrder(o)) return sum + o.total
     return sum
   }, 0) ?? 0
 

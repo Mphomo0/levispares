@@ -30,6 +30,7 @@ import { useQuery, useMutation, useAction } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
 import { toast } from 'sonner'
+import { getErrorMessage } from '@/lib/errors'
 
 const statuses = ['All', 'Active', 'Inactive']
 
@@ -92,7 +93,7 @@ export default function AdminCategoriesPage() {
         console.error('Failed to delete category:', error)
         toast('Error', {
           description:
-            error instanceof Error ? error.message : 'Failed to delete category. Please try again.',
+            getErrorMessage(error, 'Failed to delete category. Please try again.'),
         })
       }
     }

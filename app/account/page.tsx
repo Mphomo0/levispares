@@ -6,14 +6,17 @@ import Link from 'next/link'
 import { useUser } from '@clerk/nextjs'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import { isPaidOrder, orderStatusLabel } from '@/lib/orders'
 
 export default function UserAccountPage() {
   const { user, isLoaded } = useUser()
   const orders = useQuery(api.orders.listByUser)
 
-  const orderCount = orders?.length ?? 0
+  // Unpaid checkouts are not orders yet.
+  const paidOrders = (orders ?? []).filter(isPaidOrder)
+  const orderCount = paidOrders.length
   const deliveredCount = orders?.filter((o) => o.status === 'shipped' || o.status === 'delivered').length ?? 0
-  const pendingCount = orders?.filter((o) => o.status === 'pending' || o.status === 'paid').length ?? 0
+  const pendingCount = orders?.filter((o) => o.status === 'paid' || o.status === 'processing').length ?? 0
 
   const displayName =
     [user?.firstName, user?.lastName].filter(Boolean).join(' ') ||
@@ -210,7 +213,7 @@ export default function UserAccountPage() {
                     <div className="text-right">
                       <p className="font-bold">R{order.total.toFixed(2)}</p>
                       <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusStyles[order.status] || 'bg-muted text-muted-foreground'}`}>
-                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                        {orderStatusLabel(order.status)}
                       </span>
                     </div>
                   </div>

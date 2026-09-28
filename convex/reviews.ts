@@ -1,5 +1,7 @@
-import { v } from "convex/values";
-import { query, mutation, QueryCtx } from "./_generated/server";
+import { v, ConvexError } from "convex/values";
+import { query, mutation, QueryCtx, MutationCtx } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
+import { requireAdmin } from "./lib/auth";
 
 async function getUserIdFromAuth(ctx: QueryCtx) {
   const identity = await ctx.auth.getUserIdentity();
@@ -8,7 +10,34 @@ async function getUserIdFromAuth(ctx: QueryCtx) {
     .query("users")
     .withIndex("by_clerkId", (q) => q.eq("clerkId", identity.subject))
     .unique();
+  if (user?.isActive === false) return null;
   return user?._id ?? null;
+}
+
+/** True when the customer has a paid order that includes this product. */
+async function hasPurchased(ctx: QueryCtx, userId: Id<"users">, productId: Id<"products">) {
+  const orders = await ctx.db
+    .query("orders")
+    .withIndex("by_userId", (q) => q.eq("userId", userId))
+    .collect();
+
+  for (const order of orders) {
+    if (!["paid", "processing", "shipped", "delivered"].includes(order.status)) continue;
+    const item = await ctx.db
+      .query("orderItems")
+      .withIndex("by_orderId", (q) => q.eq("orderId", order._id))
+      .filter((q) => q.eq(q.field("productId"), productId))
+      .first();
+    if (item) return true;
+  }
+  return false;
+}
+
+async function requireOwnerOrAdmin(ctx: MutationCtx, reviewId: Id<"reviews">) {
+  const review = await ctx.db.get(reviewId);
+  if (!review) throw new ConvexError("Review not found");
+  const userId = await getUserIdFromAuth(ctx);
+  if (review.userId !== userId) await requireAdmin(ctx);
 }
 
 export const listByProduct = query({
@@ -26,7 +55,8 @@ export const listByProduct = query({
 
     return reviews.map((review, i) => ({
       ...review,
-      user: users[i],
+      // Only the reviewer's display name is public.
+      user: users[i] ? { name: users[i]!.name } : null,
     }));
   },
 });
@@ -47,7 +77,8 @@ export const listVerifiedByProduct = query({
 
     return reviews.map((review, i) => ({
       ...review,
-      user: users[i],
+      // Only the reviewer's display name is public.
+      user: users[i] ? { name: users[i]!.name } : null,
     }));
   },
 });
@@ -126,11 +157,13 @@ export const add = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await getUserIdFromAuth(ctx);
-    if (!userId) throw new Error("Not authenticated");
+    if (!userId) throw new ConvexError("Not authenticated");
 
-    if (args.rating < 1 || args.rating > 5) {
-      throw new Error("Rating must be between 1 and 5");
+    if (!Number.isInteger(args.rating) || args.rating < 1 || args.rating > 5) {
+      throw new ConvexError("Rating must be between 1 and 5");
     }
+    if ((args.title ?? "").length > 100) throw new ConvexError("The title is too long (100 characters max)");
+    if ((args.comment ?? "").length > 2000) throw new ConvexError("The review is too long (2000 characters max)");
 
     const existing = await ctx.db
       .query("reviews")
@@ -139,7 +172,7 @@ export const add = mutation({
       .first();
 
     if (existing) {
-      throw new Error("You have already reviewed this product");
+      throw new ConvexError("You have already reviewed this product");
     }
 
     return await ctx.db.insert("reviews", {
@@ -148,7 +181,7 @@ export const add = mutation({
       rating: args.rating,
       title: args.title,
       comment: args.comment,
-      verifiedPurchase: false,
+      verifiedPurchase: await hasPurchased(ctx, userId, args.productId),
     });
   },
 });
@@ -162,8 +195,11 @@ export const update = mutation({
   },
   handler: async (ctx, args) => {
     const { id, ...data } = args;
+    await requireOwnerOrAdmin(ctx, id);
+    if ((data.title ?? "").length > 100) throw new ConvexError("The title is too long (100 characters max)");
+    if ((data.comment ?? "").length > 2000) throw new ConvexError("The review is too long (2000 characters max)");
     if (data.rating !== undefined && (data.rating < 1 || data.rating > 5)) {
-      throw new Error("Rating must be between 1 and 5");
+      throw new ConvexError("Rating must be between 1 and 5");
     }
     await ctx.db.patch(id, data);
   },
@@ -172,6 +208,7 @@ export const update = mutation({
 export const markVerified = mutation({
   args: { id: v.id("reviews") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.patch(args.id, { verifiedPurchase: true });
   },
 });
@@ -179,6 +216,7 @@ export const markVerified = mutation({
 export const remove = mutation({
   args: { id: v.id("reviews") },
   handler: async (ctx, args) => {
+    await requireOwnerOrAdmin(ctx, args.id);
     await ctx.db.delete(args.id);
   },
 });

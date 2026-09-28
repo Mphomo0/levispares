@@ -18,6 +18,7 @@ import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
 import { use } from 'react'
 import SmartImage from '@/components/ui/SmartImage'
+import { getErrorMessage } from '@/lib/errors'
 
 export default function EditModelPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
@@ -82,7 +83,7 @@ export default function EditModelPage({ params }: { params: Promise<{ id: string
       router.push('/admin/models')
     } catch (error) {
       console.error('Failed to update model:', error)
-      alert(error instanceof Error ? error.message : 'Failed to update model. Please try again.')
+      alert(getErrorMessage(error, 'Failed to update model. Please try again.'))
       setIsSubmitting(false)
     }
   }

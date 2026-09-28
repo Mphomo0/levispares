@@ -1,7 +1,8 @@
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import { query, mutation, internalMutation, internalQuery, action } from "./_generated/server";
 import { internal } from "./_generated/api";
 
+import { requireAdmin } from "./lib/auth";
 export const list = query({
   handler: async (ctx) => {
     return await ctx.db
@@ -138,12 +139,13 @@ export const add = mutation({
     description: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const existing = await ctx.db
       .query("brands")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .unique();
     if (existing) {
-      throw new Error("Brand with this slug already exists");
+      throw new ConvexError("Brand with this slug already exists");
     }
 
     return await ctx.db.insert("brands", {
@@ -175,12 +177,13 @@ export const addWithModels = mutation({
     })),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const existing = await ctx.db
       .query("brands")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .unique();
     if (existing) {
-      throw new Error("Brand with this slug already exists");
+      throw new ConvexError("Brand with this slug already exists");
     }
 
     const brandId = await ctx.db.insert("brands", {
@@ -230,6 +233,7 @@ export const update = mutation({
     active: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const { id, ...data } = args;
     await ctx.db.patch(id, data);
   },
@@ -238,8 +242,9 @@ export const update = mutation({
 export const toggleActive = mutation({
   args: { id: v.id("brands") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const brand = await ctx.db.get(args.id);
-    if (!brand) throw new Error("Brand not found");
+    if (!brand) throw new ConvexError("Brand not found");
     await ctx.db.patch(args.id, { active: !brand.active });
   },
 });
@@ -247,8 +252,9 @@ export const toggleActive = mutation({
 export const remove = mutation({
   args: { id: v.id("brands") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const brand = await ctx.db.get(args.id);
-    if (!brand) throw new Error("Brand not found");
+    if (!brand) throw new ConvexError("Brand not found");
 
     const models = await ctx.db
       .query("models")
@@ -293,7 +299,7 @@ export const deleteBrandRecord = internalMutation({
   args: { brandId: v.id("brands") },
   handler: async (ctx, args) => {
     const brand = await ctx.db.get(args.brandId);
-    if (!brand) throw new Error("Brand not found");
+    if (!brand) throw new ConvexError("Brand not found");
 
     const models = await ctx.db
       .query("models")
@@ -321,18 +327,19 @@ export const deleteBrandAndImage = action({
     brandId: v.id("brands"),
   },
   handler: async (ctx, args) => {
+    await ctx.runQuery(internal.users.assertAdmin, {});
     const brand = await ctx.runQuery(internal.brands.getByIdInternal, {
       id: args.brandId,
     });
 
     if (!brand) {
-      throw new Error("Brand not found");
+      throw new ConvexError("Brand not found");
     }
 
     if (brand.imageKitFileId) {
       const privateKey = process.env.IMAGEKIT_PRIVATE_KEY;
       if (!privateKey) {
-        throw new Error("IMAGEKIT_PRIVATE_KEY is not set");
+        throw new ConvexError("IMAGEKIT_PRIVATE_KEY is not set");
       }
       const auth = btoa(`${privateKey}:`);
 
@@ -348,7 +355,7 @@ export const deleteBrandAndImage = action({
 
       if (!response.ok && response.status !== 404) {
         const errorText = await response.text();
-        throw new Error(`Failed to delete image from ImageKit: ${errorText}`);
+        throw new ConvexError(`Failed to delete image from ImageKit: ${errorText}`);
       }
     }
 

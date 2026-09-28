@@ -1,8 +1,9 @@
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import { query, mutation } from "./_generated/server";
 import { paginationOptsValidator } from "convex/server";
 import type { Id } from "./_generated/dataModel";
 
+import { requireAdmin } from "./lib/auth";
 export const list = query({
   args: {
     paginationOpts: paginationOptsValidator,
@@ -195,10 +196,14 @@ export const getByPartNumber = query({
 });
 
 export const getWithFullHierarchy = query({
-  args: { id: v.id("products") },
-  handler: async (ctx, args) => {
-    const product = await ctx.db.get(args.id);
-    if (!product) return null;
+  // A string, so a mistyped or malformed link is "not found" rather than an error.
+  args: { id: v.string() },
+  handler: async (ctx, rawArgs) => {
+    const id = ctx.db.normalizeId("products", rawArgs.id);
+    const product = id ? await ctx.db.get(id) : null;
+    // Deactivated products are not shown to customers.
+    if (!product || product.active === false) return null;
+    const args = { id: product._id };
 
     const images = await ctx.db
       .query("productImages")
@@ -692,20 +697,21 @@ export const addWithRelations = mutation({
     originalPrice: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const category = await ctx.db.get(args.categoryId);
-    if (!category) throw new Error("Category not found");
+    if (!category) throw new ConvexError("Category not found");
 
     const brand = await ctx.db.get(args.brandId);
-    if (!brand) throw new Error("Brand not found");
+    if (!brand) throw new ConvexError("Brand not found");
 
     if (args.modelId) {
       const model = await ctx.db.get(args.modelId);
-      if (!model) throw new Error("Model not found");
+      if (!model) throw new ConvexError("Model not found");
     }
 
     if (args.variantId) {
       const variant = await ctx.db.get(args.variantId);
-      if (!variant) throw new Error("Variant not found");
+      if (!variant) throw new ConvexError("Variant not found");
     }
 
     const uuidPart = Math.random().toString(36).substring(2, 6).toUpperCase();
@@ -780,8 +786,9 @@ export const updateWithRelations = mutation({
     active: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const product = await ctx.db.get(args.id);
-    if (!product) throw new Error("Product not found");
+    if (!product) throw new ConvexError("Product not found");
 
     const patchData: Record<string, unknown> = {};
     if (args.name !== undefined) patchData.name = args.name;
@@ -820,8 +827,9 @@ export const addSimple = mutation({
     partNumber: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const category = await ctx.db.get(args.categoryId);
-    if (!category) throw new Error("Category not found");
+    if (!category) throw new ConvexError("Category not found");
 
     const brandSlug = args.brandName.toLowerCase().replace(/\s+/g, "-");
     let brand = await ctx.db
@@ -944,9 +952,10 @@ export const updateSimple = mutation({
     active: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const { id, ...updates } = args;
     const product = await ctx.db.get(id);
-    if (!product) throw new Error("Product not found");
+    if (!product) throw new ConvexError("Product not found");
 
     let brandId = product.brandId;
     let modelId = product.modelId;
@@ -1051,12 +1060,13 @@ export const add = mutation({
     }))),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const existing = await ctx.db
       .query("products")
       .withIndex("by_sku", (q) => q.eq("sku", args.sku))
       .unique();
     if (existing) {
-      throw new Error("Product with this SKU already exists");
+      throw new ConvexError("Product with this SKU already exists");
     }
 
     return await ctx.db.insert("products", {
@@ -1090,6 +1100,7 @@ export const update = mutation({
     active: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const { id, ...data } = args;
     await ctx.db.patch(id, data);
   },
@@ -1098,8 +1109,9 @@ export const update = mutation({
 export const toggleActive = mutation({
   args: { id: v.id("products") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const product = await ctx.db.get(args.id);
-    if (!product) throw new Error("Product not found");
+    if (!product) throw new ConvexError("Product not found");
     await ctx.db.patch(args.id, { active: !product.active });
   },
 });
@@ -1107,8 +1119,9 @@ export const toggleActive = mutation({
 export const remove = mutation({
   args: { id: v.id("products") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const product = await ctx.db.get(args.id);
-    if (!product) throw new Error("Product not found");
+    if (!product) throw new ConvexError("Product not found");
 
     const images = await ctx.db
       .query("productImages")
@@ -1137,8 +1150,9 @@ export const updateStock = mutation({
     quantity: v.number(),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const product = await ctx.db.get(args.id);
-    if (!product) throw new Error("Product not found");
+    if (!product) throw new ConvexError("Product not found");
 
     await ctx.db.patch(args.id, {
       stockQty: Math.max(0, (product.stockQty ?? 0) + args.quantity),
@@ -1152,6 +1166,7 @@ export const setStock = mutation({
     stockQty: v.number(),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.patch(args.id, {
       stockQty: Math.max(0, args.stockQty),
     });
@@ -1164,11 +1179,12 @@ export const decrementStock = mutation({
     quantity: v.number(),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const product = await ctx.db.get(args.id);
-    if (!product) throw new Error("Product not found");
+    if (!product) throw new ConvexError("Product not found");
 
     if ((product.stockQty ?? 0) < args.quantity) {
-      throw new Error(`Insufficient stock for "${product.name}"`);
+      throw new ConvexError(`Insufficient stock for "${product.name}"`);
     }
 
     await ctx.db.patch(args.id, {
@@ -1186,6 +1202,7 @@ export const bulkUpdateStock = mutation({
     })),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     for (const update of args.updates) {
       await ctx.db.patch(update.productId, {
         stockQty: Math.max(0, update.stockQty),

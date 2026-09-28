@@ -8,6 +8,7 @@ import { api } from '@/convex/_generated/api'
 import type { Id } from '@/convex/_generated/dataModel'
 import Link from 'next/link'
 import { Suspense } from 'react'
+import { orderStatusLabel } from '@/lib/orders'
 
 function SuccessContent() {
   const searchParams = useSearchParams()
@@ -141,7 +142,7 @@ function SuccessContent() {
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-muted-foreground">Status:</span>
                   <span className="bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400 text-xs px-2.5 py-0.5 rounded-full font-medium capitalize">
-                    {order.status}
+                    {orderStatusLabel(order.status)}
                   </span>
                 </div>
               </div>

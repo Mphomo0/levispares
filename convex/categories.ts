@@ -1,7 +1,8 @@
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import { query, mutation } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 
+import { requireAdmin } from "./lib/auth";
 export const list = query({
   args: { parentId: v.optional(v.id("categories")) },
   handler: async (ctx, args) => {
@@ -226,12 +227,13 @@ export const add = mutation({
     description: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const existing = await ctx.db
       .query("categories")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .unique();
     if (existing) {
-      throw new Error("Category with this slug already exists");
+      throw new ConvexError("Category with this slug already exists");
     }
 
     return await ctx.db.insert("categories", {
@@ -253,6 +255,7 @@ export const addBulk = mutation({
     })),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const insertedIds: Id<"categories">[] = [];
 
     for (const cat of args.categories) {
@@ -299,16 +302,17 @@ export const update = mutation({
     active: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const { id, ...updates } = args;
     const category = await ctx.db.get(id);
-    if (!category) throw new Error("Category not found");
+    if (!category) throw new ConvexError("Category not found");
 
     const products = await ctx.db
       .query("products")
       .withIndex("by_categoryId", (q) => q.eq("categoryId", id))
       .take(1);
     if (products.length > 0) {
-      throw new Error("Cannot edit: this category has associated products. Remove or reassign the products first.");
+      throw new ConvexError("Cannot edit: this category has associated products. Remove or reassign the products first.");
     }
 
     if (updates.slug !== undefined && updates.slug !== category.slug) {
@@ -317,19 +321,19 @@ export const update = mutation({
         .withIndex("by_slug", (q) => q.eq("slug", updates.slug as string))
         .unique();
       if (existing && existing._id !== id) {
-        throw new Error("A category with this slug already exists.");
+        throw new ConvexError("A category with this slug already exists.");
       }
     }
 
     if (updates.parentId !== undefined) {
       if (updates.parentId === id) {
-        throw new Error("A category cannot be its own parent.");
+        throw new ConvexError("A category cannot be its own parent.");
       }
       if (updates.parentId !== null) {
         let current = await ctx.db.get(updates.parentId);
         while (current) {
           if (current.parentId === id) {
-            throw new Error("Circular parent reference detected. This would create an infinite category hierarchy.");
+            throw new ConvexError("Circular parent reference detected. This would create an infinite category hierarchy.");
           }
           if (!current.parentId) break;
           current = await ctx.db.get(current.parentId);
@@ -353,8 +357,9 @@ export const update = mutation({
 export const toggleActive = mutation({
   args: { id: v.id("categories") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const category = await ctx.db.get(args.id);
-    if (!category) throw new Error("Category not found");
+    if (!category) throw new ConvexError("Category not found");
     await ctx.db.patch(args.id, { active: !category.active });
   },
 });
@@ -362,15 +367,16 @@ export const toggleActive = mutation({
 export const remove = mutation({
   args: { id: v.id("categories") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const category = await ctx.db.get(args.id);
-    if (!category) throw new Error("Category not found");
+    if (!category) throw new ConvexError("Category not found");
 
     const products = await ctx.db
       .query("products")
       .withIndex("by_categoryId", (q) => q.eq("categoryId", args.id))
       .take(1);
     if (products.length > 0) {
-      throw new Error("Cannot delete: this category has associated products. Remove or reassign the products first.");
+      throw new ConvexError("Cannot delete: this category has associated products. Remove or reassign the products first.");
     }
 
     const subcategories = await ctx.db
@@ -384,7 +390,7 @@ export const remove = mutation({
         .withIndex("by_categoryId", (q) => q.eq("categoryId", sub._id))
         .take(1);
       if (subProducts.length > 0) {
-        throw new Error(`Cannot delete: subcategory "${sub.name}" has associated products. Remove or reassign the products first.`);
+        throw new ConvexError(`Cannot delete: subcategory "${sub.name}" has associated products. Remove or reassign the products first.`);
       }
       await ctx.db.delete(sub._id);
     }

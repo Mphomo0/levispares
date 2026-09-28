@@ -11,6 +11,7 @@ import {
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { useMounted } from '@/lib/useMounted'
+import { isPaidOrder } from '@/lib/orders'
 
 export default function AdminAnalyticsPage() {
   const mounted = useMounted()
@@ -23,22 +24,20 @@ export default function AdminAnalyticsPage() {
   const loading = allOrders === undefined || allProducts === undefined || allUsers === undefined
 
   // Compute stats
-  const totalRevenue = useMemo(() => {
-    if (!allOrders) return 0
-    return allOrders.reduce((sum, o) => {
-      if (o.status !== 'cancelled') return sum + o.total
-      return sum
-    }, 0)
-  }, [allOrders])
+  // Revenue and order counts only include orders the customer has paid for.
+  const paidOrders = useMemo(() => (allOrders ?? []).filter(isPaidOrder), [allOrders])
+  const totalRevenue = useMemo(
+    () => paidOrders.reduce((sum, o) => sum + o.total, 0),
+    [paidOrders],
+  )
 
-  const totalOrders = allOrders?.length ?? 0
+  const totalOrders = paidOrders.length
   const totalProducts = allProducts?.length ?? 0
   const totalUsers = allUsers?.length ?? 0
-  const avgOrderValue = totalOrders > 0 ? totalRevenue / allOrders!.filter(o => o.status !== 'cancelled').length : 0
+  const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0
 
   // Monthly revenue data for chart (last 12 months)
   const monthlyRevenue = useMemo(() => {
-    if (!allOrders) return []
     const now = new Date()
     const months: { month: string; revenue: number; orders: number }[] = []
 
@@ -48,8 +47,7 @@ export default function AdminAnalyticsPage() {
       const year = d.getFullYear()
       const month = d.getMonth()
 
-      const monthOrders = allOrders.filter((o) => {
-        if (o.status === 'cancelled') return false
+      const monthOrders = paidOrders.filter((o) => {
         const oDate = new Date(o._creationTime)
         return oDate.getFullYear() === year && oDate.getMonth() === month
       })
@@ -61,7 +59,7 @@ export default function AdminAnalyticsPage() {
       })
     }
     return months
-  }, [allOrders])
+  }, [paidOrders])
 
   const maxRevenue = Math.max(...monthlyRevenue.map((d) => d.revenue), 1)
 
@@ -74,15 +72,17 @@ export default function AdminAnalyticsPage() {
     })
     const total = allOrders.length || 1
     const statusLabels: Record<string, string> = {
-      draft: 'Draft',
+      pending: 'Awaiting payment',
       paid: 'Paid',
+      processing: 'Processing',
       shipped: 'Shipped',
       delivered: 'Delivered',
       cancelled: 'Cancelled',
     }
     const statusColors: Record<string, string> = {
-      draft: 'from-slate-500 to-slate-400',
+      pending: 'from-slate-500 to-slate-400',
       paid: 'from-yellow-500 to-yellow-400',
+      processing: 'from-orange-500 to-orange-400',
       shipped: 'from-blue-500 to-blue-400',
       delivered: 'from-green-500 to-green-400',
       cancelled: 'from-red-500 to-red-400',
@@ -101,7 +101,7 @@ export default function AdminAnalyticsPage() {
     {
       title: 'Total Revenue',
       value: loading ? '—' : `R${totalRevenue.toLocaleString('en-ZA', { minimumFractionDigits: 2 })}`,
-      subtitle: 'From paid & shipped orders',
+      subtitle: 'From paid orders only',
       icon: (
         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -110,9 +110,9 @@ export default function AdminAnalyticsPage() {
       iconBg: 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400',
     },
     {
-      title: 'Total Orders',
+      title: 'Paid Orders',
       value: loading ? '—' : totalOrders.toString(),
-      subtitle: 'All time',
+      subtitle: 'All time, unpaid checkouts excluded',
       icon: (
         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />

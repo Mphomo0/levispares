@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery, useMutation } from 'convex/react'
+import { setUserActive } from '@/lib/adminUsers'
 import { api } from '@/convex/_generated/api'
 import {
   Card,
@@ -24,6 +25,8 @@ import Link from 'next/link'
 import { Id } from '@/convex/_generated/dataModel'
 import { toast } from 'sonner'
 import { useUser } from '@clerk/nextjs'
+import { isPaidOrder } from '@/lib/orders'
+import { getErrorMessage } from '@/lib/errors'
 
 const statusStyles: Record<string, string> = {
   delivered: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
@@ -40,7 +43,6 @@ export default function UserProfilePage() {
   const { user: currentUser } = useUser()
 
   const user = useQuery(api.users.getById, { id })
-  const toggleUserStatus = useMutation(api.users.toggleStatus)
   const deleteUser = useMutation(api.users.deleteById)
 
   // Fetch orders & addresses for this user
@@ -85,11 +87,18 @@ export default function UserProfilePage() {
       toast.error("You cannot deactivate your own account.")
       return
     }
+    if (
+      isActive &&
+      !window.confirm(
+        'Deactivating bans this user: they are signed out and cannot sign in, order or use their account until you reactivate them. Continue?',
+      )
+    ) return
+
     try {
-      await toggleUserStatus({ id: user._id })
-      toast.success(`User ${isActive ? 'deactivated' : 'activated'} successfully`)
+      await setUserActive(user._id, !isActive)
+      toast.success(isActive ? 'User deactivated and banned' : 'User reactivated')
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to update user status")
+      toast.error(getErrorMessage(error, "Failed to update user status"))
     }
   }
 
@@ -104,12 +113,12 @@ export default function UserProfilePage() {
       toast.success("User record deleted")
       router.push('/admin/users')
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to delete user")
+      toast.error(getErrorMessage(error, "Failed to delete user"))
     }
   }
 
   const totalSpent = userOrders?.reduce((sum, o) => {
-    if (o.status !== 'cancelled') return sum + o.total
+    if (isPaidOrder(o)) return sum + o.total
     return sum
   }, 0) ?? 0
 

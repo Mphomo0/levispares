@@ -3,7 +3,10 @@ const PAYPAL_API_BASE =
     ? 'https://api-m.paypal.com'
     : 'https://api-m.sandbox.paypal.com'
 
-const PAYPAL_CURRENCY = process.env.PAYPAL_CURRENCY || 'USD'
+// One variable drives both the checkout button and the server. PayPal does not
+// support ZAR, so this is normally USD (prices are converted, see lib/currency).
+export const PAYPAL_CURRENCY =
+  process.env.NEXT_PUBLIC_PAYPAL_CURRENCY || process.env.PAYPAL_CURRENCY || 'USD'
 
 export async function getPayPalAccessToken(): Promise<string> {
   const clientId = process.env.PAYPAL_CLIENT_ID
@@ -40,6 +43,8 @@ interface CreateOrderItem {
 }
 
 interface CreatePayPalOrderParams {
+  /** Our order id, stored on the PayPal order so a payment can only settle this order. */
+  referenceId: string
   items: CreateOrderItem[]
   shipping: number
   tax: number
@@ -66,6 +71,8 @@ export async function createPayPalOrder(
       intent: 'CAPTURE',
       purchase_units: [
         {
+          reference_id: params.referenceId,
+          custom_id: params.referenceId,
           amount: {
             currency_code: PAYPAL_CURRENCY,
             value: params.totalAmount.toFixed(2),
@@ -107,13 +114,39 @@ export async function createPayPalOrder(
   return data.id
 }
 
-export async function capturePayPalOrder(
-  paypalOrderId: string,
-): Promise<{ status: string; id: string }> {
+export interface PayPalOrderDetails {
+  id: string
+  status: string
+  purchase_units?: Array<{
+    reference_id?: string
+    amount?: { currency_code: string; value: string }
+    payments?: {
+      captures?: Array<{ status: string; amount: { currency_code: string; value: string } }>
+    }
+  }>
+}
+
+export async function getPayPalOrder(paypalOrderId: string): Promise<PayPalOrderDetails> {
   const accessToken = await getPayPalAccessToken()
 
   const response = await fetch(
-    `${PAYPAL_API_BASE}/v2/checkout/orders/${paypalOrderId}/capture`,
+    `${PAYPAL_API_BASE}/v2/checkout/orders/${encodeURIComponent(paypalOrderId)}`,
+    { headers: { Authorization: `Bearer ${accessToken}` } },
+  )
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`PayPal order lookup failed: ${error}`)
+  }
+
+  return response.json()
+}
+
+export async function capturePayPalOrder(paypalOrderId: string): Promise<PayPalOrderDetails> {
+  const accessToken = await getPayPalAccessToken()
+
+  const response = await fetch(
+    `${PAYPAL_API_BASE}/v2/checkout/orders/${encodeURIComponent(paypalOrderId)}/capture`,
     {
       method: 'POST',
       headers: {
@@ -128,6 +161,5 @@ export async function capturePayPalOrder(
     throw new Error(`PayPal capture failed: ${error}`)
   }
 
-  const data = await response.json()
-  return { status: data.status, id: data.id }
+  return response.json()
 }

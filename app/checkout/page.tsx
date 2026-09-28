@@ -16,6 +16,19 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import SmartImage from '@/components/ui/SmartImage'
+import { toPayPalAmounts, type PayPalAmounts } from '@/lib/currency'
+import { getErrorMessage } from '@/lib/errors'
+
+const PAYPAL_CURRENCY = process.env.NEXT_PUBLIC_PAYPAL_CURRENCY || 'USD'
+
+interface PaymentInfo {
+  /** Order total in rand. */
+  total: number
+  /** Rand per US$1 frozen onto the order. */
+  rate?: number
+  /** What PayPal will charge, or null when no exchange rate is set. */
+  amounts: PayPalAmounts | null
+}
 
 const STEPS = ['Address', 'Review', 'Payment'] as const
 type Step = (typeof STEPS)[number]
@@ -61,6 +74,7 @@ const [currentStep, setCurrentStep] = useState<Step>('Address')
   const [showAddForm, setShowAddForm] = useState(false)
   const [savingAddress, setSavingAddress] = useState(false)
   const [convexOrderId, setConvexOrderId] = useState<string | null>(null)
+  const [payment, setPayment] = useState<PaymentInfo | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
 
 const shipping = shippingRateSetting
@@ -104,7 +118,7 @@ const tax = taxEnabled ? totalPrice * (taxRatePercent / 100) : 0
       setShowAddForm(false)
       toast.success('Address saved')
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to save address')
+      toast.error(getErrorMessage(err, 'Failed to save address'))
     } finally {
       setSavingAddress(false)
     }
@@ -122,24 +136,36 @@ const tax = taxEnabled ? totalPrice * (taxRatePercent / 100) : 0
     if (!user?.id || !selectedAddress) return
     setIsProcessing(true)
     try {
-      const orderId = await createOrder({
+      // Send only what was chosen: the server prices the order itself.
+      const created = await createOrder({
         items: items.map((item) => ({
           productId: item._id as Id<'products'>,
-          name: item.name,
           quantity: item.quantity,
-          price: item.price,
-          sku: '',
         })),
         shippingAddressId: selectedAddress._id as Id<'addresses'>,
-        subtotal: totalPrice,
-        shipping,
-        tax,
-        total: grandTotal,
       })
-      setConvexOrderId(orderId)
+      if (Math.abs(created.total - grandTotal) >= 0.01) {
+        toast.warning(
+          `Prices have been updated. Your order total is R${created.total.toFixed(2)}.`,
+        )
+      }
+      setConvexOrderId(created.orderId)
+      setPayment({
+        total: created.total,
+        rate: created.exchangeRate,
+        amounts: toPayPalAmounts(
+          {
+            items: created.items,
+            shipping: created.shipping,
+            tax: created.tax,
+            exchangeRate: created.exchangeRate,
+          },
+          PAYPAL_CURRENCY,
+        ),
+      })
       setCurrentStep('Payment')
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to create order')
+      toast.error(getErrorMessage(err, 'Failed to create order'))
     } finally {
       setIsProcessing(false)
     }
@@ -304,11 +330,8 @@ const tax = taxEnabled ? totalPrice * (taxRatePercent / 100) : 0
               {currentStep === 'Payment' && (
                 <PaymentStep
                   key="payment"
-                  items={items}
-                  shipping={shipping}
-                  tax={tax}
-                  grandTotal={grandTotal}
                   convexOrderId={convexOrderId!}
+                  payment={payment}
                   onSuccess={() => {
                     clearCart()
                     router.push(`/checkout/success?orderId=${convexOrderId}`)
@@ -705,18 +728,15 @@ function ReviewStep({
 
 /* ─── Payment Step ─── */
 interface PaymentStepProps {
-  items: Array<{ name: string; price: number; quantity: number }>
-  shipping: number
-  tax: number
-  grandTotal: number
   convexOrderId: string
+  payment: PaymentInfo | null
   onSuccess: () => void
   onBack: () => void
 }
 
-function PaymentStep({ items, shipping, tax, grandTotal, convexOrderId, onSuccess, onBack }: PaymentStepProps) {
+function PaymentStep({ convexOrderId, payment, onSuccess, onBack }: PaymentStepProps) {
   const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!
-  const currency = process.env.NEXT_PUBLIC_PAYPAL_CURRENCY || 'ZAR'
+  const currency = PAYPAL_CURRENCY
 
   return (
     <motion.div
@@ -743,6 +763,25 @@ function PaymentStep({ items, shipping, tax, grandTotal, convexOrderId, onSucces
           </div>
         </div>
 
+        {payment && !payment.amounts ? (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            Online payment is temporarily unavailable. Please call us on 012 770 3389
+            or email info@levispares.co.za to complete your order.
+          </div>
+        ) : (
+          <>
+            {payment?.amounts && currency !== 'ZAR' && (
+              <div className="mb-5 rounded-lg bg-secondary/60 p-4 text-sm text-foreground">
+                <p className="font-semibold">
+                  You will be charged {currency === 'USD' ? 'US$' : `${currency} `}
+                  {payment.amounts.total.toFixed(2)}
+                </p>
+                <p className="text-muted-foreground mt-1">
+                  PayPal charges in {currency === 'USD' ? 'US dollars' : currency}. Your order total of
+                  R{payment.total.toFixed(2)} is converted at R{payment.rate?.toFixed(2)} = 1 {currency}.
+                </p>
+              </div>
+            )}
         <PayPalScriptProvider
           options={{
             clientId,
@@ -762,16 +801,7 @@ function PaymentStep({ items, shipping, tax, grandTotal, convexOrderId, onSucces
               const response = await fetch('/api/paypal/create-order', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  items: items.map((item) => ({
-                    name: item.name,
-                    quantity: item.quantity,
-                    price: item.price,
-                  })),
-                  shipping,
-                  tax,
-                  totalAmount: grandTotal,
-                }),
+                body: JSON.stringify({ convexOrderId }),
               })
               const data = await response.json()
               if (!response.ok) throw new Error(data.error)
@@ -803,6 +833,8 @@ function PaymentStep({ items, shipping, tax, grandTotal, convexOrderId, onSucces
             }}
           />
         </PayPalScriptProvider>
+          </>
+        )}
       </div>
 
       <button

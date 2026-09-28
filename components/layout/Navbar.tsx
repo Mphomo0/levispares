@@ -22,6 +22,7 @@ import {
   SignInButton,
   UserButton,
   useAuth,
+  useClerk,
 } from '@clerk/nextjs'
 import { motion, AnimatePresence } from 'motion/react'
 import { useQuery } from 'convex/react'
@@ -36,12 +37,25 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
 
-  const { userId } = useAuth()
+  const { userId, isLoaded } = useAuth()
+  const { openSignIn } = useClerk()
   const currentUser = useQuery(api.users.getCurrent)
   const isAdmin = currentUser?.role === 'admin'
   const isSignedIn = !!userId
 
 const brands = useQuery(api.brands.list, {})
+
+  // Signed-out visitors sent here from a members-only page (?sign-in=1) get the
+  // sign-in window straight away, and land in the right area afterwards.
+  useEffect(() => {
+    if (!isLoaded) return
+    const params = new URLSearchParams(window.location.search)
+    if (!params.has('sign-in')) return
+    params.delete('sign-in')
+    const query = params.toString()
+    window.history.replaceState(null, '', window.location.pathname + (query ? `?${query}` : ''))
+    if (!userId) openSignIn({ forceRedirectUrl: '/auth-redirect' })
+  }, [isLoaded, userId, openSignIn])
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10)

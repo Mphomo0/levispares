@@ -7,6 +7,7 @@ import { api } from '@/convex/_generated/api'
 import type { Id } from '@/convex/_generated/dataModel'
 import { useFavorites } from '@/lib/FavoritesContext'
 import { toast } from 'sonner'
+import { getErrorMessage } from '@/lib/errors'
 
 export default function FavoritesMerge() {
   const { user, isLoaded: isUserLoaded } = useUser()
@@ -25,7 +26,7 @@ export default function FavoritesMerge() {
         try {
           await addToWishlist({ productId: product._id as Id<'products'> })
         } catch (e) {
-          const message = e instanceof Error ? e.message : ''
+          const message = getErrorMessage(e, '')
           if (!message.includes('already in wishlist')) {
             console.error('Failed to merge favorite:', e)
           }

@@ -11,6 +11,7 @@ import { useCart } from '@/lib/CartContext'
 import { toast } from 'sonner'
 import { motion } from 'motion/react'
 import SmartImage from '@/components/ui/SmartImage'
+import { getErrorMessage } from '@/lib/errors'
 
 export default function FavoritesPage() {
   const { isLoaded: isUserLoaded } = useUser()
@@ -50,7 +51,7 @@ export default function FavoritesPage() {
         toast.success('Removed from favorites')
       }
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Failed to remove')
+      toast.error(getErrorMessage(e, 'Failed to remove'))
     } finally {
       setRemovingId(null)
     }
@@ -67,7 +68,7 @@ export default function FavoritesPage() {
       await handleRemove(item)
       toast.success('Moved to cart')
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Failed to move to cart')
+      toast.error(getErrorMessage(e, 'Failed to move to cart'))
     }
   }
 

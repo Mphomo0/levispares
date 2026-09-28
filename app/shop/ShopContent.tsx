@@ -80,7 +80,10 @@ export default function ShopContent() {
     }
   }
 
-  const shopData = useQuery(api.products.listShopNumbered, {
+  // A category in the URL that does not exist must not silently show everything.
+  const categoryNotFound = !!selectedCategory && !!allCategories && !categoryIdForQuery
+
+  const shopData = useQuery(api.products.listShopNumbered, categoryNotFound ? 'skip' : {
     page: currentPage,
     pageSize: ITEMS_PER_PAGE,
     categoryId: categoryIdForQuery ?? undefined,
@@ -96,7 +99,7 @@ export default function ShopContent() {
   const results = shopData?.products || []
   const totalPages = shopData?.totalPages || 1
   const totalCount = shopData?.totalCount || 0
-  const isLoading = shopData === undefined
+  const isLoading = shopData === undefined && !categoryNotFound
 
   const activeFiltersCount = [
     selectedCategory,

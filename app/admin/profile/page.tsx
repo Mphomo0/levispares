@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import { isPaidOrder } from '@/lib/orders'
 
 export default function AdminProfilePage() {
   const { user, isLoaded } = useUser()
@@ -47,7 +48,7 @@ export default function AdminProfilePage() {
   }
 
   const totalSpent = userOrders?.reduce((sum, o) => {
-    if (o.status !== 'cancelled') return sum + o.total
+    if (isPaidOrder(o)) return sum + o.total
     return sum
   }, 0) ?? 0
 

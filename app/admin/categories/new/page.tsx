@@ -18,6 +18,7 @@ import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import type { Id } from '@/convex/_generated/dataModel'
 import { toast } from 'sonner'
+import { getErrorMessage } from '@/lib/errors'
 
 export default function NewCategoryPage() {
   const router = useRouter()
@@ -77,7 +78,7 @@ export default function NewCategoryPage() {
       router.push('/admin/categories')
     } catch (err) {
       console.error('Failed to add category:', err)
-      const message = err instanceof Error ? err.message : 'Failed to add category. Please try again.'
+      const message = getErrorMessage(err, 'Failed to add category. Please try again.')
       setError(message)
       toast('Error', { description: message })
       setIsSubmitting(false)

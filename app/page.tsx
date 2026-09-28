@@ -6,7 +6,6 @@ import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
-import { categories } from '@/lib/products'
 import ProductCard from '@/components/sections/products/ProductCard'
 import CategoryCard from '@/components/sections/products/CategoryCard'
 import BrandCard from '@/components/sections/products/BrandCard'
@@ -15,6 +14,7 @@ import BrandCard from '@/components/sections/products/BrandCard'
 export default function Home() {
   const featuredProducts = useQuery(api.products.listFeatured)
   const brands = useQuery(api.brands.list)
+  const categories = useQuery(api.categories.listTopLevel)
 
   return (
     <>
@@ -80,16 +80,21 @@ export default function Home() {
           </motion.div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            {categories.map((category, index) => (
+            {(categories ?? []).slice(0, 6).map((category, index) => (
               <motion.div
-                key={category.id}
+                key={category._id}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.05 }}
                 viewport={{ once: true }}
                 className="bg-white h-full rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300"
               >
-                <CategoryCard {...category} />
+                <CategoryCard
+                  slug={category.slug}
+                  name={category.name}
+                  icon={category.icon || '🔧'}
+                  description={category.description || ''}
+                />
               </motion.div>
             ))}
           </div>

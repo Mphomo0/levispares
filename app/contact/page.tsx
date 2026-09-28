@@ -16,7 +16,7 @@ export default function ContactPage() {
       type: 'phone' as const,
       title: 'Phone',
       content: '012 770 3389',
-      href: 'tel:+0127703389',
+      href: 'tel:+27127703389',
     },
     {
       type: 'email' as const,

@@ -11,6 +11,7 @@ import LogoUpload from '@/components/admin/LogoUpload'
 
 import { useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import { getErrorMessage } from '@/lib/errors'
 
 export default function NewBrandPage() {
   const router = useRouter()
@@ -55,7 +56,7 @@ export default function NewBrandPage() {
       router.push('/admin/brands')
     } catch (error) {
       console.error('Failed to add brand:', error)
-      alert(error instanceof Error ? error.message : 'Failed to add brand. Please try again.')
+      alert(getErrorMessage(error, 'Failed to add brand. Please try again.'))
       setIsSubmitting(false)
     }
   }

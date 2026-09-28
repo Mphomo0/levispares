@@ -29,6 +29,7 @@ import {
 import Link from 'next/link'
 import { toast } from 'sonner'
 import ProductCard from '@/components/sections/products/ProductCard'
+import { getErrorMessage } from '@/lib/errors'
 
 export default function ProductPage() {
   const params = useParams()
@@ -37,8 +38,10 @@ export default function ProductPage() {
   
   // Data Fetching
   const product = useQuery(api.products.getWithFullHierarchy, { id: productId })
-  const reviewStats = useQuery(api.reviews.getStats, { productId })
-  const reviews = useQuery(api.reviews.listByProduct, { productId })
+  // Only ask for reviews once the product is known to exist (a bad link has no valid id).
+  const reviewStats = useQuery(api.reviews.getStats, product ? { productId } : 'skip')
+  const reviews = useQuery(api.reviews.listByProduct, product ? { productId } : 'skip')
+  const storeSettings = useQuery(api.settings.get)
   
   // Mutations
   const addReview = useMutation(api.reviews.add)
@@ -90,11 +93,16 @@ export default function ProductPage() {
     category: product.category?.name || 'General',
     description: product.description || '',
     specs: product.specs,
+    stockQty: product.stockQty ?? 0,
   }
+  const outOfStock = (product.stockQty ?? 0) <= 0
 
   const handleAddToCart = () => {
-    for (let i = 0; i < quantity; i++) {
-      addToCart(cartProduct)
+    if (!addToCart(cartProduct, quantity)) {
+      toast.error('No more stock available', {
+        description: `All ${product.stockQty ?? 0} in stock are already in your cart.`,
+      })
+      return
     }
     toast.success(`Added ${quantity} ${quantity === 1 ? 'item' : 'items'} to cart`, {
       description: `${product.name} is ready for checkout.`,
@@ -119,7 +127,7 @@ export default function ProductPage() {
       setReviewComment('')
       setReviewRating(5)
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Please try again.'
+      const message = getErrorMessage(err, 'Please try again.')
       toast.error('Failed to submit review', { description: message })
     } finally {
       setIsSubmitting(false)
@@ -230,7 +238,11 @@ export default function ProductPage() {
                   </>
                 )}
               </div>
-              <p className="text-sm text-slate-500">VAT inclusive</p>
+              <p className="text-sm text-slate-500">
+                {storeSettings?.taxEnabled
+                  ? `Excl. VAT: ${storeSettings.taxRate}% added at checkout`
+                  : 'VAT inclusive'}
+              </p>
             </div>
 
             <div className="p-6 bg-white rounded-3xl border border-slate-200 shadow-sm space-y-6">
@@ -258,9 +270,9 @@ export default function ProductPage() {
                   </button>
                   <span className="w-12 text-center font-bold text-slate-900">{quantity}</span>
                   <button 
-                    onClick={() => setQuantity(q => Math.min(product.stockQty || 99, q + 1))}
+                    onClick={() => setQuantity(q => Math.min(product.stockQty ?? 0, q + 1))}
                     className="p-2 hover:bg-white rounded-xl transition-all disabled:opacity-30"
-                    disabled={quantity >= (product.stockQty || 99)}
+                    disabled={quantity >= (product.stockQty ?? 0)}
                   >
                     <Plus className="w-4 h-4" />
                   </button>
@@ -271,10 +283,11 @@ export default function ProductPage() {
               <div className="grid grid-cols-1 gap-4">
                 <button 
                   onClick={handleAddToCart}
-                  className="w-full bg-accent text-white py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 transition-all hover:scale-[1.02] hover:brightness-110 active:scale-95 shadow-xl shadow-accent/30"
+                  disabled={outOfStock}
+                  className="w-full bg-accent text-white py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 transition-all hover:scale-[1.02] hover:brightness-110 active:scale-95 shadow-xl shadow-accent/30 disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed"
                 >
                   <ShoppingBag className="w-6 h-6" />
-                  Add to Cart
+                  {outOfStock ? 'Out of Stock' : 'Add to Cart'}
                 </button>
                 
                 <div className="grid grid-cols-2 gap-4">
@@ -309,7 +322,7 @@ export default function ProductPage() {
               </div>
               <div className="flex items-center gap-3 p-4 bg-white rounded-2xl border border-slate-100">
                 <RotateCcw className="w-5 h-5 text-accent" />
-                <span className="text-xs font-bold text-slate-600 uppercase tracking-wide leading-tight">Easy 7-Day Returns</span>
+                <span className="text-xs font-bold text-slate-600 uppercase tracking-wide leading-tight">30-Day Returns</span>
               </div>
               <div className="flex items-center gap-3 p-4 bg-white rounded-2xl border border-slate-100">
                 <Check className="w-5 h-5 text-accent" />

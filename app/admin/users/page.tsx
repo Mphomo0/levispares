@@ -43,11 +43,13 @@ import {
 } from '@/components/ui/pagination'
 import { useMounted } from '@/lib/useMounted'
 import { useQuery, useMutation } from 'convex/react'
+import { setUserActive } from '@/lib/adminUsers'
 import { api } from '@/convex/_generated/api'
 import type { Id } from '@/convex/_generated/dataModel'
 import Link from 'next/link'
 import { useUser } from '@clerk/nextjs'
 import { toast } from 'sonner'
+import { getErrorMessage } from '@/lib/errors'
 
 const roles = ['All', 'user', 'admin']
 const statuses = ['All', 'Active', 'Inactive']
@@ -76,7 +78,6 @@ export default function AdminUsersPage() {
   const mounted = useMounted()
 
   const users = useQuery(api.users.list)
-  const toggleUserStatus = useMutation(api.users.toggleStatus)
   const deleteUser = useMutation(api.users.deleteById)
 
   const itemsPerPage = 8
@@ -104,11 +105,20 @@ export default function AdminUsersPage() {
       return
     }
 
+    const target = users?.find((u) => u._id === id)
+    const activating = target?.isActive === false
+    if (
+      !activating &&
+      !window.confirm(
+        'Deactivating bans this user: they are signed out and cannot sign in, order or use their account until you reactivate them. Continue?',
+      )
+    ) return
+
     try {
-      await toggleUserStatus({ id })
-      toast.success("User status updated successfully")
+      await setUserActive(id, activating)
+      toast.success(activating ? 'User reactivated' : 'User deactivated and banned')
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to update user status")
+      toast.error(getErrorMessage(error, "Failed to update user status"))
     }
   }
 
@@ -122,7 +132,7 @@ export default function AdminUsersPage() {
       await deleteUser({ id })
       toast.success("User record deleted")
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to delete user")
+      toast.error(getErrorMessage(error, "Failed to delete user"))
     }
   }
 
@@ -637,10 +647,9 @@ export default function AdminUsersPage() {
         </CardHeader>
         <CardContent className="text-xs space-y-2 text-muted-foreground">
           <p><strong>View Profile:</strong> Navigate to the detailed user profile page where you can see order history, address information, and specific activity logs.</p>
-          <p><strong>Deactivate Account:</strong> This action suspends the user&apos;s access to the platform. 
+          <p><strong>Deactivate Account:</strong> Bans the user. They are signed out, cannot sign in, and cannot place orders or use their account. Their record and order history are kept.
             <span className="block mt-1 italic text-brand dark:text-brand">
-              Note: Deactivated users will be prevented from placing new orders or accessing protected account areas. 
-              As a security measure, you cannot deactivate your own admin account.
+              Choose Activate Account to reinstate them. As a security measure, you cannot deactivate your own admin account.
             </span>
           </p>
         </CardContent>

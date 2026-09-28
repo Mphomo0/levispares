@@ -40,6 +40,7 @@ import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import type { Id } from '@/convex/_generated/dataModel'
 import { toast } from 'sonner'
+import OrderDetailsDialog from '@/components/admin/OrderDetailsDialog'
 
 const orderStatuses = ['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'] as const
 
@@ -58,6 +59,7 @@ export default function AdminOrdersPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
+  const [detailsId, setDetailsId] = useState<Id<'orders'> | null>(null)
   const mounted = useMounted()
 
   const itemsPerPage = 8
@@ -66,7 +68,8 @@ export default function AdminOrdersPage() {
   const filteredOrders = (allOrders ?? []).filter((order) => {
     const matchesSearch =
       order._id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.userId.toLowerCase().includes(searchQuery.toLowerCase())
+      (order.customerName ?? '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (order.customerEmail ?? '').toLowerCase().includes(searchQuery.toLowerCase())
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter
     return matchesSearch && matchesStatus
   })
@@ -86,6 +89,13 @@ export default function AdminOrdersPage() {
   }
 
   const handleStatusChange = async (orderId: Id<'orders'>, newStatus: 'pending' | 'paid' | 'processing' | 'shipped' | 'delivered' | 'cancelled') => {
+    if (
+      newStatus === 'cancelled' &&
+      !window.confirm(
+        'Cancel this order? The items go back into stock. This does not refund the customer: if they already paid, refund them in your PayPal account.',
+      )
+    ) return
+
     try {
       await updateStatus({ id: orderId, status: newStatus })
       toast.success(`Order status updated to ${newStatus}`)
@@ -118,7 +128,7 @@ export default function AdminOrdersPage() {
             ) : (
               <div className="text-2xl font-bold">{orderStats.total}</div>
             )}
-            <p className="text-xs text-muted-foreground">All time</p>
+            <p className="text-xs text-muted-foreground">All time, including unpaid</p>
           </CardContent>
         </Card>
         <Card>
@@ -196,7 +206,7 @@ export default function AdminOrdersPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <Input
-                placeholder="Search by order ID or user ID..."
+                placeholder="Search by order ID, customer name or email..."
                 className="pl-9"
                 value={searchQuery}
                 onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1) }}
@@ -259,7 +269,7 @@ export default function AdminOrdersPage() {
                 {paginatedOrders.map((order) => (
                   <div key={order._id} className="rounded-lg border border-border p-4 space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="font-mono text-xs text-muted-foreground">{order._id.slice(-8).toUpperCase()}</span>
+                      <button onClick={() => setDetailsId(order._id)} className="font-mono text-xs text-brand hover:underline">{order._id.slice(-8).toUpperCase()}</button>
                       <span className="text-xs text-muted-foreground">
                         {new Date(order._creationTime).toLocaleDateString('en-ZA')}
                       </span>
@@ -267,7 +277,7 @@ export default function AdminOrdersPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-medium text-sm">{order.items.length} item{order.items.length !== 1 ? 's' : ''}</p>
-                        <p className="text-xs text-muted-foreground font-mono">{order.userId.slice(0, 16)}...</p>
+                        <p className="text-xs text-muted-foreground">{order.customerName || order.customerEmail || 'Unknown customer'}</p>
                       </div>
                       <p className="font-bold">R{order.total.toFixed(2)}</p>
                     </div>
@@ -310,6 +320,7 @@ export default function AdminOrdersPage() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => setDetailsId(order._id)}>View Details</DropdownMenuItem>
                             {order.status !== 'cancelled' && order.status !== 'delivered' && (
                               <>
                                 {order.status === 'paid' && (
@@ -345,7 +356,7 @@ export default function AdminOrdersPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Order ID</TableHead>
-                    <TableHead>User</TableHead>
+                    <TableHead>Customer</TableHead>
                     <TableHead>Items</TableHead>
                     <TableHead>Total</TableHead>
                     <TableHead>Status</TableHead>
@@ -356,9 +367,13 @@ export default function AdminOrdersPage() {
                 <TableBody>
                   {paginatedOrders.map((order) => (
                     <TableRow key={order._id}>
-                      <TableCell className="font-mono text-xs">{order._id.slice(-8).toUpperCase()}</TableCell>
+                      <TableCell className="font-mono text-xs">
+                        <button onClick={() => setDetailsId(order._id)} className="text-brand hover:underline">
+                          {order._id.slice(-8).toUpperCase()}
+                        </button>
+                      </TableCell>
                       <TableCell>
-                        <div className="font-mono text-xs text-muted-foreground">{order.userId.slice(0, 16)}...</div>
+                        <div className="text-sm">{order.customerName || order.customerEmail || 'Unknown customer'}</div>
                       </TableCell>
                       <TableCell>{order.items.length} item{order.items.length !== 1 ? 's' : ''}</TableCell>
                       <TableCell className="font-medium">R{order.total.toFixed(2)}</TableCell>
@@ -406,6 +421,7 @@ export default function AdminOrdersPage() {
                             <DropdownMenuContent align="end">
                               <DropdownMenuLabel>Actions</DropdownMenuLabel>
                               <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => setDetailsId(order._id)}>View Details</DropdownMenuItem>
                               {order.status !== 'cancelled' && order.status !== 'delivered' && (
                                 <>
                                   {order.status === 'paid' && (
@@ -482,6 +498,7 @@ export default function AdminOrdersPage() {
           )}
         </CardContent>
       </Card>
+      <OrderDetailsDialog orderId={detailsId} onClose={() => setDetailsId(null)} />
     </div>
   )
 }

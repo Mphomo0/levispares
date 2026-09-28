@@ -16,6 +16,7 @@ import {
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import type { Id } from '@/convex/_generated/dataModel'
+import { getErrorMessage } from '@/lib/errors'
 
 export default function NewVariantPage() {
   const router = useRouter()
@@ -86,7 +87,7 @@ export default function NewVariantPage() {
       router.push('/admin/variants')
     } catch (error) {
       console.error('Failed to add variant:', error)
-      alert(error instanceof Error ? error.message : 'Failed to add variant. Please try again.')
+      alert(getErrorMessage(error, 'Failed to add variant. Please try again.'))
       setIsSubmitting(false)
     }
   }

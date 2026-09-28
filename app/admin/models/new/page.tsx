@@ -16,6 +16,7 @@ import {
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import type { Id } from '@/convex/_generated/dataModel'
+import { getErrorMessage } from '@/lib/errors'
 
 export default function NewModelPage() {
   const router = useRouter()
@@ -92,7 +93,7 @@ export default function NewModelPage() {
       router.push('/admin/models')
     } catch (error) {
       console.error('Failed to add model:', error)
-      alert(error instanceof Error ? error.message : 'Failed to add model. Please try again.')
+      alert(getErrorMessage(error, 'Failed to add model. Please try again.'))
       setIsSubmitting(false)
     }
   }

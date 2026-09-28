@@ -28,7 +28,7 @@ export default clerkMiddleware(async (auth, req) => {
   // Protect account routes: require authentication AND non-admin status
   if (isAccountRoute(req)) {
     if (!userId) {
-      const url = new URL("/login", req.url);
+      const url = new URL("/?sign-in=1", req.url);
       return NextResponse.redirect(url);
     }
     

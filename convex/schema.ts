@@ -140,6 +140,21 @@ export default defineSchema({
     total: v.number(),
     paypalOrderId: v.optional(v.string()),
     notes: v.optional(v.string()),
+    // True while this order's items are deducted from product stock.
+    stockDeducted: v.optional(v.boolean()),
+    // Rand per US$1 when the order was created (PayPal charges in dollars).
+    exchangeRate: v.optional(v.number()),
+    // Delivery details as they were when the order was placed, so later edits
+    // or deletions of the saved address cannot change where it is sent.
+    shippingSnapshot: v.optional(v.object({
+      name: v.string(),
+      street: v.string(),
+      city: v.string(),
+      province: v.optional(v.string()),
+      postalCode: v.string(),
+      country: v.string(),
+      phone: v.optional(v.string()),
+    })),
   })
     .index("by_userId", ["userId"])
     .index("by_status", ["status"]),
@@ -219,6 +234,8 @@ export default defineSchema({
     taxEnabled: v.optional(v.boolean()),
     taxRate: v.optional(v.number()),
     shippingRate: v.optional(v.number()),
+    // Rand per US$1, used to convert the order total for PayPal.
+    zarPerUsd: v.optional(v.number()),
     statsYearsBusiness: v.optional(v.string()),
     statsPartsStock: v.optional(v.string()),
     statsHappyCustomers: v.optional(v.string()),

@@ -4,8 +4,12 @@ import Link from 'next/link'
 import { MapPin, Phone, Mail } from 'lucide-react'
 import Image from 'next/image'
 import imagekitLoader from '@/lib/imagekitLoader'
+import { useQuery } from 'convex/react'
+import { api } from '@/convex/_generated/api'
 
 export default function Footer() {
+  const categories = useQuery(api.categories.listTopLevel)
+
   return (
     <footer className="bg-slate-900 text-white">
       <div className="container mx-auto px-4 py-12 md:py-16">
@@ -116,20 +120,13 @@ export default function Footer() {
           <div>
             <h4 className="font-semibold text-lg mb-4">Categories</h4>
             <ul className="space-y-3">
-              {[
-                'Brakes',
-                'Filters',
-                'Tires',
-                'Batteries',
-                'Engine Parts',
-                'Suspension',
-              ].map((cat) => (
-                <li key={cat}>
+              {(categories ?? []).slice(0, 6).map((cat) => (
+                <li key={cat._id}>
                   <Link
-                    href={`/shop?category=${cat.toLowerCase().replace(' ', '-')}`}
+                    href={`/shop?category=${encodeURIComponent(cat.slug)}`}
                     className="text-white/70 hover:text-accent transition-colors"
                   >
-                    {cat}
+                    {cat.name}
                   </Link>
                 </li>
               ))}
@@ -151,7 +148,7 @@ export default function Footer() {
               <li className="flex items-center gap-3">
                 <Phone className="w-5 h-5 text-accent shrink-0" />
                 <a
-                  href="tel:+0127703389"
+                  href="tel:+27127703389"
                   className="text-white/70 hover:text-accent transition-colors text-sm"
                 >
                   012 770 3389
@@ -188,13 +185,13 @@ export default function Footer() {
             </p>
             <div className="flex gap-6">
               <a
-                href="privacy-policy"
+                href="/privacy-policy"
                 className="text-white/50 hover:text-accent text-sm transition-colors"
               >
                 Privacy Policy
               </a>
               <a
-                href="terms-conditions"
+                href="/terms-conditions"
                 className="text-white/50 hover:text-accent text-sm transition-colors"
               >
                 Terms & Conditions

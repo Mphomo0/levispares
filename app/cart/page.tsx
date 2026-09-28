@@ -208,7 +208,7 @@ const handleCheckout = () => {
                 className="bg-card rounded-xl p-4 md:p-6 card-shadow flex flex-col sm:flex-row gap-4"
               >
                 <Link
-                  href={`/product/${item._id}`}
+                  href={`/products/${item._id}`}
                   className="relative w-full sm:w-32 h-32 bg-secondary rounded-lg overflow-hidden shrink-0"
                 >
                   <SmartImage
@@ -227,7 +227,7 @@ const handleCheckout = () => {
                         {item.category}
                       </span>
                       <Link
-                        href={`/product/${item._id}`}
+                        href={`/products/${item._id}`}
                         className="block font-semibold text-foreground text-lg hover:text-accent transition-colors"
                       >
                         {item.name}
@@ -282,7 +282,8 @@ const handleCheckout = () => {
                         onClick={() =>
                           updateQuantity(item._id, item.quantity + 1)
                         }
-                        className="p-2 hover:bg-secondary transition-colors"
+                        disabled={item.stockQty !== undefined && item.quantity >= item.stockQty}
+                        className="p-2 hover:bg-secondary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                         aria-label="Increase quantity"
                       >
                         <svg

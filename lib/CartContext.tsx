@@ -11,6 +11,8 @@ export interface Product {
   category?: string
   description?: string
   sku?: string
+  /** Units in stock when the product was added; the server re-checks at checkout. */
+  stockQty?: number
   specs?: { label: string; value: string }[]
 }
 
@@ -20,7 +22,8 @@ export interface CartItem extends Product {
 
 interface CartContextType {
   items: CartItem[]
-  addToCart: (product: Product) => void
+  /** Returns false when nothing could be added (out of stock, or the whole stock is already in the cart). */
+  addToCart: (product: Product, quantity?: number) => boolean
   removeFromCart: (productId: string) => void
   updateQuantity: (productId: string, quantity: number) => void
   clearCart: () => void
@@ -55,18 +58,24 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [items, isLoaded])
 
-  const addToCart = (product: Product) => {
+  const addToCart = (product: Product, quantity = 1) => {
+    const max = product.stockQty ?? Infinity
+    const current = items.find(item => item._id === product._id)?.quantity ?? 0
+    const next = Math.min(current + quantity, max)
+    if (next <= current) return false
+
     setItems(prev => {
       const existing = prev.find(item => item._id === product._id)
       if (existing) {
         return prev.map(item =>
           item._id === product._id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, ...product, quantity: next }
             : item
         )
       }
-      return [...prev, { ...product, quantity: 1 }]
+      return [...prev, { ...product, quantity: next }]
     })
+    return true
   }
 
   const removeFromCart = (productId: string) => {
@@ -80,7 +89,9 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
     setItems(prev =>
       prev.map(item =>
-        item._id === productId ? { ...item, quantity } : item
+        item._id === productId
+          ? { ...item, quantity: Math.min(quantity, item.stockQty ?? Infinity) }
+          : item
       )
     )
   }

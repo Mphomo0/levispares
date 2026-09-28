@@ -1,7 +1,8 @@
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import { query, mutation } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 
+import { requireAdmin } from "./lib/auth";
 export const list = query({
   args: { modelId: v.optional(v.id("models")) },
   handler: async (ctx, args) => {
@@ -183,12 +184,13 @@ export const add = mutation({
     slug: v.string(),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const existing = await ctx.db
       .query("variants")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
       .unique();
     if (existing) {
-      throw new Error("Variant with this slug already exists");
+      throw new ConvexError("Variant with this slug already exists");
     }
 
     return await ctx.db.insert("variants", {
@@ -207,8 +209,9 @@ export const addBulk = mutation({
     variants: v.array(v.string()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const model = await ctx.db.get(args.modelId);
-    if (!model) throw new Error("Model not found");
+    if (!model) throw new ConvexError("Model not found");
 
     const insertedIds: Id<"variants">[] = [];
 
@@ -252,6 +255,7 @@ export const update = mutation({
     active: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const { id, ...data } = args;
     await ctx.db.patch(id, data);
   },
@@ -260,8 +264,9 @@ export const update = mutation({
 export const toggleActive = mutation({
   args: { id: v.id("variants") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const variant = await ctx.db.get(args.id);
-    if (!variant) throw new Error("Variant not found");
+    if (!variant) throw new ConvexError("Variant not found");
     await ctx.db.patch(args.id, { active: !variant.active });
   },
 });
@@ -269,6 +274,7 @@ export const toggleActive = mutation({
 export const remove = mutation({
   args: { id: v.id("variants") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const products = await ctx.db
       .query("products")
       .withIndex("by_variantId", (q) => q.eq("variantId", args.id))

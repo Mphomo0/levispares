@@ -1,6 +1,7 @@
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import { query, mutation } from "./_generated/server";
 
+import { requireAdmin } from "./lib/auth";
 export const list = query({
   handler: async (ctx) => {
     return await ctx.db
@@ -62,13 +63,14 @@ export const add = mutation({
     expiresAt: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     if (args.code) {
       const existing = await ctx.db
         .query("promotions")
         .withIndex("by_code", (q) => q.eq("code", args.code))
         .unique();
       if (existing) {
-        throw new Error("Promotion code already exists");
+        throw new ConvexError("Promotion code already exists");
       }
     }
 
@@ -100,6 +102,7 @@ export const update = mutation({
     active: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const { id, ...data } = args;
     await ctx.db.patch(id, data);
   },
@@ -108,6 +111,7 @@ export const update = mutation({
 export const remove = mutation({
   args: { id: v.id("promotions") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const products = await ctx.db
       .query("promotionProducts")
       .withIndex("by_promotionId", (q) => q.eq("promotionId", args.id))
@@ -128,8 +132,9 @@ export const addProduct = mutation({
     categoryId: v.optional(v.id("categories")),
   },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     if (!args.productId && !args.categoryId) {
-      throw new Error("Either productId or categoryId must be provided");
+      throw new ConvexError("Either productId or categoryId must be provided");
     }
 
     return await ctx.db.insert("promotionProducts", args);
@@ -139,6 +144,7 @@ export const addProduct = mutation({
 export const removeProduct = mutation({
   args: { id: v.id("promotionProducts") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     await ctx.db.delete(args.id);
   },
 });
@@ -146,11 +152,12 @@ export const removeProduct = mutation({
 export const incrementUsage = mutation({
   args: { id: v.id("promotions") },
   handler: async (ctx, args) => {
+    await requireAdmin(ctx);
     const promotion = await ctx.db.get(args.id);
-    if (!promotion) throw new Error("Promotion not found");
+    if (!promotion) throw new ConvexError("Promotion not found");
 
     if (promotion.maxUses && (promotion.usedCount ?? 0) >= promotion.maxUses) {
-      throw new Error("Promotion usage limit reached");
+      throw new ConvexError("Promotion usage limit reached");
     }
 
     await ctx.db.patch(args.id, {

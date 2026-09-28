@@ -10,6 +10,7 @@ import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import type { Id } from '@/convex/_generated/dataModel'
 import { toast } from 'sonner'
+import { getErrorMessage } from '@/lib/errors'
 
 const MAX_ADDRESSES = 3
 
@@ -91,7 +92,7 @@ export default function AddressesPage() {
       setEditingId(null)
       setForm(emptyForm)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Something went wrong')
+      toast.error(getErrorMessage(err, 'Something went wrong'))
     } finally {
       setSaving(false)
     }

@@ -10,7 +10,7 @@ import { motion } from 'motion/react'
 const schema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.email('Please enter a valid email'),
-  message: z.string().min(1, 'Message cannot be empty'),
+  message: z.string().min(1, 'Message cannot be empty').max(3000, 'Please keep your message under 3000 characters'),
 })
 
 type FormData = z.infer<typeof schema>
@@ -19,13 +19,27 @@ export default function ContactForm() {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
   })
 
-  const onSubmit = () => {
-    toast.success("Message sent successfully! We'll get back to you soon.")
+  // Nothing is stored: this opens the visitor's email app with the message
+  // ready to send to the store. (Swap for a server-side email send later.)
+  const onSubmit = (data: FormData) => {
+    // Hidden field that only bots fill in.
+    if (document.getElementById('website')?.getAttribute('data-filled') === 'true') {
+      reset()
+      return
+    }
+    const subject = encodeURIComponent(`Website enquiry from ${data.name}`)
+    const body = encodeURIComponent(`${data.message}\n\nFrom: ${data.name} (${data.email})`)
+    window.location.assign(`mailto:info@levispares.co.za?subject=${subject}&body=${body}`)
+    toast.success('Opening your email app. Press send there to reach us.', {
+      description: 'Or call us on 012 770 3389.',
+    })
+    reset()
   }
 
   return (
@@ -101,6 +115,16 @@ export default function ContactForm() {
           <p className="text-red-500 text-sm">{errors.message.message}</p>
         )}
       </motion.div>
+
+      <input
+        id="website"
+        type="text"
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        className="hidden"
+        onChange={(e) => e.currentTarget.setAttribute('data-filled', e.currentTarget.value ? 'true' : 'false')}
+      />
 
       <motion.button
         type="submit"

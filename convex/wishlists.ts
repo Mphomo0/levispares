@@ -1,4 +1,4 @@
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
 import { query, mutation, QueryCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 
@@ -9,7 +9,16 @@ async function getUserIdFromAuth(ctx: QueryCtx) {
     .query("users")
     .withIndex("by_clerkId", (q) => q.eq("clerkId", identity.subject))
     .unique();
+  if (user?.isActive === false) return null;
   return user?._id ?? null;
+}
+
+async function requireOwnedWishlist(ctx: QueryCtx, id: Id<"wishlists">) {
+  const userId = await getUserIdFromAuth(ctx);
+  if (!userId) throw new ConvexError("Not authenticated");
+  const wishlist = await ctx.db.get(id);
+  if (!wishlist || wishlist.userId !== userId) throw new ConvexError("Wishlist not found");
+  return wishlist;
 }
 
 export const listByUser = query({
@@ -42,6 +51,7 @@ export const getById = query({
   handler: async (ctx, args) => {
     const wishlist = await ctx.db.get(args.id);
     if (!wishlist) return null;
+    if (!wishlist.isPublic && wishlist.userId !== (await getUserIdFromAuth(ctx))) return null;
 
     const items = await ctx.db
       .query("wishlistItems")
@@ -148,7 +158,7 @@ export const create = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await getUserIdFromAuth(ctx);
-    if (!userId) throw new Error("Not authenticated");
+    if (!userId) throw new ConvexError("Not authenticated");
     return await ctx.db.insert("wishlists", {
       userId,
       name: args.name,
@@ -164,6 +174,7 @@ export const update = mutation({
     isPublic: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
+    await requireOwnedWishlist(ctx, args.id);
     const { id, ...data } = args;
     await ctx.db.patch(id, data);
   },
@@ -172,6 +183,7 @@ export const update = mutation({
 export const remove = mutation({
   args: { id: v.id("wishlists") },
   handler: async (ctx, args) => {
+    await requireOwnedWishlist(ctx, args.id);
     const items = await ctx.db
       .query("wishlistItems")
       .withIndex("by_wishlistId", (q) => q.eq("wishlistId", args.id))
@@ -191,6 +203,7 @@ export const addItem = mutation({
     productId: v.id("products"),
   },
   handler: async (ctx, args) => {
+    await requireOwnedWishlist(ctx, args.wishlistId);
     const existing = await ctx.db
       .query("wishlistItems")
       .withIndex("by_wishlistId", (q) => q.eq("wishlistId", args.wishlistId))
@@ -198,7 +211,7 @@ export const addItem = mutation({
       .first();
 
     if (existing) {
-      throw new Error("Product already in wishlist");
+      throw new ConvexError("Product already in wishlist");
     }
 
     return await ctx.db.insert("wishlistItems", args);
@@ -211,7 +224,7 @@ export const addToDefault = mutation({
   },
   handler: async (ctx, args) => {
     const userId = await getUserIdFromAuth(ctx);
-    if (!userId) throw new Error("Not authenticated");
+    if (!userId) throw new ConvexError("Not authenticated");
 
     let wishlist = await ctx.db
       .query("wishlists")
@@ -227,7 +240,7 @@ export const addToDefault = mutation({
       wishlist = await ctx.db.get(wishlistId);
     }
 
-    if (!wishlist) throw new Error("Failed to create wishlist");
+    if (!wishlist) throw new ConvexError("Failed to create wishlist");
 
     const existing = await ctx.db
       .query("wishlistItems")
@@ -236,7 +249,7 @@ export const addToDefault = mutation({
       .first();
 
     if (existing) {
-      throw new Error("Product already in wishlist");
+      throw new ConvexError("Product already in wishlist");
     }
 
     return await ctx.db.insert("wishlistItems", {
@@ -252,6 +265,7 @@ export const removeItem = mutation({
     productId: v.id("products"),
   },
   handler: async (ctx, args) => {
+    await requireOwnedWishlist(ctx, args.wishlistId);
     const item = await ctx.db
       .query("wishlistItems")
       .withIndex("by_wishlistId", (q) => q.eq("wishlistId", args.wishlistId))
@@ -298,8 +312,10 @@ export const moveItem = mutation({
     toWishlistId: v.id("wishlists"),
   },
   handler: async (ctx, args) => {
+    await requireOwnedWishlist(ctx, args.fromWishlistId);
+    await requireOwnedWishlist(ctx, args.toWishlistId);
     if (args.fromWishlistId === args.toWishlistId) {
-      throw new Error("Source and destination wishlists are the same");
+      throw new ConvexError("Source and destination wishlists are the same");
     }
 
     const item = await ctx.db
@@ -309,7 +325,7 @@ export const moveItem = mutation({
       .first();
 
     if (!item) {
-      throw new Error("Product not found in source wishlist");
+      throw new ConvexError("Product not found in source wishlist");
     }
 
     const existingInDest = await ctx.db
@@ -330,6 +346,7 @@ export const moveItem = mutation({
 export const clearWishlist = mutation({
   args: { id: v.id("wishlists") },
   handler: async (ctx, args) => {
+    await requireOwnedWishlist(ctx, args.id);
     const items = await ctx.db
       .query("wishlistItems")
       .withIndex("by_wishlistId", (q) => q.eq("wishlistId", args.id))

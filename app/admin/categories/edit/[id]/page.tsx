@@ -19,6 +19,7 @@ import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
 import { use } from 'react'
 import { toast } from 'sonner'
+import { getErrorMessage } from '@/lib/errors'
 
 export default function EditCategoryPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
@@ -104,7 +105,7 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
       router.push('/admin/categories')
     } catch (error) {
       console.error('Failed to update category:', error)
-      toast('Error', { description: error instanceof Error ? error.message : 'Failed to update category. Please try again.' })
+      toast('Error', { description: getErrorMessage(error, 'Failed to update category. Please try again.') })
       setIsSubmitting(false)
     }
   }

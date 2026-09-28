@@ -1,6 +1,7 @@
 import { action } from "./_generated/server"
 import { v } from "convex/values"
 
+import { internal } from "./_generated/api"
 function extractFileIdFromUrl(url: string): string | null {
   try {
     const urlObj = new URL(url)
@@ -149,6 +150,7 @@ export async function deleteImageHelper(url: string): Promise<boolean> {
 export const deleteImage = action({
   args: { url: v.string() },
   handler: async (ctx, args) => {
+    await ctx.runQuery(internal.users.assertAdmin, {});
     const success = await deleteImageHelper(args.url)
     return { success }
   },
@@ -157,6 +159,7 @@ export const deleteImage = action({
 export const deleteImageByFileId = action({
   args: { fileId: v.string() },
   handler: async (ctx, args) => {
+    await ctx.runQuery(internal.users.assertAdmin, {});
     try {
       const success = await imageKitApiCall(args.fileId, "delete")
       return { success }
@@ -170,6 +173,7 @@ export const deleteImageByFileId = action({
 export const deleteImages = action({
   args: { urls: v.array(v.string()) },
   handler: async (ctx, args) => {
+    await ctx.runQuery(internal.users.assertAdmin, {});
     let deleted = 0
     let failed = 0
 
@@ -189,6 +193,7 @@ export const deleteImages = action({
 export const purgeImageFromCache = action({
   args: { url: v.string() },
   handler: async (ctx, args) => {
+    await ctx.runQuery(internal.users.assertAdmin, {});
     if (!args.url) return { success: false }
 
     try {

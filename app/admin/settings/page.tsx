@@ -28,6 +28,9 @@ export default function AdminSettingsPage() {
   const [showSavedShippingMessage, setShowSavedShippingMessage] =
     useState(false)
 
+  const [zarPerUsd, setZarPerUsd] = useState('')
+  const [savingRate, setSavingRate] = useState(false)
+
   const [statsYearsBusiness, setStatsYearsBusiness] = useState('')
   const [statsPartsStock, setStatsPartsStock] = useState('')
   const [statsHappyCustomers, setStatsHappyCustomers] = useState('')
@@ -50,6 +53,7 @@ export default function AdminSettingsPage() {
         (storeSettings.taxRate ?? 0) > 0 ? String(storeSettings.taxRate) : '',
       )
       setShippingRate(String(storeSettings.shippingRate ?? 250))
+      setZarPerUsd(storeSettings.zarPerUsd ? String(storeSettings.zarPerUsd) : '')
       setStatsYearsBusiness(storeSettings.statsYearsBusiness ?? '15+')
       setStatsPartsStock(storeSettings.statsPartsStock ?? '300+')
       setStatsHappyCustomers(storeSettings.statsHappyCustomers ?? '500+')
@@ -102,6 +106,29 @@ export default function AdminSettingsPage() {
       toast.error('Failed to save shipping settings.')
     } finally {
       setSavingShipping(false)
+    }
+  }
+
+  async function handleSaveRate() {
+    const rate = parseFloat(zarPerUsd)
+    if (isNaN(rate) || rate <= 0) {
+      toast.error('Please enter the current rand-per-dollar rate, e.g. 18.20.')
+      return
+    }
+
+    setSavingRate(true)
+    try {
+      await updateSettings({
+        taxEnabled,
+        taxRate: taxEnabled ? parseFloat(taxRate) || 0 : 0,
+        shippingRate: parseFloat(shippingRate) || 0,
+        zarPerUsd: rate,
+      })
+      toast.success('Exchange rate saved.')
+    } catch {
+      toast.error('Failed to save the exchange rate.')
+    } finally {
+      setSavingRate(false)
     }
   }
 
@@ -427,6 +454,71 @@ export default function AdminSettingsPage() {
               </span>
             )}
           </div>
+        </CardContent>
+      </Card>
+
+      {/* PayPal Exchange Rate */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <svg
+              className="w-5 h-5 text-accent"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            PayPal Exchange Rate
+          </CardTitle>
+          <CardDescription>
+            PayPal cannot charge in rand, so customers are charged in US dollars.
+            Enter how many rand equal one US dollar. Update it whenever the rate
+            moves. Customers see the dollar amount before they pay, and each
+            order keeps the rate it was placed at.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-5">
+          <div className="p-4 rounded-lg border border-border bg-secondary/30 space-y-2 max-w-sm">
+            <label
+              htmlFor="zar-per-usd"
+              className="block text-sm font-medium text-foreground"
+            >
+              Rand per US$1 (R)
+            </label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                R
+              </span>
+              <input
+                id="zar-per-usd"
+                type="number"
+                min="0"
+                step="0.01"
+                value={zarPerUsd}
+                onChange={(e) => setZarPerUsd(e.target.value)}
+                placeholder="e.g. 18.20"
+                className="w-full pl-8 pr-3 py-2 text-sm border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-accent/50"
+              />
+            </div>
+            {!storeSettings?.zarPerUsd && (
+              <p className="text-xs text-red-600 dark:text-red-400">
+                Not set yet. Until you save a rate, customers cannot pay online.
+              </p>
+            )}
+          </div>
+          <Button
+            onClick={handleSaveRate}
+            disabled={savingRate}
+            className="bg-brand text-white hover:bg-brand"
+          >
+            {savingRate ? 'Saving...' : 'Save Exchange Rate'}
+          </Button>
         </CardContent>
       </Card>
 

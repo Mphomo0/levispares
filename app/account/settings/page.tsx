@@ -7,6 +7,7 @@ import { useClerk } from '@clerk/nextjs'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { deleteAccount } from '@/app/account/actions'
+import { getErrorMessage } from '@/lib/errors'
 
 export default function SettingsPage() {
   const { signOut } = useClerk()
@@ -22,7 +23,7 @@ export default function SettingsPage() {
       await signOut()
       router.push('/')
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to delete account. Please try again.')
+      toast.error(getErrorMessage(err, 'Failed to delete account. Please try again.'))
       setDeleting(false)
       setShowConfirm(false)
       setConfirmText('')

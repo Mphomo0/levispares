@@ -1,8 +1,11 @@
 import { mutation } from "./_generated/server";
+import { requireAdmin } from "./lib/auth";
 
 export const resetAllData = mutation({
   args: {},
   handler: async (ctx) => {
+    await requireAdmin(ctx);
+
     // Delete all orders
     const orders = await ctx.db.query("orders").collect();
     for (const order of orders) {

@@ -4,21 +4,21 @@ import { ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 
 interface CategoryCardProps {
-  id: string
+  slug: string
   name: string
   icon: string
   description: string
 }
 
 export default function CategoryCard({
-  id,
+  slug,
   name,
   icon,
   description,
 }: CategoryCardProps) {
   return (
     <Link
-      href={`/shop?category=${id}`} // This uses Next.js's Link component
+      href={`/shop?category=${encodeURIComponent(slug)}`}
       className="category-card group p-6 flex flex-col items-center text-center"
     >
       <span className="text-4xl mb-3">{icon}</span>

@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useUser } from '@clerk/nextjs'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import { isPaidOrder, orderStatusLabel } from '@/lib/orders'
 
 export default function OrdersPage() {
   const { isLoaded } = useUser()
@@ -13,8 +14,8 @@ export default function OrdersPage() {
 
   const orderCount = orders?.length ?? 0
   const deliveredCount = orders?.filter((o) => o.status === 'shipped' || o.status === 'delivered').length ?? 0
-  const inTransitCount = orders?.filter((o) => o.status === 'paid').length ?? 0
-  const totalSpent = orders?.reduce((sum, o) => sum + o.total, 0) ?? 0
+  const inTransitCount = orders?.filter((o) => o.status === 'paid' || o.status === 'processing').length ?? 0
+  const totalSpent = orders?.filter(isPaidOrder).reduce((sum, o) => sum + o.total, 0) ?? 0
 
   const statusStyles: Record<string, string> = {
     delivered: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
@@ -160,7 +161,7 @@ export default function OrdersPage() {
                           statusStyles[order.status] || 'bg-muted text-muted-foreground'
                         }`}
                       >
-                        {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                        {orderStatusLabel(order.status)}
                       </span>
                     </div>
                   </div>

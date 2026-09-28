@@ -15,6 +15,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const { addToCart } = useCart()
   const { isFavorite, toggleFavorite } = useFavorites()
   const favorited = isFavorite(product._id)
+  const outOfStock = product.stockQty !== undefined && product.stockQty <= 0
 
   const handleToggleFavorite = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -102,12 +103,17 @@ export default function ProductCard({ product }: ProductCardProps) {
           </div>
 
           <button
+            disabled={outOfStock}
+            aria-label={outOfStock ? 'Out of stock' : 'Add to cart'}
             onClick={(e) => {
               e.preventDefault();
-              addToCart(product);
-              toast.success('Added to cart', { description: product.name });
+              if (addToCart(product)) {
+                toast.success('Added to cart', { description: product.name });
+              } else {
+                toast.error('No more stock available', { description: product.name });
+              }
             }}
-            className="p-3 bg-accent text-white rounded-xl shadow-lg shadow-accent/20 hover:brightness-110 hover:scale-110 active:scale-95 transition-all"
+            className="p-3 bg-accent text-white rounded-xl shadow-lg shadow-accent/20 hover:brightness-110 hover:scale-110 active:scale-95 transition-all disabled:opacity-40 disabled:hover:scale-100 disabled:hover:brightness-100 disabled:cursor-not-allowed"
           >
             <svg
               className="w-5 h-5"
