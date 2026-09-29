@@ -1,6 +1,11 @@
 import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
+  experimental: {
+    // Splits these barrel-style packages into per-symbol imports at build
+    // time so pulling one icon/primitive doesn't bundle the whole library.
+    optimizePackageImports: ['lucide-react', 'radix-ui'],
+  },
   async redirects() {
     return [
       {

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react'
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from 'react'
 import type { Product } from './CartContext'
 
 export type { Product }
@@ -78,17 +78,19 @@ export const FavoritesProvider: React.FC<{ children: ReactNode }> = ({ children 
     return items
   }, [items])
 
+  const value = useMemo(() => ({
+    items,
+    isFavorite,
+    addToFavorites,
+    removeFromFavorites,
+    toggleFavorite,
+    clearFavorites,
+    count: items.length,
+    getGuestFavorites,
+  }), [items, isFavorite, addToFavorites, removeFromFavorites, toggleFavorite, clearFavorites, getGuestFavorites])
+
   return (
-    <FavoritesContext.Provider value={{
-      items,
-      isFavorite,
-      addToFavorites,
-      removeFromFavorites,
-      toggleFavorite,
-      clearFavorites,
-      count: items.length,
-      getGuestFavorites,
-    }}>
+    <FavoritesContext.Provider value={value}>
       {children}
     </FavoritesContext.Provider>
   )
