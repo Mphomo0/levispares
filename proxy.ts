@@ -1,42 +1,19 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { clerkMiddleware } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { getRole } from "@/lib/auth";
 
-const isAdminRoute = createRouteMatcher(["/admin(.*)"]);
-const isAccountRoute = createRouteMatcher(["/account(.*)"]);
-
+// /admin and /account are protected in their own layouts (resource-based
+// checks), not here — path-matching middleware can diverge from how Next.js
+// actually routes a request. This middleware only handles the post-auth
+// redirect dispatcher below, which isn't a protected resource itself.
 export default clerkMiddleware(async (auth, req) => {
-  const { userId, sessionClaims } = await auth();
-  const role = (sessionClaims?.metadata as { role?: string })?.role || (sessionClaims as { publicMetadata?: { role?: string } })?.publicMetadata?.role;
-
-  // Handle post-auth redirection
   if (req.nextUrl.pathname === "/auth-redirect") {
+    const { userId, sessionClaims } = await auth();
     if (!userId) {
       return NextResponse.redirect(new URL("/", req.url));
     }
-    const target = role === "admin" ? "/admin" : "/account";
+    const target = getRole(sessionClaims) === "admin" ? "/admin" : "/account";
     return NextResponse.redirect(new URL(target, req.url));
-  }
-
-  // Protect admin routes: only allow users with "admin" role
-  if (isAdminRoute(req)) {
-    if (!userId || role !== "admin") {
-      const url = new URL("/", req.url);
-      return NextResponse.redirect(url);
-    }
-  }
-
-  // Protect account routes: require authentication AND non-admin status
-  if (isAccountRoute(req)) {
-    if (!userId) {
-      const url = new URL("/?sign-in=1", req.url);
-      return NextResponse.redirect(url);
-    }
-    
-    // If admin tries to access /account, redirect to /admin
-    if (role === "admin") {
-      const url = new URL("/admin", req.url);
-      return NextResponse.redirect(url);
-    }
   }
 
   return NextResponse.next();

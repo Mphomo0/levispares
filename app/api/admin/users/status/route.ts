@@ -4,6 +4,7 @@ import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import { getErrorMessage } from "@/lib/errors";
+import { getRole } from "@/lib/auth";
 
 /**
  * Ban (active: false) or reinstate (active: true) a user.
@@ -13,11 +14,8 @@ import { getErrorMessage } from "@/lib/errors";
  */
 export async function POST(request: NextRequest) {
   const { userId, sessionClaims, getToken } = await auth();
-  const role =
-    (sessionClaims?.metadata as { role?: string })?.role ||
-    (sessionClaims as { publicMetadata?: { role?: string } })?.publicMetadata?.role;
 
-  if (!userId || role !== "admin") {
+  if (!userId || getRole(sessionClaims) !== "admin") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

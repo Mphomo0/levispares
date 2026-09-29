@@ -1,5 +1,6 @@
 import { getUploadAuthParams } from "@imagekit/next/server"
 import { auth } from "@clerk/nextjs/server"
+import { getRole } from "@/lib/auth"
 
 export async function GET() {
   const { userId, sessionClaims } = await auth()
@@ -8,10 +9,7 @@ export async function GET() {
     return Response.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const role =
-    (sessionClaims?.metadata as { role?: string })?.role ||
-    (sessionClaims as { publicMetadata?: { role?: string } })?.publicMetadata?.role
-  if (role !== "admin") {
+  if (getRole(sessionClaims) !== "admin") {
     return Response.json({ error: "Forbidden" }, { status: 403 })
   }
 
