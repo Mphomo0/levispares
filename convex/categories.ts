@@ -1,8 +1,25 @@
 import { v, ConvexError } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalMutation } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 
 import { requireAdmin } from "./lib/auth";
+
+/**
+ * Ops-only bulk rename, run with `npx convex run categories:renameMany`.
+ * Only the display name changes (slugs and product links are untouched), so
+ * it is safe even for categories that already have products.
+ */
+export const renameMany = internalMutation({
+  args: { renames: v.array(v.object({ id: v.id("categories"), name: v.string() })) },
+  handler: async (ctx, { renames }) => {
+    for (const { id, name } of renames) {
+      const trimmed = name.trim();
+      if (!trimmed) throw new ConvexError("Category name cannot be empty");
+      if (!(await ctx.db.get(id))) throw new ConvexError(`Category ${id} not found`);
+      await ctx.db.patch(id, { name: trimmed });
+    }
+  },
+});
 export const list = query({
   args: { parentId: v.optional(v.id("categories")) },
   handler: async (ctx, args) => {
