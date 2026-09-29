@@ -20,6 +20,29 @@ export const renameMany = internalMutation({
     }
   },
 });
+
+/**
+ * Ops-only slug change, run with `npx convex run categories:changeSlug`.
+ * The admin editor locks slugs on categories with products because shared
+ * links would break; use this deliberately when that's acceptable.
+ */
+export const changeSlug = internalMutation({
+  args: { id: v.id("categories"), slug: v.string() },
+  handler: async (ctx, { id, slug }) => {
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug)) {
+      throw new ConvexError("Slug must be lowercase letters, numbers and single hyphens.");
+    }
+    if (!(await ctx.db.get(id))) throw new ConvexError(`Category ${id} not found`);
+    const existing = await ctx.db
+      .query("categories")
+      .withIndex("by_slug", (q) => q.eq("slug", slug))
+      .unique();
+    if (existing && existing._id !== id) {
+      throw new ConvexError("A category with this slug already exists.");
+    }
+    await ctx.db.patch(id, { slug });
+  },
+});
 export const list = query({
   args: { parentId: v.optional(v.id("categories")) },
   handler: async (ctx, args) => {
@@ -245,6 +268,8 @@ export const add = mutation({
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
+    const name = args.name.trim();
+    if (!name) throw new ConvexError("Category name cannot be empty.");
     const existing = await ctx.db
       .query("categories")
       .withIndex("by_slug", (q) => q.eq("slug", args.slug))
@@ -255,6 +280,7 @@ export const add = mutation({
 
     return await ctx.db.insert("categories", {
       ...args,
+      name,
       active: true,
     });
   },
@@ -324,12 +350,26 @@ export const update = mutation({
     const category = await ctx.db.get(id);
     if (!category) throw new ConvexError("Category not found");
 
-    const products = await ctx.db
-      .query("products")
-      .withIndex("by_categoryId", (q) => q.eq("categoryId", id))
-      .take(1);
-    if (products.length > 0) {
-      throw new ConvexError("Cannot edit: this category has associated products. Remove or reassign the products first.");
+    if (updates.name !== undefined) {
+      updates.name = updates.name.trim();
+      if (!updates.name) throw new ConvexError("Category name cannot be empty.");
+    }
+
+    // Renaming or re-describing is always safe. Changing the slug breaks links
+    // already shared for its products, and moving it re-files those products,
+    // so both stay locked while the category has products.
+    const changesSlug = updates.slug !== undefined && updates.slug !== category.slug;
+    const changesParent = updates.parentId !== undefined && updates.parentId !== category.parentId;
+    if (changesSlug || changesParent) {
+      const products = await ctx.db
+        .query("products")
+        .withIndex("by_categoryId", (q) => q.eq("categoryId", id))
+        .take(1);
+      if (products.length > 0) {
+        throw new ConvexError(
+          "This category has products, so its URL slug and parent can't be changed. You can still rename it or edit its description and icon.",
+        );
+      }
     }
 
     if (updates.slug !== undefined && updates.slug !== category.slug) {

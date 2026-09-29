@@ -90,16 +90,20 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
     const description = formData.get('description') as string
     const parentId = formData.get('parentId') as string
 
-    const slug = slugManual ? slugValue : category.slug
+    const slug = slugManual && !hasProducts ? slugValue : category.slug
+    const newParentId =
+      !hasProducts && parentId && parentId !== '__none__' && parentId !== (category.parentId || '')
+        ? (parentId as Id<'categories'>)
+        : undefined
 
     try {
       await updateCategory({
         id: categoryId,
-        name: name !== category.name ? name : undefined,
+        name: name.trim() !== category.name ? name : undefined,
         slug: slug !== category.slug ? slug : undefined,
         description: description !== (category.description || '') ? (description || undefined) : undefined,
         icon: icon !== category.icon ? icon : undefined,
-        parentId: parentId !== '__none__' && parentId !== (category.parentId || '') ? (parentId as Id<'categories'>) : undefined,
+        parentId: newParentId,
       })
       toast('Category updated', { description: 'Your changes have been saved.' })
       router.push('/admin/categories')
@@ -162,19 +166,12 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
-            Cannot edit category
+            URL slug and parent are locked
           </div>
           <p className="mt-1 text-amber-700 dark:text-amber-300">
-            This category has associated products. Remove or reassign the products before making changes.
+            This category has products, so changing its URL slug or parent would break shared links or
+            re-file those products. You can still rename it and edit its description and icon.
           </p>
-          <Button
-            variant="outline"
-            size="sm"
-            className="mt-3 border-amber-400 text-amber-700 hover:bg-amber-100 dark:border-amber-600 dark:text-amber-300"
-            onClick={() => router.push('/admin/categories')}
-          >
-            Back to Categories
-          </Button>
         </div>
       )}
 
@@ -212,7 +209,11 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
 
               <div className="space-y-2">
                 <Label htmlFor="parentId">Parent Category</Label>
-                <Select name="parentId" defaultValue={category.parentId ? category.parentId : '__none__'}>
+                <Select
+                  name="parentId"
+                  defaultValue={category.parentId ? category.parentId : '__none__'}
+                  disabled={hasProducts === true}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="No parent (top-level)" />
                   </SelectTrigger>
@@ -237,8 +238,9 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
                 <div className="flex items-center justify-between">
                   <button
                     type="button"
-                    className="text-xs text-brand hover:text-brand"
+                    className="text-xs text-brand hover:text-brand disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={() => setSlugManual(!slugManual)}
+                    disabled={hasProducts === true}
                   >
                     {slugManual ? 'Auto-generate from name' : 'Enter manually'}
                   </button>
@@ -248,7 +250,7 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
                   name="slug"
                   defaultValue={category.slug}
                   placeholder="category-name"
-                  disabled={!slugManual}
+                  disabled={!slugManual || hasProducts === true}
                 />
                 <p className="text-sm text-muted-foreground">This will be used in the URL: /products/category-name</p>
               </div>
@@ -363,7 +365,7 @@ export default function EditCategoryPage({ params }: { params: Promise<{ id: str
           <Button
             type="submit"
             className="bg-brand hover:bg-brand text-black font-semibold"
-            disabled={isSubmitting || hasProducts === true}
+            disabled={isSubmitting}
           >
             {isSubmitting ? (
               <>

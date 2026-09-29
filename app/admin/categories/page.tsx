@@ -368,14 +368,7 @@ export default function AdminCategoriesPage() {
                                 Actions
                               </div>
                               <DropdownMenuSeparator />
-                              <div
-                                className={`${hasProducts ? 'opacity-50 pointer-events-none' : ''}`}
-                                title={
-                                  hasProducts
-                                    ? 'Cannot edit: category has associated products'
-                                    : undefined
-                                }
-                              >
+                              <div>
                                 <Link
                                   href={`/admin/categories/edit/${category._id}`}
                                 >
@@ -445,7 +438,7 @@ export default function AdminCategoriesPage() {
                       </div>
                       {hasProducts && (
                         <p className="text-xs text-amber-600 dark:text-amber-400 mt-2">
-                          Cannot edit or delete while products are assigned.
+                          Can be renamed, but not deleted or moved while products are assigned.
                         </p>
                       )}
                     </CardContent>
