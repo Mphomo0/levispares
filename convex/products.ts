@@ -1,9 +1,35 @@
 import { v, ConvexError } from "convex/values";
-import { query, mutation } from "./_generated/server";
+import { query, mutation, type QueryCtx } from "./_generated/server";
 import { paginationOptsValidator } from "convex/server";
-import type { Id } from "./_generated/dataModel";
+import type { Doc, Id } from "./_generated/dataModel";
 
 import { requireAdmin } from "./lib/auth";
+
+/** A category plus all of its active subcategories, at any depth. */
+async function categoryWithDescendants(ctx: QueryCtx, rootId: Id<"categories">) {
+  const ids: Id<"categories">[] = [rootId];
+  const seen = new Set<string>(ids);
+  for (let i = 0; i < ids.length; i++) {
+    const children = await ctx.db
+      .query("categories")
+      .withIndex("by_parentId", (q) => q.eq("parentId", ids[i]))
+      .collect();
+    for (const child of children) {
+      if (child.active === false || seen.has(child._id)) continue;
+      seen.add(child._id);
+      ids.push(child._id);
+    }
+  }
+  return ids;
+}
+
+/** Adds each product's category name, reading each distinct category once. */
+async function withCategoryNames(ctx: QueryCtx, products: Doc<"products">[]) {
+  const ids = [...new Set(products.map((p) => p.categoryId))];
+  const categories = await Promise.all(ids.map((id) => ctx.db.get(id)));
+  const names = new Map(ids.map((id, i) => [id, categories[i]?.name]));
+  return products.map((p) => ({ ...p, category: names.get(p.categoryId) }));
+}
 export const list = query({
   args: {
     paginationOpts: paginationOptsValidator,
@@ -142,10 +168,7 @@ export const listFeatured = query({
       .order("desc")
       .take(9);
 
-    return products.map((product) => ({
-      ...product,
-      image: product.image,
-    }));
+    return await withCategoryNames(ctx, products);
   },
 });
 
@@ -439,6 +462,11 @@ export const listShopNumbered = query({
     let query;
     let indexedField: "search" | "modelId" | "variantId" | "categoryId" | "brandId" | "active" = "active";
 
+    // Choosing a parent category also shows its subcategories' products.
+    const categoryIds = args.categoryId
+      ? await categoryWithDescendants(ctx, args.categoryId)
+      : null;
+
     // Use search index if searchQuery is provided
     if (args.searchQuery) {
       indexedField = "search";
@@ -460,11 +488,11 @@ export const listShopNumbered = query({
       query = ctx.db
         .query("products")
         .withIndex("by_variantId", (q) => q.eq("variantId", args.variantId!));
-    } else if (args.categoryId) {
+    } else if (categoryIds?.length === 1) {
       indexedField = "categoryId";
       query = ctx.db
         .query("products")
-        .withIndex("by_categoryId", (q) => q.eq("categoryId", args.categoryId!));
+        .withIndex("by_categoryId", (q) => q.eq("categoryId", categoryIds[0]));
     } else if (args.brandId) {
       indexedField = "brandId";
       query = ctx.db
@@ -479,9 +507,9 @@ export const listShopNumbered = query({
     // Apply other filters using .filter()
     let resultsQuery = query.filter((q) => q.eq(q.field("active"), true));
 
-    if (args.categoryId && indexedField !== "categoryId") {
+    if (categoryIds && indexedField !== "categoryId") {
       resultsQuery = resultsQuery.filter((q) =>
-        q.eq(q.field("categoryId"), args.categoryId!)
+        q.or(...categoryIds.map((id) => q.eq(q.field("categoryId"), id)))
       );
     }
     if (args.brandId && indexedField !== "brandId") {
@@ -552,7 +580,7 @@ export const listShopNumbered = query({
     const pageResults = productsWithImages.slice(start, end);
 
     return {
-      products: pageResults,
+      products: await withCategoryNames(ctx, pageResults),
       totalCount,
       totalPages,
     };

@@ -64,11 +64,35 @@ export default function FilterSidebar() {
 
   const allProducts = useQuery(api.products.listAll, {})
 
-  const categoriesWithProducts = useMemo(() => {
+  // Categories in tree order, each with its nesting depth. A category is shown
+  // when it or any of its subcategories has active products, so a parent whose
+  // products all live in subcategories still appears.
+  const categoryOptions = useMemo(() => {
     if (!dbCategories || !allProducts) return []
 
-    const productCategoryIds = new Set(allProducts.map((p) => p.categoryId))
-    return dbCategories.filter((cat) => productCategoryIds.has(cat._id))
+    const byId = new Map(dbCategories.map((c) => [c._id, c]))
+    const visible = new Set<string>()
+    for (const product of allProducts) {
+      if (product.active === false) continue
+      let cat = byId.get(product.categoryId)
+      while (cat && !visible.has(cat._id)) {
+        visible.add(cat._id)
+        cat = cat.parentId ? byId.get(cat.parentId) : undefined
+      }
+    }
+
+    const shown = dbCategories.filter((c) => visible.has(c._id))
+    const ordered: { category: (typeof shown)[number]; depth: number }[] = []
+    const walk = (parentId: string | undefined, depth: number) => {
+      for (const c of shown) {
+        const parent = c.parentId && visible.has(c.parentId) ? c.parentId : undefined
+        if (parent !== parentId) continue
+        ordered.push({ category: c, depth })
+        walk(c._id, depth + 1)
+      }
+    }
+    walk(undefined, 0)
+    return ordered
   }, [dbCategories, allProducts])
 
   // Round the catalog's highest price up to a clean step so the slider has a
@@ -203,7 +227,7 @@ export default function FilterSidebar() {
             )}
             {filters.category && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-brand/10 text-brand text-xs font-medium rounded-md">
-                {categoriesWithProducts?.find(c => c.slug === filters.category)?.name}
+                {categoryOptions.find(({ category }) => category.slug === filters.category)?.category.name}
                 <button onClick={() => handleFilterChange({ category: '' })} className="hover:text-brand/70">
                   <X className="w-3 h-3" />
                 </button>
@@ -217,6 +241,51 @@ export default function FilterSidebar() {
             Clear all
           </button>
         </div>
+      )}
+
+      {categoryOptions.length > 0 && (
+        <>
+          <div className="space-y-5">
+            <div className="flex items-center justify-between">
+              <button
+                onClick={() => toggleSection('category')}
+                className="flex items-center gap-2"
+              >
+                <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">Category</h3>
+                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${expandedSections.category ? 'rotate-180' : ''}`} />
+              </button>
+            </div>
+
+            {expandedSections.category && (
+              <div className="space-y-1">
+                {categoryOptions.map(({ category: cat, depth }) => {
+                  const isActive = filters.category === cat.slug
+                  return (
+                    <button
+                      key={cat._id}
+                      onClick={() => handleFilterChange({ category: isActive ? '' : cat.slug })}
+                      style={{ paddingLeft: `${0.5 + depth * 1.5}rem` }}
+                      className={`w-full flex items-center gap-3 pr-2 py-1.5 rounded-md cursor-pointer transition-colors text-left ${
+                        isActive ? 'bg-brand/5' : 'hover:bg-slate-50'
+                      }`}
+                    >
+                      <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
+                        isActive ? 'bg-brand border-brand' : 'border-slate-300'
+                      }`}>
+                        {isActive && <Check className="w-2.5 h-2.5 text-white" />}
+                      </div>
+                      <span className={`text-sm flex-1 truncate ${isActive ? 'font-medium text-slate-900' : 'text-slate-600'}`}>
+                        {cat.name}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          <div className="h-px bg-slate-200" />
+        </>
       )}
 
       <div className="space-y-5">
@@ -332,49 +401,6 @@ export default function FilterSidebar() {
                       </div>
                       <span className={`text-sm flex-1 truncate ${isActive ? 'font-medium text-slate-900' : 'text-slate-600'}`}>
                         {variant.variantValue}
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
-            )}
-          </div>
-        </>
-      )}
-
-      {filters.brand && (
-        <>
-          <div className="h-px bg-slate-200" />
-          <div className="space-y-5">
-            <div className="flex items-center justify-between">
-              <button
-                onClick={() => toggleSection('category')}
-                className="flex items-center gap-2"
-              >
-                <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">Category</h3>
-                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${expandedSections.category ? 'rotate-180' : ''}`} />
-              </button>
-            </div>
-            
-            {expandedSections.category && (
-              <div className="space-y-1">
-                {categoriesWithProducts?.map((cat) => {
-                  const isActive = filters.category === cat.slug
-                  return (
-                    <button
-                      key={cat._id}
-                      onClick={() => handleFilterChange({ category: isActive ? '' : cat.slug })}
-                      className={`w-full flex items-center gap-3 px-2 py-1.5 rounded-md cursor-pointer transition-colors text-left ${
-                        isActive ? 'bg-brand/5' : 'hover:bg-slate-50'
-                      }`}
-                    >
-                      <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${
-                        isActive ? 'bg-brand border-brand' : 'border-slate-300'
-                      }`}>
-                        {isActive && <Check className="w-2.5 h-2.5 text-white" />}
-                      </div>
-                      <span className={`text-sm flex-1 truncate ${isActive ? 'font-medium text-slate-900' : 'text-slate-600'}`}>
-                        {cat.name}
                       </span>
                     </button>
                   )
