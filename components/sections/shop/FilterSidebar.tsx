@@ -6,6 +6,7 @@ import { ChevronDown, SlidersHorizontal, X, Check } from 'lucide-react'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { motion, AnimatePresence } from 'motion/react'
+import { Slider } from '@/components/ui/slider'
 
 interface Filters {
   category: string
@@ -70,6 +71,31 @@ export default function FilterSidebar() {
     return dbCategories.filter((cat) => productCategoryIds.has(cat._id))
   }, [dbCategories, allProducts])
 
+  // Round the catalog's highest price up to a clean step so the slider has a
+  // tidy ceiling instead of an arbitrary number like R15250.
+  const priceBounds = useMemo(() => {
+    const highest = allProducts?.length
+      ? Math.max(...allProducts.map((p) => p.price))
+      : 0
+    const step = 500
+    const max = Math.max(step, Math.ceil(highest / step) * step)
+    return { min: 0, max }
+  }, [allProducts])
+
+  // Mirrors filters.minPrice/maxPrice while dragging, so the thumb tracks the
+  // pointer 1:1 instead of waiting on the debounced URL update to catch up.
+  const committedRange: [number, number] = [
+    filters.minPrice ? Number(filters.minPrice) : priceBounds.min,
+    filters.maxPrice ? Number(filters.maxPrice) : priceBounds.max,
+  ]
+  const committedKey = committedRange.join('-')
+  const [priceRange, setPriceRange] = useState<[number, number]>(committedRange)
+  const [prevCommittedKey, setPrevCommittedKey] = useState(committedKey)
+  if (committedKey !== prevCommittedKey) {
+    setPrevCommittedKey(committedKey)
+    setPriceRange(committedRange)
+  }
+
   // Keep filters in sync with the URL. Adjusting state during render (rather
   // than in an effect) avoids the extra cascading render an effect would cause.
   const [prevSearchParams, setPrevSearchParams] = useState(searchParams)
@@ -125,6 +151,14 @@ export default function FilterSidebar() {
       }, 50)
     }
   }, [filters, updateURL])
+
+  const handlePriceSliderCommit = (value: number[]) => {
+    const [min, max] = value
+    handleFilterChange({
+      minPrice: min <= priceBounds.min ? '' : String(min),
+      maxPrice: max >= priceBounds.max ? '' : String(max),
+    })
+  }
 
   const toggleSection = (section: string) => {
     setExpandedSections(prev => ({ ...prev, [section]: !prev[section] }))
@@ -392,25 +426,22 @@ export default function FilterSidebar() {
                 </div>
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                onClick={() => handleFilterChange({ minPrice: '', maxPrice: '500' })}
-                className="px-2 py-1.5 text-xs border border-slate-200 hover:border-brand hover:text-brand rounded-md transition-colors"
-              >
-                Under R500
-              </button>
-              <button
-                onClick={() => handleFilterChange({ minPrice: '500', maxPrice: '2000' })}
-                className="px-2 py-1.5 text-xs border border-slate-200 hover:border-brand hover:text-brand rounded-md transition-colors"
-              >
-                R500-2k
-              </button>
-              <button
-                onClick={() => handleFilterChange({ minPrice: '2000', maxPrice: '' })}
-                className="px-2 py-1.5 text-xs border border-slate-200 hover:border-brand hover:text-brand rounded-md transition-colors"
-              >
-                R2k+
-              </button>
+            <div className="pt-1 px-1">
+              <Slider
+                min={priceBounds.min}
+                max={priceBounds.max}
+                step={50}
+                value={priceRange}
+                onValueChange={(value) => setPriceRange(value as [number, number])}
+                onValueCommit={handlePriceSliderCommit}
+              />
+              <div className="flex items-center justify-between mt-2 text-xs font-medium text-slate-500">
+                <span>R{priceRange[0].toLocaleString()}</span>
+                <span>
+                  R{priceRange[1].toLocaleString()}
+                  {priceRange[1] >= priceBounds.max ? '+' : ''}
+                </span>
+              </div>
             </div>
           </div>
         )}
