@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { ChevronDown, SlidersHorizontal, X, Check } from 'lucide-react'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import { motion, AnimatePresence } from 'motion/react'
 
 interface Filters {
   category: string
@@ -450,30 +451,40 @@ export default function FilterSidebar() {
         </button>
       </div>
 
-      {mobileFiltersOpen && (
-        <>
-          <div
-            onClick={() => setMobileFiltersOpen(false)}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
-          />
-          <div
-            className="fixed left-0 top-0 h-full w-80 max-w-[85vw] bg-white z-50 overflow-y-auto lg:hidden shadow-xl"
-          >
-            <div className="sticky top-0 bg-white border-b border-slate-100 px-5 py-4 flex items-center justify-between">
-              <h2 className="font-semibold text-lg text-slate-900">Filter</h2>
-              <button
-                onClick={() => setMobileFiltersOpen(false)}
-                className="p-1.5 hover:bg-slate-100 rounded-md transition-colors"
-              >
-                <X className="w-5 h-5 text-slate-500" />
-              </button>
-            </div>
-            <div className="p-5">
-              {filterContent}
-            </div>
-          </div>
-        </>
-      )}
+      <AnimatePresence>
+        {mobileFiltersOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setMobileFiltersOpen(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
+            />
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+              className="fixed left-0 top-0 h-full w-80 max-w-[85vw] bg-white z-50 overflow-y-auto lg:hidden shadow-xl"
+            >
+              <div className="sticky top-0 bg-white border-b border-slate-100 px-5 py-4 flex items-center justify-between">
+                <h2 className="font-semibold text-lg text-slate-900">Filter</h2>
+                <button
+                  onClick={() => setMobileFiltersOpen(false)}
+                  className="p-1.5 hover:bg-slate-100 rounded-md transition-colors"
+                >
+                  <X className="w-5 h-5 text-slate-500" />
+                </button>
+              </div>
+              <div className="p-5">
+                {filterContent}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       <aside className="lg:w-64 shrink-0 hidden lg:block">
         <div

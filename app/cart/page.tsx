@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { motion } from 'motion/react'
+import { motion, AnimatePresence } from 'motion/react'
 import { useCart } from '@/lib/CartContext'
 import { useRouter } from 'next/navigation'
 import { useUser } from '@clerk/nextjs'
@@ -326,43 +326,59 @@ const handleCheckout = () => {
         </div>
       </div>
 
-      {showAuth && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-white rounded-xl border border-slate-200 shadow-xl p-8 max-w-md w-full mx-4 relative">
-            <button
-              onClick={() => setShowAuth(false)}
-              className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground transition-colors"
+      <AnimatePresence>
+        {showAuth && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+            onClick={() => setShowAuth(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-xl border border-slate-200 shadow-xl p-8 max-w-md w-full mx-4 relative"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            <div className="text-center mb-6">
-              <div className="w-14 h-14 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-7 h-7 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              <button
+                onClick={() => setShowAuth(false)}
+                className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
+              </button>
+              <div className="text-center mb-6">
+                <div className="w-14 h-14 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-7 h-7 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                <h2 className="text-xl font-bold text-foreground">Sign in to checkout</h2>
+                <p className="text-muted-foreground mt-1 text-sm">
+                  Create an account or sign in to complete your purchase.
+                </p>
               </div>
-              <h2 className="text-xl font-bold text-foreground">Sign in to checkout</h2>
-              <p className="text-muted-foreground mt-1 text-sm">
-                Create an account or sign in to complete your purchase.
-              </p>
-            </div>
-            <div className="flex flex-col gap-3">
-              <SignInButton mode="modal" forceRedirectUrl="/checkout">
-                <button className="w-full bg-accent text-white px-6 py-3 rounded-lg font-medium transition-all hover:brightness-110">
-                  Sign In
-                </button>
-              </SignInButton>
-              <SignUpButton mode="modal" forceRedirectUrl="/checkout">
-                <button className="w-full border border-accent text-accent px-6 py-3 rounded-lg font-medium transition-all hover:bg-accent/5">
-                  Create Account
-                </button>
-              </SignUpButton>
-            </div>
-          </div>
-        </div>
-      )}
+              <div className="flex flex-col gap-3">
+                <SignInButton mode="modal" forceRedirectUrl="/checkout">
+                  <button className="w-full bg-accent text-white px-6 py-3 rounded-lg font-medium transition-all hover:brightness-110">
+                    Sign In
+                  </button>
+                </SignInButton>
+                <SignUpButton mode="modal" forceRedirectUrl="/checkout">
+                  <button className="w-full border border-accent text-accent px-6 py-3 rounded-lg font-medium transition-all hover:bg-accent/5">
+                    Create Account
+                  </button>
+                </SignUpButton>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   )
 }

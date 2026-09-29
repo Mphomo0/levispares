@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
+import { MotionConfig } from 'motion/react'
 import NavigationWrapper from '@/components/layout/NavigationWrapper'
 import { CartProvider } from '@/lib/CartContext'
 import { FavoritesProvider } from '@/lib/FavoritesContext'
@@ -54,16 +55,18 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ConvexClientProvider>
-          <CartProvider>
-            <FavoritesProvider>
-              <FavoritesMerge />
-              <NavigationWrapper>
-                {children}
-              </NavigationWrapper>
-            </FavoritesProvider>
-          </CartProvider>
-        </ConvexClientProvider>
+        <MotionConfig reducedMotion="user">
+          <ConvexClientProvider>
+            <CartProvider>
+              <FavoritesProvider>
+                <FavoritesMerge />
+                <NavigationWrapper>
+                  {children}
+                </NavigationWrapper>
+              </FavoritesProvider>
+            </CartProvider>
+          </ConvexClientProvider>
+        </MotionConfig>
         <Toaster position="top-center" richColors closeButton />
       </body>
     </html>

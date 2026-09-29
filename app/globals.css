@@ -185,13 +185,12 @@
   }
 
   .product-card {
-    @apply bg-card rounded-xl overflow-hidden transition-all duration-300 ease-out;
+    @apply bg-card rounded-xl overflow-hidden transition-shadow duration-300 ease-out;
     box-shadow: var(--card-shadow);
   }
 
   .product-card:hover {
     box-shadow: var(--card-shadow-hover);
-    @apply -translate-y-1;
   }
 
   .btn-accent {
@@ -318,5 +317,14 @@
 
   .animate-marquee:hover {
     animation-play-state: paused;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-slide-up,
+  .animate-slide-in-right,
+  .animate-float,
+  .animate-marquee {
+    animation: none;
   }
 }
