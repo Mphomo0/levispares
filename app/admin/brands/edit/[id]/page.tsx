@@ -19,6 +19,7 @@ import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
 import { use } from 'react'
 import { getErrorMessage } from '@/lib/errors'
+import { toast } from 'sonner'
 
 export default function EditBrandPage({
   params,
@@ -104,7 +105,7 @@ export default function EditBrandPage({
       router.push('/admin/brands')
     } catch (error) {
       console.error('Failed to update brand:', error)
-      alert(getErrorMessage(error, 'Failed to update brand. Please try again.'))
+      toast.error(getErrorMessage(error, 'Failed to update brand. Please try again.'))
       setIsSubmitting(false)
     }
   }
@@ -138,7 +139,7 @@ export default function EditBrandPage({
           >
             {brand.active ? (
               <>
-                <svg
+                <svg aria-hidden="true"
                   className="w-4 h-4 mr-2"
                   fill="none"
                   stroke="currentColor"
@@ -155,7 +156,7 @@ export default function EditBrandPage({
               </>
             ) : (
               <>
-                <svg
+                <svg aria-hidden="true"
                   className="w-4 h-4 mr-2"
                   fill="none"
                   stroke="currentColor"
@@ -173,7 +174,7 @@ export default function EditBrandPage({
             )}
           </Button>
           <Button variant="outline" onClick={() => router.back()}>
-            <svg
+            <svg aria-hidden="true"
               className="w-4 h-4 mr-2"
               fill="none"
               stroke="currentColor"
@@ -304,7 +305,7 @@ export default function EditBrandPage({
           >
             {isSubmitting ? (
               <>
-                <svg
+                <svg aria-hidden="true"
                   className="animate-spin -ml-1 mr-2 h-4 w-4"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -327,7 +328,7 @@ export default function EditBrandPage({
               </>
             ) : (
               <>
-                <svg
+                <svg aria-hidden="true"
                   className="w-4 h-4 mr-2"
                   fill="none"
                   stroke="currentColor"

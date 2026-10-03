@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useConfirm } from '@/components/admin/ConfirmDialog'
 import {
   Card,
   CardContent,
@@ -45,6 +46,7 @@ const getStatusLabel = (active: boolean | undefined) => {
 }
 
 export default function AdminCategoriesPage() {
+  const { confirm, confirmDialog } = useConfirm()
   const [searchQuery, setSearchQuery] = useState('')
   const mounted = useMounted()
   const [statusFilter, setStatusFilter] = useState('All')
@@ -79,7 +81,7 @@ export default function AdminCategoriesPage() {
       return
     }
     if (
-      confirm(
+      await confirm(
         'Are you sure you want to delete this category? This will also delete all subcategories.',
       )
     ) {
@@ -109,6 +111,7 @@ export default function AdminCategoriesPage() {
 
   return (
     <div className="space-y-6">
+      {confirmDialog}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Categories</h2>
@@ -116,7 +119,7 @@ export default function AdminCategoriesPage() {
         </div>
         <Link href="/admin/categories/new" className="w-full md:w-auto">
           <Button className="w-full md:w-auto bg-brand hover:bg-brand text-white font-semibold">
-            <svg
+            <svg aria-hidden="true"
               className="w-4 h-4 mr-2"
               fill="none"
               stroke="currentColor"
@@ -142,7 +145,7 @@ export default function AdminCategoriesPage() {
               Total Categories
             </CardTitle>
             <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
-              <svg
+              <svg aria-hidden="true"
                 className="h-4 w-4"
                 fill="none"
                 stroke="currentColor"
@@ -168,7 +171,7 @@ export default function AdminCategoriesPage() {
               Active Categories
             </CardTitle>
             <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">
-              <svg
+              <svg aria-hidden="true"
                 className="h-4 w-4"
                 fill="none"
                 stroke="currentColor"
@@ -194,7 +197,7 @@ export default function AdminCategoriesPage() {
               Inactive Categories
             </CardTitle>
             <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
-              <svg
+              <svg aria-hidden="true"
                 className="h-4 w-4"
                 fill="none"
                 stroke="currentColor"
@@ -221,7 +224,7 @@ export default function AdminCategoriesPage() {
         <CardContent className="p-4">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
-              <svg
+              <svg aria-hidden="true"
                 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
                 fill="none"
                 stroke="currentColor"
@@ -322,7 +325,7 @@ export default function AdminCategoriesPage() {
                           </span>
                           {hasProducts && (
                             <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 dark:bg-amber-900/30 px-2 py-0.5 text-xs font-medium text-amber-700 dark:text-amber-400">
-                              <svg
+                              <svg aria-hidden="true"
                                 className="h-3 w-3"
                                 fill="none"
                                 stroke="currentColor"
@@ -343,12 +346,12 @@ export default function AdminCategoriesPage() {
                         {mounted && (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button
+                              <Button aria-label="Open actions menu"
                                 variant="ghost"
                                 size="icon"
                                 id={`actions-${category._id}`}
                               >
-                                <svg
+                                <svg aria-hidden="true"
                                   className="h-4 w-4"
                                   fill="none"
                                   stroke="currentColor"
@@ -373,7 +376,7 @@ export default function AdminCategoriesPage() {
                                   href={`/admin/categories/edit/${category._id}`}
                                 >
                                   <DropdownMenuItem className="cursor-pointer">
-                                    <svg
+                                    <svg aria-hidden="true"
                                       className="mr-2 h-4 w-4"
                                       fill="none"
                                       stroke="currentColor"
@@ -394,7 +397,7 @@ export default function AdminCategoriesPage() {
                                 className="cursor-pointer"
                                 onClick={() => handleToggleActive(category._id)}
                               >
-                                <svg
+                                <svg aria-hidden="true"
                                   className="mr-2 h-4 w-4"
                                   fill="none"
                                   stroke="currentColor"
@@ -417,7 +420,7 @@ export default function AdminCategoriesPage() {
                                   handleDelete(category._id)
                                 }
                               >
-                                <svg
+                                <svg aria-hidden="true"
                                   className="mr-2 h-4 w-4"
                                   fill="none"
                                   stroke="currentColor"

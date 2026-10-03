@@ -103,7 +103,7 @@ export default function AdminAnalyticsPage() {
       value: loading ? '—' : `R${totalRevenue.toLocaleString('en-ZA', { minimumFractionDigits: 2 })}`,
       subtitle: 'From paid orders only',
       icon: (
-        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
       ),
@@ -114,7 +114,7 @@ export default function AdminAnalyticsPage() {
       value: loading ? '—' : totalOrders.toString(),
       subtitle: 'All time, unpaid checkouts excluded',
       icon: (
-        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
         </svg>
       ),
@@ -125,7 +125,7 @@ export default function AdminAnalyticsPage() {
       value: loading ? '—' : totalProducts.toString(),
       subtitle: 'In catalogue',
       icon: (
-        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
         </svg>
       ),
@@ -136,7 +136,7 @@ export default function AdminAnalyticsPage() {
       value: loading ? '—' : `R${avgOrderValue.toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
       subtitle: `${totalUsers} registered users`,
       icon: (
-        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
         </svg>
       ),
@@ -192,7 +192,7 @@ export default function AdminAnalyticsPage() {
             ) : monthlyRevenue.every((m) => m.revenue === 0) ? (
               <div className="h-64 flex items-center justify-center">
                 <div className="text-center">
-                  <svg className="mx-auto h-12 w-12 text-muted-foreground/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg aria-hidden="true" className="mx-auto h-12 w-12 text-muted-foreground/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                   <p className="mt-2 text-muted-foreground">No revenue data yet</p>
@@ -204,12 +204,12 @@ export default function AdminAnalyticsPage() {
                   <div key={item.month} className="flex-1 flex flex-col items-center gap-2 group">
                     <div className="relative w-full">
                       {mounted && item.revenue > 0 && (
-                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-foreground text-background text-[10px] px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                        <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                           R{item.revenue.toLocaleString('en-ZA')}
                         </div>
                       )}
                       <div
-                        className="w-full bg-gradient-to-t from-brand to-brand rounded-t-md transition-all hover:opacity-80"
+                        className="w-full bg-gradient-to-t from-brand to-brand rounded-t-md transition hover:opacity-80"
                         style={{ height: `${(item.revenue / maxRevenue) * 200}px` }}
                       />
                     </div>
@@ -253,7 +253,7 @@ export default function AdminAnalyticsPage() {
                     </div>
                     <div className="h-2 bg-muted rounded-full overflow-hidden">
                       <div
-                        className={`h-full bg-gradient-to-r ${item.color} rounded-full transition-all`}
+                        className={`h-full bg-gradient-to-r ${item.color} rounded-full transition`}
                         style={{ width: `${item.percentage}%` }}
                       />
                     </div>

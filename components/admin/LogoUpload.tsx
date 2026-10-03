@@ -114,17 +114,17 @@ export default function LogoUpload({ value, onChange, folder = '/brands', label 
             <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
               <div className="w-3/4 bg-gray-200 rounded-full h-2 overflow-hidden">
                 <div
-                  className="bg-brand h-full transition-all duration-300"
+                  className="bg-brand h-full transition duration-300"
                   style={{ width: `${progress}%` }}
                 />
               </div>
             </div>
           )}
           {!uploading && (
-            <button
+            <button aria-label="Remove logo"
               type="button"
               onClick={handleRemove}
-              className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+              className="absolute top-1 right-1 inline-flex min-h-8 min-w-8 items-center justify-center bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
             >
               <X className="h-3 w-3" />
             </button>

@@ -5,6 +5,7 @@ import { useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { products, categories } from '@/lib/products'
 import { useUser } from '@clerk/nextjs'
+import { toast } from 'sonner'
 
 export default function SeedData() {
   // products.seed has no corresponding Convex mutation defined; this dev-only
@@ -34,7 +35,9 @@ export default function SeedData() {
     if (!user) return
     try {
       await setAdmin({ clerkId: user.id })
-      alert('You have been marked as admin in Convex. Note: You still need to set "role": "admin" in Clerk Public Metadata for the middleware to pick it up.')
+      toast.success('You have been marked as admin in Convex.', {
+        description: 'You still need to set "role": "admin" in Clerk Public Metadata for the middleware to pick it up.',
+      })
     } catch (error) {
       console.error(error)
     }

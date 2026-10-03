@@ -24,7 +24,7 @@ const adminNavItems = [
     title: 'Dashboard',
     href: '/admin',
     icon: (
-      <svg
+      <svg aria-hidden="true"
         className="w-5 h-5"
         fill="none"
         stroke="currentColor"
@@ -43,7 +43,7 @@ const adminNavItems = [
     title: 'Products',
     href: '/admin/products',
     icon: (
-      <svg
+      <svg aria-hidden="true"
         className="w-5 h-5"
         fill="none"
         stroke="currentColor"
@@ -62,7 +62,7 @@ const adminNavItems = [
     title: 'Orders',
     href: '/admin/orders',
     icon: (
-      <svg
+      <svg aria-hidden="true"
         className="w-5 h-5"
         fill="none"
         stroke="currentColor"
@@ -81,7 +81,7 @@ const adminNavItems = [
     title: 'Users',
     href: '/admin/users',
     icon: (
-      <svg
+      <svg aria-hidden="true"
         className="w-5 h-5"
         fill="none"
         stroke="currentColor"
@@ -100,7 +100,7 @@ const adminNavItems = [
     title: 'Categories',
     href: '/admin/categories',
     icon: (
-      <svg
+      <svg aria-hidden="true"
         className="w-5 h-5"
         fill="none"
         stroke="currentColor"
@@ -119,7 +119,7 @@ const adminNavItems = [
     title: 'Brands',
     href: '/admin/brands',
     icon: (
-      <svg
+      <svg aria-hidden="true"
         className="w-5 h-5"
         fill="none"
         stroke="currentColor"
@@ -138,7 +138,7 @@ const adminNavItems = [
     title: 'Models',
     href: '/admin/models',
     icon: (
-      <svg
+      <svg aria-hidden="true"
         className="w-5 h-5"
         fill="none"
         stroke="currentColor"
@@ -163,7 +163,7 @@ const adminNavItems = [
     title: 'Variants',
     href: '/admin/variants',
     icon: (
-      <svg
+      <svg aria-hidden="true"
         className="w-5 h-5"
         fill="none"
         stroke="currentColor"
@@ -182,7 +182,7 @@ const adminNavItems = [
     title: 'Analytics',
     href: '/admin/analytics',
     icon: (
-      <svg
+      <svg aria-hidden="true"
         className="w-5 h-5"
         fill="none"
         stroke="currentColor"
@@ -201,7 +201,7 @@ const adminNavItems = [
     title: 'Settings',
     href: '/admin/settings',
     icon: (
-      <svg
+      <svg aria-hidden="true"
         className="w-5 h-5"
         fill="none"
         stroke="currentColor"
@@ -339,7 +339,7 @@ export default function AdminLayoutClient({
               aria-label="Close sidebar"
               className="lg:hidden p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700"
             >
-              <svg
+              <svg aria-hidden="true"
                 className="w-5 h-5"
                 fill="none"
                 stroke="currentColor"
@@ -386,7 +386,7 @@ className={cn(
               href="/"
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50 hover:text-slate-900 dark:hover:text-white transition-colors"
             >
-              <svg
+              <svg aria-hidden="true"
                 className="w-5 h-5"
                 fill="none"
                 stroke="currentColor"
@@ -415,7 +415,7 @@ className={cn(
             aria-label="Open menu"
             className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700"
           >
-            <svg
+            <svg aria-hidden="true"
               className="w-6 h-6"
               fill="none"
               stroke="currentColor"
@@ -433,7 +433,7 @@ className={cn(
           {/* Search - Hidden on small mobile */}
           <div className="hidden md:flex flex-1 max-w-md relative">
             <div className="relative w-full">
-              <svg
+              <svg aria-hidden="true"
                 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"
                 fill="none"
                 stroke="currentColor"
@@ -450,7 +450,7 @@ className={cn(
                 type="text"
                 aria-label="Search"
                 placeholder="Search products..."
-                className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand transition-all"
+                className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand transition"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => searchQuery.length >= 2 && setShowResults(true)}
@@ -474,7 +474,7 @@ className={cn(
                       {product.image ? (
                         <SmartImage src={product.image} alt="" fill sizes="40px" className="object-cover" />
                       ) : (
-                        <svg className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg aria-hidden="true" className="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                       )}
@@ -494,7 +494,7 @@ className={cn(
             aria-label="Search"
             className="md:hidden p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700"
           >
-            <svg
+            <svg aria-hidden="true"
               className="w-5 h-5"
               fill="none"
               stroke="currentColor"
@@ -521,7 +521,7 @@ className={cn(
                   if (!showNotifications) markOrdersAsViewed()
                 }}
               >
-                <svg
+                <svg aria-hidden="true"
                   className="w-5 h-5 text-slate-600 dark:text-slate-400"
                   fill="none"
                   stroke="currentColor"
@@ -633,7 +633,7 @@ className={cn(
                           href="/admin/profile"
                           className="flex items-center w-full"
                         >
-                          <svg
+                          <svg aria-hidden="true"
                             className="mr-2 h-4 w-4"
                             fill="none"
                             stroke="currentColor"
@@ -654,7 +654,7 @@ className={cn(
                           href="/admin/settings"
                           className="flex items-center w-full"
                         >
-                          <svg
+                          <svg aria-hidden="true"
                             className="mr-2 h-4 w-4"
                             fill="none"
                             stroke="currentColor"
@@ -679,7 +679,7 @@ className={cn(
                       <DropdownMenuSeparator />
                       <DropdownMenuItem className="text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400">
                         <button onClick={handleSignOut} className="flex items-center w-full">
-                          <svg
+                          <svg aria-hidden="true"
                             className="mr-2 h-4 w-4"
                             fill="none"
                             stroke="currentColor"
@@ -727,7 +727,7 @@ className={cn(
               )}
             >
               <div className="p-1">{item.icon}</div>
-              <span className="text-[10px]">{item.title}</span>
+              <span className="text-xs">{item.title}</span>
             </Link>
           ))}
         </div>

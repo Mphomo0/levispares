@@ -38,6 +38,8 @@ import {
 } from '@/components/ui/pagination'
 import { Checkbox } from '@/components/ui/checkbox'
 import Link from 'next/link'
+import { toast } from 'sonner'
+import { useConfirm } from '@/components/admin/ConfirmDialog'
 
 import { useQuery, useMutation, useAction } from 'convex/react'
 import { api } from '@/convex/_generated/api'
@@ -58,6 +60,7 @@ const getStatusColor = (status: string) => {
 }
 
 export default function AdminProductsPage() {
+  const { confirm, confirmDialog } = useConfirm()
   const [selectedProducts, setSelectedProducts] = useState<Id<'products'>[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -121,7 +124,7 @@ export default function AdminProductsPage() {
   }
 
   const handleDelete = async (id: Id<'products'>) => {
-    if (confirm('Are you sure you want to delete this product?')) {
+    if (await confirm('Are you sure you want to delete this product?')) {
       try {
         const result = await removeProduct({ id })
         if (result?.imageUrls?.length) {
@@ -129,12 +132,14 @@ export default function AdminProductsPage() {
         }
       } catch (error) {
         console.error('Failed to delete product:', error)
+        toast.error('Failed to delete product. Please try again.')
       }
     }
   }
 
   return (
     <div className="space-y-6">
+      {confirmDialog}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Products</h2>
@@ -142,7 +147,7 @@ export default function AdminProductsPage() {
         </div>
         <Link href="/admin/products/new" className="w-full md:w-auto">
           <Button className="w-full md:w-auto bg-brand hover:bg-brand text-white font-semibold">
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg aria-hidden="true" className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
             Add Product
@@ -155,7 +160,7 @@ export default function AdminProductsPage() {
         <CardContent className="p-4">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
-              <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg aria-hidden="true" className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <Input 
@@ -207,13 +212,13 @@ export default function AdminProductsPage() {
           </span>
           <div className="flex gap-2">
             <Button variant="outline" size="sm">
-              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg aria-hidden="true" className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
               Export
             </Button>
             <Button variant="outline" size="sm" className="text-destructive">
-              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg aria-hidden="true" className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
               Delete
@@ -254,7 +259,7 @@ export default function AdminProductsPage() {
                       {product.image ? (
                         <SmartImage src={product.image} alt={product.name} fill sizes="56px" className="object-cover" />
                       ) : (
-                        <svg className="h-6 w-6 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg aria-hidden="true" className="h-6 w-6 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                       )}
@@ -266,8 +271,8 @@ export default function AdminProductsPage() {
                     {mounted && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
-                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <Button aria-label="Open actions menu" variant="ghost" size="icon" className="h-11 w-11 md:h-8 md:w-8 shrink-0">
+                            <svg aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                             </svg>
                           </Button>
@@ -327,11 +332,13 @@ export default function AdminProductsPage() {
             </TableHeader>
             <TableBody>
               {!productsResult ? (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12">
-                    <p className="text-muted-foreground italic">Loading products...</p>
-                  </TableCell>
-                </TableRow>
+                [1, 2, 3, 4, 5, 6].map((i) => (
+                  <TableRow key={i}>
+                    <TableCell colSpan={8}>
+                      <div className="h-10 rounded bg-muted animate-pulse" role="status" aria-label="Loading products" />
+                    </TableCell>
+                  </TableRow>
+                ))
               ) : paginatedProducts.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-12">
@@ -354,7 +361,7 @@ export default function AdminProductsPage() {
                           {product.image ? (
                             <SmartImage src={product.image} alt={product.name} fill sizes="40px" className="object-cover" />
                           ) : (
-                            <svg className="h-5 w-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg aria-hidden="true" className="h-5 w-5 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                             </svg>
                           )}
@@ -379,8 +386,8 @@ export default function AdminProductsPage() {
                       {mounted && (
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <Button aria-label="Open actions menu" variant="ghost" size="icon">
+                              <svg aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                               </svg>
                             </Button>
@@ -390,7 +397,7 @@ export default function AdminProductsPage() {
                             <DropdownMenuSeparator />
                             <Link href={`/admin/products/edit/${product._id}`}>
                               <DropdownMenuItem className="cursor-pointer">
-                                <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg aria-hidden="true" className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                 </svg>
                                 Edit Product
@@ -401,7 +408,7 @@ export default function AdminProductsPage() {
                               className="text-red-600 focus:text-red-600 cursor-pointer"
                               onClick={() => handleDelete(product._id)}
                             >
-                              <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg aria-hidden="true" className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                               </svg>
                               Delete Product

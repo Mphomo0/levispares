@@ -182,7 +182,7 @@ export default function AdminSettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <svg
+            <svg aria-hidden="true"
               className="w-5 h-5 text-accent"
               fill="none"
               stroke="currentColor"
@@ -290,7 +290,7 @@ export default function AdminSettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <svg
+            <svg aria-hidden="true"
               className="w-5 h-5 text-accent"
               fill="none"
               stroke="currentColor"
@@ -389,7 +389,7 @@ export default function AdminSettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <svg
+            <svg aria-hidden="true"
               className="w-5 h-5 text-accent"
               fill="none"
               stroke="currentColor"
@@ -461,7 +461,7 @@ export default function AdminSettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <svg
+            <svg aria-hidden="true"
               className="w-5 h-5 text-accent"
               fill="none"
               stroke="currentColor"
@@ -549,7 +549,7 @@ export default function AdminSettingsPage() {
                 className="text-red-600 border-red-300 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-950/50 shrink-0"
                 onClick={() => setShowConfirm(true)}
               >
-                <svg
+                <svg aria-hidden="true"
                   className="w-4 h-4 mr-2"
                   fill="none"
                   stroke="currentColor"

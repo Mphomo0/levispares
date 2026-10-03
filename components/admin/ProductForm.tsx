@@ -27,6 +27,7 @@ import {
   upload,
 } from '@imagekit/next'
 import { Id } from '@/convex/_generated/dataModel'
+import Image from 'next/image'
 import SmartImage from '@/components/ui/SmartImage'
 import { toast } from 'sonner'
 import { getErrorMessage } from '@/lib/errors'
@@ -514,7 +515,7 @@ export default function ProductForm({ initialData, isEditing }: ProductFormProps
                 <div key={index} className="aspect-square rounded-lg border bg-muted relative group overflow-hidden">
                   {image.url.startsWith('blob:') ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={image.url} alt={`Preview ${index}`} className="h-full w-full object-cover" />
+                    <Image src={image.url} alt={`Preview ${index}`} fill unoptimized sizes="(min-width: 768px) 33vw, 50vw" className="object-cover" />
                   ) : (
                     <SmartImage src={image.url} alt={`Preview ${index}`} fill sizes="(min-width: 768px) 33vw, 50vw" className="object-cover" />
                   )}
@@ -526,17 +527,17 @@ export default function ProductForm({ initialData, isEditing }: ProductFormProps
                       </div>
                     </div>
                   )}
-                  <button
+                  <button aria-label="Remove image"
                     type="button"
                     onClick={() => removeImage(index)}
-                    className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute top-1 right-1 inline-flex min-h-8 min-w-8 items-center justify-center bg-red-500 text-white rounded-full opacity-100 md:opacity-0 md:group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
                   >
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
                   {index === 0 && (
-                    <div className="absolute bottom-0 inset-x-0 bg-black/60 text-white text-[10px] text-center py-0.5">
+                    <div className="absolute bottom-0 inset-x-0 bg-black/60 text-white text-xs text-center py-0.5">
                       Primary
                     </div>
                   )}
@@ -548,7 +549,7 @@ export default function ProductForm({ initialData, isEditing }: ProductFormProps
                   onClick={() => fileInputRef.current?.click()}
                   className="aspect-square rounded-lg border-2 border-dashed border-muted flex flex-col items-center justify-center bg-muted/30 hover:bg-muted/50 transition-colors"
                 >
-                  <svg className="h-8 w-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg aria-hidden="true" className="h-8 w-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
                   </svg>
                   <span className="mt-1 text-xs text-muted-foreground">Add Image</span>
@@ -557,7 +558,7 @@ export default function ProductForm({ initialData, isEditing }: ProductFormProps
             </div>
             <input type="file" ref={fileInputRef} className="hidden" accept="image/*" multiple onChange={handleImageChange} />
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <svg className="h-4 w-4 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg aria-hidden="true" className="h-4 w-4 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <span>The first image will be used as the main thumbnail.</span>

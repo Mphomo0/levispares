@@ -17,6 +17,7 @@ import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import type { Id } from '@/convex/_generated/dataModel'
 import { getErrorMessage } from '@/lib/errors'
+import { toast } from 'sonner'
 
 export default function NewVariantPage() {
   const router = useRouter()
@@ -87,7 +88,7 @@ export default function NewVariantPage() {
       router.push('/admin/variants')
     } catch (error) {
       console.error('Failed to add variant:', error)
-      alert(getErrorMessage(error, 'Failed to add variant. Please try again.'))
+      toast.error(getErrorMessage(error, 'Failed to add variant. Please try again.'))
       setIsSubmitting(false)
     }
   }
@@ -107,7 +108,7 @@ export default function NewVariantPage() {
           <p className="text-muted-foreground">Create a new vehicle variant.</p>
         </div>
         <Button variant="outline" onClick={() => router.back()}>
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg aria-hidden="true" className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
           Back
@@ -197,7 +198,7 @@ export default function NewVariantPage() {
                   <div className="flex items-center justify-between">
                     <Label>Multiple Variants</Label>
                     <Button type="button" variant="outline" size="sm" onClick={addBulkVariant}>
-                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg aria-hidden="true" className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                       </svg>
                       Add Variant
@@ -216,14 +217,14 @@ export default function NewVariantPage() {
                             onChange={(e) => updateBulkVariant(index, e.target.value)}
                             className="flex-1"
                           />
-                          <Button
+                          <Button aria-label="Remove variant"
                             type="button"
                             variant="ghost"
                             size="icon"
                             onClick={() => removeBulkVariant(index)}
                             className="text-red-500 hover:text-red-600"
                           >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg aria-hidden="true" className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
                           </Button>
@@ -248,7 +249,7 @@ export default function NewVariantPage() {
           >
             {isSubmitting ? (
               <>
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                <svg aria-hidden="true" className="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
@@ -256,7 +257,7 @@ export default function NewVariantPage() {
               </>
             ) : (
               <>
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg aria-hidden="true" className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
                 Save Variant

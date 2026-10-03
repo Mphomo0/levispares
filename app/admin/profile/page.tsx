@@ -131,7 +131,7 @@ export default function AdminProfilePage() {
                 className="w-full text-red-600 border-red-300 hover:bg-red-50 dark:text-red-400 dark:border-red-800 dark:hover:bg-red-950/50"
                 onClick={handleSignOut}
               >
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg aria-hidden="true" className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
                 Sign Out
@@ -147,25 +147,25 @@ export default function AdminProfilePage() {
             <Card>
               <CardContent className="p-3 sm:p-6">
                 <div className="text-xl sm:text-2xl font-bold">{userOrders?.length ?? '...'}</div>
-                <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider">Total Orders</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">Total Orders</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-3 sm:p-6">
                 <div className="text-xl sm:text-2xl font-bold">R{totalSpent.toFixed(2)}</div>
-                <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider">Total Spent</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">Total Spent</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-3 sm:p-6">
                 <div className="text-xl sm:text-2xl font-bold">{userAddresses?.length ?? '...'}</div>
-                <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider">Addresses</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">Addresses</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-3 sm:p-6">
                 <div className="text-xl sm:text-2xl font-bold capitalize">{convexUser?.role || '—'}</div>
-                <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider">Role</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider">Role</p>
               </CardContent>
             </Card>
           </div>
@@ -206,7 +206,7 @@ export default function AdminProfilePage() {
                 </div>
 
                 <div className="pt-4 flex items-center gap-3 text-xs text-muted-foreground">
-                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   <span>To update your profile details, visit your Clerk account settings or use the Clerk user button.</span>

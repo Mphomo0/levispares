@@ -12,6 +12,7 @@ import LogoUpload from '@/components/admin/LogoUpload'
 import { useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { getErrorMessage } from '@/lib/errors'
+import { toast } from 'sonner'
 
 export default function NewBrandPage() {
   const router = useRouter()
@@ -56,7 +57,7 @@ export default function NewBrandPage() {
       router.push('/admin/brands')
     } catch (error) {
       console.error('Failed to add brand:', error)
-      alert(getErrorMessage(error, 'Failed to add brand. Please try again.'))
+      toast.error(getErrorMessage(error, 'Failed to add brand. Please try again.'))
       setIsSubmitting(false)
     }
   }
@@ -69,7 +70,7 @@ export default function NewBrandPage() {
           <p className="text-muted-foreground">Create a new vehicle or product brand.</p>
         </div>
         <Button variant="outline" onClick={() => router.back()}>
-          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg aria-hidden="true" className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
           Back
@@ -190,7 +191,7 @@ export default function NewBrandPage() {
           >
             {isSubmitting ? (
               <>
-                <svg className="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
+                <svg aria-hidden="true" className="animate-spin -ml-1 mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
@@ -198,7 +199,7 @@ export default function NewBrandPage() {
               </>
             ) : (
               <>
-                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg aria-hidden="true" className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
                 Save Brand

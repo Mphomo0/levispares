@@ -127,7 +127,7 @@ export default function UserProfilePage() {
       <div className="flex items-center gap-4">
         <Button variant="outline" size="icon" asChild>
           <Link href="/admin/users">
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
             </svg>
           </Link>
@@ -161,7 +161,7 @@ export default function UserProfilePage() {
           <CardContent className="space-y-4 pt-4 border-t">
             <div className="grid grid-cols-2 text-sm gap-y-2">
               <span className="text-muted-foreground">Clerk ID:</span>
-              <span className="font-mono text-[10px] break-all">{user.clerkId}</span>
+              <span className="font-mono text-xs break-all">{user.clerkId}</span>
               <span className="text-muted-foreground">Joined:</span>
               <span>{new Date(user._creationTime).toLocaleDateString('en-ZA')}</span>
               <span className="text-muted-foreground">Total Spent:</span>
@@ -187,7 +187,7 @@ export default function UserProfilePage() {
                 </Button>
               )}
               {isSelf && (
-                <p className="text-[10px] text-center text-muted-foreground">
+                <p className="text-xs text-center text-muted-foreground">
                   You cannot modify your own administrative account.
                 </p>
               )}
@@ -213,7 +213,7 @@ export default function UserProfilePage() {
               ) : userOrders.length === 0 ? (
                 <div className="rounded-md border p-8 flex flex-col items-center justify-center text-center space-y-2">
                   <div className="p-3 bg-muted rounded-full">
-                    <svg className="h-6 w-6 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg aria-hidden="true" className="h-6 w-6 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                     </svg>
                   </div>
@@ -279,7 +279,7 @@ export default function UserProfilePage() {
                         <div className="flex items-center gap-2">
                           <p className="font-medium text-sm">{addr.label}</p>
                           {addr.isDefault && (
-                            <Badge variant="outline" className="text-[10px] px-1.5 py-0">Default</Badge>
+                            <Badge variant="outline" className="text-xs px-1.5 py-0">Default</Badge>
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground">{addr.name}</p>

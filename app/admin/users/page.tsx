@@ -164,7 +164,7 @@ export default function AdminUsersPage() {
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Users</CardTitle>
             <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
-              <svg
+              <svg aria-hidden="true"
                 className="h-4 w-4"
                 fill="none"
                 stroke="currentColor"
@@ -192,7 +192,7 @@ export default function AdminUsersPage() {
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Users</CardTitle>
             <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">
-              <svg
+              <svg aria-hidden="true"
                 className="h-4 w-4"
                 fill="none"
                 stroke="currentColor"
@@ -218,7 +218,7 @@ export default function AdminUsersPage() {
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Admins</CardTitle>
             <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400">
-              <svg
+              <svg aria-hidden="true"
                 className="h-4 w-4"
                 fill="none"
                 stroke="currentColor"
@@ -244,7 +244,7 @@ export default function AdminUsersPage() {
               New This Month
             </CardTitle>
             <div className="p-2 rounded-lg bg-brand text-white">
-              <svg
+              <svg aria-hidden="true"
                 className="h-4 w-4"
                 fill="none"
                 stroke="currentColor"
@@ -271,7 +271,7 @@ export default function AdminUsersPage() {
         <CardContent className="p-4">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
-              <svg
+              <svg aria-hidden="true"
                 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
                 fill="none"
                 stroke="currentColor"
@@ -364,7 +364,7 @@ export default function AdminUsersPage() {
                       <div className="font-medium flex items-center gap-2">
                         <span className="truncate">{user.name || 'Anonymous User'}</span>
                         {isSelf && (
-                          <span className="text-[10px] bg-brand text-white px-1.5 py-0.5 rounded-full uppercase shrink-0">You</span>
+                          <span className="text-xs bg-brand text-white px-1.5 py-0.5 rounded-full uppercase shrink-0">You</span>
                         )}
                       </div>
                       <p className="text-xs text-muted-foreground truncate">{user.email}</p>
@@ -372,8 +372,8 @@ export default function AdminUsersPage() {
                     {mounted && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
-                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <Button aria-label="Open actions menu" variant="ghost" size="icon" className="h-11 w-11 md:h-8 md:w-8 shrink-0">
+                            <svg aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                             </svg>
                           </Button>
@@ -464,7 +464,7 @@ export default function AdminUsersPage() {
                           <div className="font-medium flex items-center gap-2">
                             {user.name || 'Anonymous User'}
                             {isSelf && (
-                              <span className="text-[10px] bg-brand text-white px-1.5 py-0.5 rounded-full uppercase">You</span>
+                              <span className="text-xs bg-brand text-white px-1.5 py-0.5 rounded-full uppercase">You</span>
                             )}
                           </div>
                           <div className="text-xs text-muted-foreground">
@@ -498,8 +498,8 @@ export default function AdminUsersPage() {
                       {mounted && (
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <svg
+                            <Button aria-label="Open actions menu" variant="ghost" size="icon">
+                              <svg aria-hidden="true"
                                 className="h-4 w-4"
                                 fill="none"
                                 stroke="currentColor"
@@ -519,7 +519,7 @@ export default function AdminUsersPage() {
                             <DropdownMenuSeparator />
                             <Link href={`/admin/users/${user._id}`}>
                               <DropdownMenuItem className="cursor-pointer">
-                                <svg
+                                <svg aria-hidden="true"
                                   className="mr-2 h-4 w-4"
                                   fill="none"
                                   stroke="currentColor"
@@ -547,7 +547,7 @@ export default function AdminUsersPage() {
                               disabled={isSelf}
                               onClick={() => handleToggleStatus(user._id, isSelf)}
                             >
-                              <svg
+                              <svg aria-hidden="true"
                                 className="mr-2 h-4 w-4"
                                 fill="none"
                                 stroke="currentColor"
@@ -576,7 +576,7 @@ export default function AdminUsersPage() {
                                 className="text-red-600 focus:text-red-600 cursor-pointer"
                                 onClick={() => handleDeleteUser(user._id, isSelf)}
                               >
-                                <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg aria-hidden="true" className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
                                 Delete User Record

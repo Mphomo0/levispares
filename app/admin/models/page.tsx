@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { toast } from 'sonner'
+import { useConfirm } from '@/components/admin/ConfirmDialog'
 import {
   Card,
   CardContent,
@@ -53,6 +55,7 @@ const getStatusLabel = (active: boolean | undefined) => {
 }
 
 export default function AdminModelsPage() {
+  const { confirm, confirmDialog } = useConfirm()
   const [searchQuery, setSearchQuery] = useState('')
   const mounted = useMounted()
   const [statusFilter, setStatusFilter] = useState('All')
@@ -82,12 +85,12 @@ export default function AdminModelsPage() {
   }
 
   const handleDelete = async (id: Id<'models'>) => {
-    if (confirm('Are you sure you want to delete this model? This will also delete all associated variants.')) {
+    if (await confirm('Are you sure you want to delete this model? This will also delete all associated variants.')) {
       try {
         await removeModel({ id })
       } catch (error) {
         console.error('Failed to delete model:', error)
-        alert('Failed to delete model. Please try again.')
+        toast.error('Failed to delete model. Please try again.')
       }
     }
   }
@@ -102,6 +105,7 @@ export default function AdminModelsPage() {
 
   return (
     <div className="space-y-6">
+      {confirmDialog}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Vehicle Models</h2>
@@ -109,7 +113,7 @@ export default function AdminModelsPage() {
         </div>
         <Link href="/admin/models/new">
           <Button className="w-full md:w-auto bg-brand hover:bg-brand text-white font-semibold">
-            <svg
+            <svg aria-hidden="true"
               className="w-4 h-4 mr-2"
               fill="none"
               stroke="currentColor"
@@ -133,7 +137,7 @@ export default function AdminModelsPage() {
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Models</CardTitle>
             <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0" />
               </svg>
@@ -148,7 +152,7 @@ export default function AdminModelsPage() {
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Models</CardTitle>
             <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
@@ -162,7 +166,7 @@ export default function AdminModelsPage() {
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Inactive Models</CardTitle>
             <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400">
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
               </svg>
             </div>
@@ -179,7 +183,7 @@ export default function AdminModelsPage() {
         <CardContent className="p-4">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
-              <svg
+              <svg aria-hidden="true"
                 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
                 fill="none"
                 stroke="currentColor"
@@ -265,8 +269,8 @@ export default function AdminModelsPage() {
                     {mounted && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
-                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <Button aria-label="Open actions menu" variant="ghost" size="icon" className="h-11 w-11 md:h-8 md:w-8 shrink-0">
+                            <svg aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                             </svg>
                           </Button>
@@ -276,7 +280,7 @@ export default function AdminModelsPage() {
                           <DropdownMenuSeparator />
                           <Link href={`/admin/models/edit/${model._id}`}>
                             <DropdownMenuItem className="cursor-pointer">
-                              <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg aria-hidden="true" className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                               </svg>
                               Edit Model
@@ -286,7 +290,7 @@ export default function AdminModelsPage() {
                             className="cursor-pointer"
                             onClick={() => handleToggleActive(model._id)}
                           >
-                            <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg aria-hidden="true" className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                             </svg>
                             {model.active ? 'Deactivate' : 'Activate'}
@@ -296,7 +300,7 @@ export default function AdminModelsPage() {
                             className="text-red-600 focus:text-red-600 cursor-pointer"
                             onClick={() => handleDelete(model._id)}
                           >
-                            <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg aria-hidden="true" className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                             </svg>
                             Delete Model
@@ -374,8 +378,8 @@ export default function AdminModelsPage() {
                         {mounted && (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <Button aria-label="Open actions menu" variant="ghost" size="icon">
+                                <svg aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
                                 </svg>
                               </Button>
@@ -385,7 +389,7 @@ export default function AdminModelsPage() {
                               <DropdownMenuSeparator />
                               <Link href={`/admin/models/edit/${model._id}`}>
                                 <DropdownMenuItem className="cursor-pointer">
-                                  <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <svg aria-hidden="true" className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                   </svg>
                                   Edit Model
@@ -395,7 +399,7 @@ export default function AdminModelsPage() {
                                 className="cursor-pointer"
                                 onClick={() => handleToggleActive(model._id)}
                               >
-                                <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg aria-hidden="true" className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                                 </svg>
                                 {model.active ? 'Deactivate' : 'Activate'}
@@ -405,7 +409,7 @@ export default function AdminModelsPage() {
                                 className="text-red-600 focus:text-red-600 cursor-pointer"
                                 onClick={() => handleDelete(model._id)}
                               >
-                                <svg className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <svg aria-hidden="true" className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
                                 Delete Model
