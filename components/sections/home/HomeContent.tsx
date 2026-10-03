@@ -110,7 +110,6 @@ export default function HomeContent({ initialFeatured, initialBrands, initialCat
                 <CategoryCard
                   slug={category.slug}
                   name={category.name}
-                  icon={category.icon || ''}
                   description={category.description || ''}
                 />
               </motion.div>
