@@ -26,6 +26,8 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   if (!category) return { title: 'Category not found', robots: { index: false } }
 
   const filters = readFilters(await searchParams)
+  const initial = await loadShop({ ...filters, category: category.slug })
+  const empty = !initial.data?.totalCount
   const name = tidyName(category.name)
   const path = categoryPath(category.slug)
   const description = describe(name, category.description)
@@ -34,7 +36,8 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     title: filters.page > 1 ? `${name} Truck Parts – Page ${filters.page}` : `${name} Truck Parts`,
     description,
     alternates: { canonical: withPage(path, filters.page) },
-    robots: isRefinedView(filters) ? { index: false, follow: true } : undefined,
+    // Refined views, and pages with no parts on them yet, stay out of the index.
+    robots: isRefinedView(filters) || empty ? { index: false, follow: true } : undefined,
     openGraph: {
       type: 'website',
       title: `${name} Truck Parts`,

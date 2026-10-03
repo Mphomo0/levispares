@@ -29,6 +29,8 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   const brand = { ...found, name: tidyName(found.name) }
 
   const filters = readFilters(await searchParams)
+  const initial = await loadShop({ ...filters, brand: brand.slug })
+  const empty = !initial.data?.totalCount
   const path = brandPath(brand.slug)
   const description = describe(brand.name, brand.description)
 
@@ -36,7 +38,8 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
     title: filters.page > 1 ? `${brand.name} Truck Spare Parts – Page ${filters.page}` : `${brand.name} Truck Spare Parts`,
     description,
     alternates: { canonical: withPage(path, filters.page) },
-    robots: isRefinedView(filters) ? { index: false, follow: true } : undefined,
+    // Refined views, and pages with no parts on them yet, stay out of the index.
+    robots: isRefinedView(filters) || empty ? { index: false, follow: true } : undefined,
     openGraph: {
       type: 'website',
       title: `${brand.name} Truck Spare Parts`,

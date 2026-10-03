@@ -59,7 +59,14 @@ export async function childCategories(category: Doc<'categories'>) {
 }
 
 /** Loads the first page of results the way the client would, for server rendering. */
-export async function loadShop(filters: ReturnType<typeof readFilters>): Promise<ShopInitial> {
+export function loadShop(filters: ReturnType<typeof readFilters>): Promise<ShopInitial> {
+  return loadShopCached(JSON.stringify(filters))
+}
+
+// Keyed by a string so metadata and the page share one fetch per request.
+const loadShopCached = cache((json: string) => loadShopUncached(JSON.parse(json)))
+
+async function loadShopUncached(filters: ReturnType<typeof readFilters>): Promise<ShopInitial> {
   const key = shopKey(filters)
   const [category, brand] = await Promise.all([findCategory(filters.category), findBrand(filters.brand)])
 
