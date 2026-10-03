@@ -290,6 +290,8 @@ export default function ProductForm({ initialData, isEditing }: ProductFormProps
         variantId: data.variantId ? data.variantId as Id<'variants'> : undefined,
         partNumber: data.partNumber || undefined,
         image: imageUrls[0] || undefined,
+        // Everything after the first picture goes in the product's gallery.
+        images: imageUrls.slice(1),
         specs: [],
       }
 

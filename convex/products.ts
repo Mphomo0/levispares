@@ -1,5 +1,5 @@
 import { v, ConvexError } from "convex/values";
-import { query, mutation, internalMutation, type QueryCtx } from "./_generated/server";
+import { query, mutation, internalMutation, type MutationCtx, type QueryCtx } from "./_generated/server";
 import { paginationOptsValidator } from "convex/server";
 import type { Doc, Id } from "./_generated/dataModel";
 
@@ -680,6 +680,19 @@ export const getStats = query({
   },
 });
 
+/** Replaces a product's extra pictures (everything after the main image). */
+async function setGalleryImages(ctx: MutationCtx, productId: Id<"products">, urls: string[]) {
+  if (urls.length > 9) throw new ConvexError("A product can have at most 10 pictures.");
+  const existing = await ctx.db
+    .query("productImages")
+    .withIndex("by_productId", (q) => q.eq("productId", productId))
+    .collect();
+  for (const image of existing) await ctx.db.delete(image._id);
+  for (const [index, url] of urls.entries()) {
+    await ctx.db.insert("productImages", { productId, url, isPrimary: false, sortOrder: index });
+  }
+}
+
 export const addWithRelations = mutation({
   args: {
     name: v.string(),
@@ -697,6 +710,8 @@ export const addWithRelations = mutation({
     variantId: v.optional(v.id("variants")),
     partNumber: v.optional(v.string()),
     originalPrice: v.optional(v.number()),
+    /** Extra pictures after the main one, in display order. */
+    images: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
@@ -726,33 +741,13 @@ export const addWithRelations = mutation({
       .query("products")
       .withIndex("by_sku", (q) => q.eq("sku", sku))
       .unique();
-    if (existingSku) {
-      const altSku = `${sku}-${Date.now().toString(36).toUpperCase()}`;
-      return await insertProduct(ctx, {
-        brandId: args.brandId,
-        modelId: args.modelId,
-        variantId: args.variantId,
-        categoryId: args.categoryId,
-        sku: altSku,
-        name: args.name,
-        partNumber: args.partNumber,
-        description: args.description,
-        price: args.price,
-        originalPrice: args.originalPrice,
-        stockQty: args.stockQty ?? 0,
-        image: args.image,
-        specs: args.specs,
-        active: true,
-        totalSold: 0,
-      });
-    }
 
-    return await insertProduct(ctx, {
+    const id = await insertProduct(ctx, {
       brandId: args.brandId,
       modelId: args.modelId,
       variantId: args.variantId,
       categoryId: args.categoryId,
-      sku,
+      sku: existingSku ? `${sku}-${Date.now().toString(36).toUpperCase()}` : sku,
       name: args.name,
       partNumber: args.partNumber,
       description: args.description,
@@ -764,6 +759,8 @@ export const addWithRelations = mutation({
       active: true,
       totalSold: 0,
     });
+    if (args.images?.length) await setGalleryImages(ctx, id, args.images);
+    return id;
   },
 });
 
@@ -786,6 +783,8 @@ export const updateWithRelations = mutation({
     partNumber: v.optional(v.string()),
     originalPrice: v.optional(v.number()),
     active: v.optional(v.boolean()),
+    /** Extra pictures after the main one, in display order. Replaces the gallery. */
+    images: v.optional(v.array(v.string())),
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
@@ -808,6 +807,7 @@ export const updateWithRelations = mutation({
     if (args.active !== undefined) patchData.active = args.active;
 
     await ctx.db.patch(args.id, patchData);
+    if (args.images !== undefined) await setGalleryImages(ctx, args.id, args.images);
   },
 });
 
