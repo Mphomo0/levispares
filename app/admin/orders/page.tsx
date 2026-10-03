@@ -336,7 +336,7 @@ export default function AdminOrdersPage() {
                                 )}
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
-                                  className="text-red-600 focus:text-red-600"
+                                  className="text-red-600 focus:bg-red-600 focus:text-white focus:[&_svg]:!text-white"
                                   onClick={() => handleStatusChange(order._id, 'cancelled')}
                                 >
                                   Cancel Order
@@ -443,7 +443,7 @@ export default function AdminOrdersPage() {
                                   )}
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem
-                                    className="text-red-600 focus:text-red-600"
+                                    className="text-red-600 focus:bg-red-600 focus:text-white focus:[&_svg]:!text-white"
                                     onClick={() => handleStatusChange(order._id, 'cancelled')}
                                   >
                                     <svg aria-hidden="true" className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

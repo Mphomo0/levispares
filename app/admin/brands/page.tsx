@@ -289,7 +289,7 @@ export default function AdminBrandsPage() {
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
-                            className="text-red-600 focus:text-red-600 cursor-pointer"
+                            className="text-red-600 focus:bg-red-600 focus:text-white focus:[&_svg]:!text-white cursor-pointer"
                             disabled={deletingId === brand._id}
                             onClick={() => handleDelete(brand._id)}
                           >
@@ -410,7 +410,7 @@ export default function AdminBrandsPage() {
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
-                                className="text-red-600 focus:text-red-600 cursor-pointer"
+                                className="text-red-600 focus:bg-red-600 focus:text-white focus:[&_svg]:!text-white cursor-pointer"
                                 disabled={deletingId === brand._id}
                                 onClick={() => handleDelete(brand._id)}
                               >

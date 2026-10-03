@@ -414,7 +414,7 @@ export default function AdminCategoriesPage() {
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
-                                className={`${hasProducts ? 'opacity-50 cursor-not-allowed' : 'text-red-600 focus:text-red-600 cursor-pointer'}`}
+                                className={`${hasProducts ? 'opacity-50 cursor-not-allowed' : 'text-red-600 focus:bg-red-600 focus:text-white focus:[&_svg]:!text-white cursor-pointer'}`}
                                 onClick={() =>
                                   !hasProducts &&
                                   handleDelete(category._id)

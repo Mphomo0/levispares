@@ -3,6 +3,7 @@ import { query, mutation, internalMutation, internalQuery, action } from "./_gen
 import { internal } from "./_generated/api";
 
 import { requireAdmin } from "./lib/auth";
+import { tidyProductName } from "./lib/names";
 export const list = query({
   handler: async (ctx) => {
     return await ctx.db
@@ -369,5 +370,25 @@ export const getByIdInternal = internalQuery({
   args: { id: v.id("brands") },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.id);
+  },
+});
+
+/**
+ * Ops-only: fix brand name casing ("Ud Trucks" -> "UD Trucks", "Man" ->
+ * "MAN"). Slugs are not changed. Preview with dryRun first:
+ *   npx convex run --prod brands:tidyNames '{"dryRun": true}'
+ */
+export const tidyNames = internalMutation({
+  args: { dryRun: v.boolean() },
+  handler: async (ctx, { dryRun }) => {
+    const brands = await ctx.db.query("brands").collect();
+    const changes: { from: string; to: string }[] = [];
+    for (const brand of brands) {
+      const name = tidyProductName(brand.name);
+      if (name === brand.name) continue;
+      changes.push({ from: brand.name, to: name });
+      if (!dryRun) await ctx.db.patch(brand._id, { name });
+    }
+    return { dryRun, changed: changes.length, total: brands.length, changes };
   },
 });

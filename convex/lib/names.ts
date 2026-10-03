@@ -1,6 +1,7 @@
 // Abbreviations that should stay in capitals.
 const KEEP_UPPER = new Set([
-  'LH', 'RH', 'LED', 'ABS', 'UD', 'GVM', 'FAW', 'DAF', 'ECU', 'USB', 'AC', 'DC', 'HID', 'PTO', 'OEM', '4X4',
+  'LH', 'RH', 'LED', 'ABS', 'UD', 'GVM', 'FAW', 'DAF', 'MAN', 'ECU', 'USB', 'AC', 'DC', 'HID', 'PTO', 'OEM',
+  '4X4', 'HVAC', 'EBS', 'ASR', 'DPF', 'EGR', 'SCR', 'ADR', 'GPS',
 ])
 // Short joining words stay lower case unless they start the name.
 const SMALL_WORDS = new Set(['a', 'and', 'for', 'in', 'of', 'on', 'or', 'the', 'to', 'with'])

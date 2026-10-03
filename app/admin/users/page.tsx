@@ -386,7 +386,7 @@ export default function AdminUsersPage() {
                           </Link>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
-                            className={`${isActive ? 'text-red-600 focus:text-red-600' : 'text-green-600 focus:text-green-600'} cursor-pointer`}
+                            className={`${isActive ? 'text-red-600 focus:bg-red-600 focus:text-white focus:[&_svg]:!text-white' : 'text-green-600 focus:bg-green-600 focus:text-white focus:[&_svg]:!text-white'} cursor-pointer`}
                             disabled={isSelf}
                             onClick={() => handleToggleStatus(user._id, isSelf)}
                           >
@@ -394,7 +394,7 @@ export default function AdminUsersPage() {
                           </DropdownMenuItem>
                           {!isSelf && (
                             <DropdownMenuItem
-                              className="text-red-600 focus:text-red-600 cursor-pointer"
+                              className="text-red-600 focus:bg-red-600 focus:text-white focus:[&_svg]:!text-white cursor-pointer"
                               onClick={() => handleDeleteUser(user._id, isSelf)}
                             >
                               Delete User Record
@@ -543,7 +543,7 @@ export default function AdminUsersPage() {
                             </Link>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem 
-                              className={`${isActive ? 'text-red-600 focus:text-red-600' : 'text-green-600 focus:text-green-600'} cursor-pointer`}
+                              className={`${isActive ? 'text-red-600 focus:bg-red-600 focus:text-white focus:[&_svg]:!text-white' : 'text-green-600 focus:bg-green-600 focus:text-white focus:[&_svg]:!text-white'} cursor-pointer`}
                               disabled={isSelf}
                               onClick={() => handleToggleStatus(user._id, isSelf)}
                             >
@@ -573,7 +573,7 @@ export default function AdminUsersPage() {
                             </DropdownMenuItem>
                             {!isSelf && (
                               <DropdownMenuItem
-                                className="text-red-600 focus:text-red-600 cursor-pointer"
+                                className="text-red-600 focus:bg-red-600 focus:text-white focus:[&_svg]:!text-white cursor-pointer"
                                 onClick={() => handleDeleteUser(user._id, isSelf)}
                               >
                                 <svg aria-hidden="true" className="mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -1,4 +1,5 @@
 import { SITE_URL } from '@/lib/site'
+import { tidyProductName } from '@/convex/lib/names'
 import { productPath, type ShopFilters } from '@/lib/shopUrl'
 import type { ShopInitial, ShopLink } from '@/lib/shopShared'
 
@@ -13,8 +14,7 @@ export function tidyName(name: string) {
   const trimmed = name.replace(/\s+/g, ' ').trim()
   const allCaps = trimmed === trimmed.toUpperCase() && /[A-Z]{3,}/.test(trimmed)
   const allLower = trimmed === trimmed.toLowerCase()
-  if (!allCaps && !allLower) return trimmed
-  return trimmed.toLowerCase().replace(/(^|[\s-])([a-z])/g, (_, sep: string, letter: string) => sep + letter.toUpperCase())
+  return allCaps || allLower ? tidyProductName(trimmed) : trimmed
 }
 
 export function clip(text: string, max = 158) {

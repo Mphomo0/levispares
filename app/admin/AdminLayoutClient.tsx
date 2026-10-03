@@ -678,7 +678,7 @@ className={cn(
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-red-600 focus:text-red-600 dark:text-red-400 dark:focus:text-red-400">
+                      <DropdownMenuItem className="text-red-600 dark:text-red-400 focus:bg-red-600 focus:text-white focus:[&_svg]:!text-white">
                         <button onClick={handleSignOut} className="flex items-center w-full">
                           <svg aria-hidden="true"
                             className="mr-2 h-4 w-4"
