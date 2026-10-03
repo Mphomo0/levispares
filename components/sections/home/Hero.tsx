@@ -1,168 +1,257 @@
 'use client'
 
-import React from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowRight, Shield, Truck, HeadphonesIcon } from 'lucide-react'
-import { motion } from 'motion/react'
+import { useRouter } from 'next/navigation'
+import { useQuery } from 'convex/react'
+import { api } from '@/convex/_generated/api'
+import { Id } from '@/convex/_generated/dataModel'
+import { ArrowRight } from 'lucide-react'
+import {
+  animate,
+  motion,
+  useMotionValue,
+  useReducedMotion,
+  useScroll,
+  useSpring,
+  useTransform,
+  type MotionValue,
+} from 'motion/react'
+import LoadingScene, { LoadingSteps, SceneBackdrop } from './LoadingScene'
+
+// One easing curve for all hero motion: quick start, long gentle settle.
+const EASE = [0.22, 1, 0.36, 1] as const
+
+const selectClass =
+  'w-full rounded-lg border border-white/20 bg-white px-4 py-3 text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-60'
+
+function VehicleFinder() {
+  const router = useRouter()
+  const brands = useQuery(api.brands.list)
+  const [brandId, setBrandId] = useState('')
+  const [modelId, setModelId] = useState('')
+  const models = useQuery(
+    api.models.listActive,
+    brandId ? { brandId: brandId as Id<'brands'> } : 'skip',
+  )
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    const brand = brands?.find((b) => b._id === brandId)
+    if (!brand) return
+    const params = new URLSearchParams({ brand: brand.slug })
+    const model = models?.find((m) => m._id === modelId)
+    if (model) params.set('model', model.slug)
+    router.push(`/shop?${params.toString()}`)
+  }
+
+  return (
+    <form
+      onSubmit={handleSubmit}
+      className="rounded-2xl bg-[#1b2029]/85 backdrop-blur-md p-3 sm:p-4 border border-white/10 shadow-2xl shadow-black/40"
+    >
+      <h2 className="mb-2 px-1 text-sm font-semibold text-white">Find parts for your truck</h2>
+      {/* One compact row from tablet up, so the truck below gets the room */}
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_1fr_auto] sm:gap-3">
+        <div>
+          <label htmlFor="finder-make" className="sr-only">
+            Make
+          </label>
+          <select
+            id="finder-make"
+            name="make"
+            value={brandId}
+            onChange={(e) => {
+              setBrandId(e.target.value)
+              setModelId('')
+            }}
+            className={selectClass}
+          >
+            <option value="">{brands ? 'Make' : 'Loading…'}</option>
+            {brands?.map((brand) => (
+              <option key={brand._id} value={brand._id}>
+                {brand.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="finder-model" className="sr-only">
+            Model
+          </label>
+          <select
+            id="finder-model"
+            name="model"
+            value={modelId}
+            onChange={(e) => setModelId(e.target.value)}
+            disabled={!brandId || !models}
+            className={selectClass}
+          >
+            <option value="">{brandId ? 'All models' : 'Model'}</option>
+            {models?.map((model) => (
+              <option key={model._id} value={model._id}>
+                {model.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <button
+          type="submit"
+          disabled={!brandId}
+          className="btn-accent col-span-2 inline-flex items-center justify-center gap-2 whitespace-nowrap text-white disabled:cursor-not-allowed disabled:opacity-60 sm:col-span-1"
+        >
+          Show parts
+          <ArrowRight className="h-5 w-5" aria-hidden="true" />
+        </button>
+      </div>
+    </form>
+  )
+}
+
+function HeroCopy() {
+  return (
+    <div className="grid lg:grid-cols-[1.1fr_1fr] gap-5 lg:gap-14 lg:items-end">
+      <div>
+        <h1
+          className="font-display text-3xl sm:text-5xl lg:text-6xl tracking-tight leading-[1.05] text-white mb-3 lg:mb-4"
+          style={{ fontWeight: 900 }}
+        >
+          {/* Each line rises out of its own mask */}
+          <span className="block overflow-hidden pb-[0.08em]">
+            <motion.span
+              className="block"
+              initial={{ y: '110%' }}
+              animate={{ y: 0 }}
+              transition={{ duration: 0.9, ease: EASE }}
+            >
+              Truck spares,
+            </motion.span>
+          </span>
+          <span className="block overflow-hidden pb-[0.08em]">
+            <motion.span
+              className="block text-brand"
+              initial={{ y: '110%' }}
+              animate={{ y: 0 }}
+              transition={{ duration: 0.9, ease: EASE, delay: 0.08 }}
+            >
+              delivered nationwide
+            </motion.span>
+          </span>
+        </h1>
+        <motion.p
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: EASE, delay: 0.25 }}
+          className="hidden sm:block text-base md:text-lg text-white/80 max-w-xl text-pretty"
+        >
+          Aftermarket parts for Hino, Isuzu, Fuso, Mercedes-Benz, Nissan, FAW and
+          more, from brakes to batteries. Pretoria based, shipping across South Africa.
+        </motion.p>
+      </div>
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: EASE, delay: 0.35 }}
+      >
+        <VehicleFinder />
+        <p className="mt-3 hidden sm:block px-1 text-white/75 text-sm">
+          Prefer to talk? Call{' '}
+          <a href="tel:0127703389" className="font-semibold text-white underline underline-offset-4">
+            012 770 3389
+          </a>
+          <span className="text-white/60"> · Mon–Fri 8am–5pm, Sat 8am–1pm</span>
+          {' · '}
+          <Link href="/shop" className="text-white/90 underline underline-offset-4 hover:text-white">
+            Browse all parts
+          </Link>
+        </p>
+      </motion.div>
+    </div>
+  )
+}
 
 export default function Hero() {
-  return (
-    <section className="relative hero-gradient text-primary-foreground overflow-hidden">
-      <div className="absolute inset-0 opacity-10">
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          }}
-        />
-      </div>
+  const reduceMotion = useReducedMotion()
+  const containerRef = useRef<HTMLElement>(null)
+  const [headerHeight, setHeaderHeight] = useState(128)
 
-      <div className="container mx-auto px-4 py-16 md:py-24 lg:py-32 relative z-10">
-        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          <div className="max-w-2xl">
-            <motion.span
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="inline-block px-4 py-2 bg-brand/20 text-brand rounded-full text-sm font-medium mb-6"
-            >
-              Premium Quality Parts
-            </motion.span>
-            <motion.h1
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className="font-display text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl tracking-tight mb-6 leading-tight"
-              style={{ fontWeight: 1000 }}
-            >
-              <span className="text-white block">BUY WITH</span>
-              <span className="text-brand block mt-1 sm:mt-2">CONFIDENCE</span>
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="text-lg md:text-xl mb-8 max-w-xl"
-            >
-              After market parts for{' '}
-              <span className="font-bold text-white">
-                Isuzu / Nissan / Fuso / Hino / FAW / Toyota.
-              </span>{' '}
-              <span className="text-white">
-                From heavy-duty brakes to reliable batteries, we provide
-                everything your truck needs to stay powerful, efficient, and
-                road-ready.
-              </span>
-            </motion.p>
+  // The site header is sticky, so the pinned stage sits directly below it.
+  useEffect(() => {
+    const header = document.querySelector('header')
+    if (!header) return
+    const measure = () => setHeaderHeight(header.getBoundingClientRect().height)
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(header)
+    return () => observer.disconnect()
+  }, [])
+
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ['start start', 'end end'],
+  })
+  const smoothScroll = useSpring(scrollYProgress, { stiffness: 90, damping: 24, mass: 0.5 })
+  const staticProgress = useMotionValue(0.7)
+  const progress: MotionValue<number> = reduceMotion ? staticProgress : smoothScroll
+
+  // The truck drives in by itself on load; scrolling then loads and sends it off.
+  const entry = useMotionValue(0)
+  useEffect(() => {
+    if (reduceMotion) {
+      entry.set(1)
+      return
+    }
+    // Linear in time; the scene applies its own easing to position and pitch.
+    const controls = animate(entry, 1, { duration: 2.2, ease: 'linear', delay: 0.15 })
+    return () => controls.stop()
+  }, [entry, reduceMotion])
+
+  // Once scrolling starts the copy steps aside and the truck takes the stage.
+  // It comes straight back when you scroll to the top.
+  const contentOpacity = useTransform(progress, [0.005, 0.055], [1, 0])
+  const contentY = useTransform(progress, [0.005, 0.055], [0, -28])
+  const contentPointer = useTransform(progress, (p) => (p > 0.04 ? 'none' : 'auto'))
+
+  return (
+    <section
+      ref={containerRef}
+      className="relative text-primary-foreground"
+      style={reduceMotion ? undefined : { height: '230svh' }}
+    >
+      <div
+        className="sticky flex flex-col overflow-hidden bg-[#141820]"
+        style={
+          reduceMotion
+            ? { top: 0 }
+            : { top: headerHeight, height: `calc(100svh - ${headerHeight}px)` }
+        }
+      >
+        <SceneBackdrop progress={progress} />
+
+        {reduceMotion ? (
+          <>
+            <div className="container mx-auto px-4 pt-6 lg:pt-12 relative z-10">
+              <HeroCopy />
+            </div>
+            <div className="relative h-72 mt-6">
+              <LoadingScene progress={progress} entry={entry} />
+            </div>
+          </>
+        ) : (
+          <div className="relative flex-1">
+            {/* The truck owns the whole stage; the copy sits on top of it */}
+            <LoadingScene progress={progress} entry={entry} />
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-              className="flex flex-col sm:flex-row gap-4"
+              className="container mx-auto px-4 pt-5 lg:pt-10 relative z-10"
+              style={{ opacity: contentOpacity, y: contentY, pointerEvents: contentPointer }}
             >
-              <Link
-                href="/shop"
-                className="btn-accent inline-flex items-center justify-center gap-2 text-lg text-white"
-              >
-                Shop Now
-                <ArrowRight className="w-5 h-5" />
-              </Link>
-              <Link
-                href="/about"
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg border-2 border-white/30 text-white font-semibold hover:bg-white/10 transition-colors"
-              >
-                Learn More
-              </Link>
+              <HeroCopy />
             </motion.div>
           </div>
+        )}
 
-          <motion.div
-            initial={{ opacity: 0, x: 50 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="relative hidden lg:block"
-          >
-            <div className="relative w-full aspect-square max-w-lg mx-auto">
-              <div className="absolute inset-0 bg-linear-to-br from-brand/20 to-transparent rounded-3xl" />
-              <Image
-                src="/images/spares.webp"
-                alt="Truck spare parts and automotive components"
-                fill
-                className="object-contain"
-                priority
-              />
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.8 }}
-                className="absolute -bottom-6 -left-6 bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/20"
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-lg bg-brand/30 flex items-center justify-center">
-                    <Shield className="w-6 h-6 text-brand" />
-                  </div>
-                  <div>
-                    <p className="text-white font-semibold">Quality Parts</p>
-                    <p className="text-white/70 text-sm">Certified parts</p>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-          </motion.div>
-        </div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 0.6 }}
-          className="mt-16 grid grid-cols-1 sm:grid-cols-3 gap-6"
-        >
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.7 }}
-            className="flex items-center gap-4 p-4 bg-gray-50/5 rounded-xl"
-          >
-            <div className="w-12 h-12 rounded-lg bg-accent/20 flex items-center justify-center">
-              <Truck className="w-6 h-6 text-accent" />
-            </div>
-            <div>
-              <h4 className="font-semibold text-white">Nationwide Shipping</h4>
-              <p className="text-sm text-white/70">
-                We deliver across South Africa
-              </p>
-            </div>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.8 }}
-            className="flex items-center gap-4 p-4 bg-gray-50/5 rounded-xl"
-          >
-            <div className="w-12 h-12 rounded-lg bg-accent/20 flex items-center justify-center">
-              <Shield className="w-6 h-6 text-accent" />
-            </div>
-            <div>
-              <h4 className="font-semibold text-white">Quality Guarantee</h4>
-              <p className="text-sm text-white/70">specifications</p>
-            </div>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.9 }}
-            className="flex items-center gap-4 p-4 bg-gray-50/5 rounded-xl"
-          >
-            <div className="w-12 h-12 rounded-lg bg-accent/20 flex items-center justify-center">
-              <HeadphonesIcon className="w-6 h-6 text-accent" />
-            </div>
-            <div>
-              <h4 className="font-semibold text-white">Expert Support</h4>
-              <p className="text-sm text-white/70">24/7 assistance</p>
-            </div>
-          </motion.div>
-        </motion.div>
+        {!reduceMotion && <LoadingSteps progress={progress} />}
       </div>
     </section>
   )
