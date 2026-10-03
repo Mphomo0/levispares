@@ -1,9 +1,10 @@
 import { v, ConvexError } from "convex/values";
-import { query, mutation, type QueryCtx } from "./_generated/server";
+import { query, mutation, internalMutation, type QueryCtx } from "./_generated/server";
 import { paginationOptsValidator } from "convex/server";
 import type { Doc, Id } from "./_generated/dataModel";
 
 import { requireAdmin } from "./lib/auth";
+import { ensureProductSlug, insertProduct } from "./lib/productSlug";
 
 /** A category plus all of its active subcategories, at any depth. */
 async function categoryWithDescendants(ctx: QueryCtx, rootId: Id<"categories">) {
@@ -726,7 +727,7 @@ export const addWithRelations = mutation({
       .unique();
     if (existingSku) {
       const altSku = `${sku}-${Date.now().toString(36).toUpperCase()}`;
-      return await ctx.db.insert("products", {
+      return await insertProduct(ctx, {
         brandId: args.brandId,
         modelId: args.modelId,
         variantId: args.variantId,
@@ -745,7 +746,7 @@ export const addWithRelations = mutation({
       });
     }
 
-    return await ctx.db.insert("products", {
+    return await insertProduct(ctx, {
       brandId: args.brandId,
       modelId: args.modelId,
       variantId: args.variantId,
@@ -895,7 +896,7 @@ export const addSimple = mutation({
       .unique();
     if (existingSku) {
       const altSku = `${sku}-${Date.now().toString(36).toUpperCase()}`;
-      return await ctx.db.insert("products", {
+      return await insertProduct(ctx, {
         brandId: brand!._id,
         modelId: model!._id,
         variantId,
@@ -913,7 +914,7 @@ export const addSimple = mutation({
       });
     }
 
-    return await ctx.db.insert("products", {
+    return await insertProduct(ctx, {
       brandId: brand!._id,
       modelId: model!._id,
       variantId,
@@ -1069,7 +1070,7 @@ export const add = mutation({
       throw new ConvexError("Product with this SKU already exists");
     }
 
-    return await ctx.db.insert("products", {
+    return await insertProduct(ctx, {
       ...args,
       active: true,
       stockQty: args.stockQty ?? 0,
@@ -1208,5 +1209,39 @@ export const bulkUpdateStock = mutation({
         stockQty: Math.max(0, update.stockQty),
       });
     }
+  },
+});
+
+/**
+ * Resolves a product link, which may be the readable slug or (for older
+ * links) the database id. Returns null for unknown or deactivated products.
+ */
+export const getByRef = query({
+  args: { ref: v.string() },
+  handler: async (ctx, { ref }) => {
+    const id = ctx.db.normalizeId("products", ref);
+    const product = id
+      ? await ctx.db.get(id)
+      : await ctx.db
+          .query("products")
+          .withIndex("by_slug", (q) => q.eq("slug", ref))
+          .first();
+    if (!product || product.active === false) return null;
+    return { _id: product._id, slug: product.slug ?? null, matchedBy: id ? ("id" as const) : ("slug" as const) };
+  },
+});
+
+/** Ops-only: give every existing product a slug. `npx convex run products:backfillSlugs` */
+export const backfillSlugs = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const products = await ctx.db.query("products").collect();
+    let updated = 0;
+    for (const product of products) {
+      if (product.slug) continue;
+      await ensureProductSlug(ctx, product._id);
+      updated++;
+    }
+    return { updated, total: products.length };
   },
 });

@@ -1,16 +1,15 @@
 import type { Metadata } from 'next'
-import { ConvexHttpClient } from 'convex/browser'
-import { api } from '@/convex/_generated/api'
-import type { Id } from '@/convex/_generated/dataModel'
+import { categoryPath, productPath } from '@/lib/shopUrl'
+import JsonLd from '@/components/seo/JsonLd'
+import { breadcrumbJsonLd, tidyName } from '@/lib/seo'
+import { getProductDetails, resolveProduct } from './resolve'
 import { SITE_NAME, SITE_URL } from '@/lib/site'
 
-async function getProduct(id: string) {
-  try {
-    const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!)
-    return await convex.query(api.products.getWithFullHierarchy, { id: id as Id<'products'> })
-  } catch {
-    return null
-  }
+async function getProduct(ref: string) {
+  const resolved = await resolveProduct(decodeURIComponent(ref))
+  if (!resolved) return null
+  const product = await getProductDetails(resolved._id)
+  return product ? { ...product, path: productPath(product) } : null
 }
 
 export async function generateMetadata({
@@ -29,12 +28,12 @@ export async function generateMetadata({
   return {
     title: product.name,
     description,
-    alternates: { canonical: `/products/${id}` },
+    alternates: { canonical: product.path },
     openGraph: {
       type: 'website',
       title: product.name,
       description,
-      url: `${SITE_URL}/products/${id}`,
+      url: `${SITE_URL}${product.path}`,
       images: product.image ? [{ url: product.image }] : undefined,
     },
   }
@@ -61,7 +60,7 @@ export default async function ProductLayout({
     brand: product.brand ? { '@type': 'Brand', name: product.brand.name } : undefined,
     offers: {
       '@type': 'Offer',
-      url: `${SITE_URL}/products/${id}`,
+      url: `${SITE_URL}${product.path}`,
       priceCurrency: 'ZAR',
       price: product.price.toFixed(2),
       availability:
@@ -71,14 +70,19 @@ export default async function ProductLayout({
     },
   }
 
+  const breadcrumb =
+    product &&
+    breadcrumbJsonLd([
+      { name: 'Home', href: '/' },
+      { name: 'Shop', href: '/shop' },
+      ...(product.category ? [{ name: tidyName(product.category.name), href: categoryPath(product.category.slug) }] : []),
+      { name: product.name, href: product.path },
+    ])
+
   return (
     <>
-      {jsonLd && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
-        />
-      )}
+      {jsonLd && <JsonLd data={jsonLd} />}
+      {breadcrumb && <JsonLd data={breadcrumb} />}
       {children}
     </>
   )

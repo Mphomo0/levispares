@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { CartItem } from '@/lib/CartContext'
 import SmartImage from '@/components/ui/SmartImage'
 import { formatPrice } from '@/lib/format'
+import { productPath } from '@/lib/shopUrl'
 
 interface CartItemsProps {
   items: CartItem[]
@@ -22,7 +23,7 @@ const CartItems = ({ items, removeFromCart, updateQuantity }: CartItemsProps) =>
           className="bg-card rounded-xl p-4 md:p-6 card-shadow flex flex-col sm:flex-row gap-4"
         >
           <Link
-            href={`/products/${item._id}`}
+            href={productPath(item)}
             className="relative w-full sm:w-32 h-32 bg-secondary rounded-lg overflow-hidden shrink-0"
           >
             <SmartImage
@@ -41,7 +42,7 @@ const CartItems = ({ items, removeFromCart, updateQuantity }: CartItemsProps) =>
                   {item.category}
                 </span>
                 <Link
-                  href={`/products/${item._id}`}
+                  href={productPath(item)}
                   className="block font-semibold text-foreground text-lg hover:text-accent transition-colors"
                 >
                   {item.name}

@@ -62,6 +62,8 @@ export default defineSchema({
     categoryId: v.id("categories"),
     sku: v.string(),
     name: v.string(),
+    /** Readable URL key, e.g. "isuzu-npr-front-bumper". Set once, then stable. */
+    slug: v.optional(v.string()),
     partNumber: v.optional(v.string()),
     description: v.optional(v.string()),
     price: v.number(),
@@ -80,6 +82,7 @@ export default defineSchema({
     .index("by_variantId", ["variantId"])
     .index("by_categoryId", ["categoryId"])
     .index("by_sku", ["sku"])
+    .index("by_slug", ["slug"])
     .index("by_active", ["active"])
     .searchIndex("search_name_description", {
       searchField: "name",

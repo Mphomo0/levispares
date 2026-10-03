@@ -1,13 +1,16 @@
 'use client'
 
 import { useState, useCallback, useMemo } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { ChevronDown, SlidersHorizontal, X, Check } from 'lucide-react'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { motion, AnimatePresence } from 'motion/react'
 import { Slider } from '@/components/ui/slider'
-import { formatPrice } from '@/lib/format'
+import { shopUrl } from '@/lib/shopUrl'
+import { useShopFilters } from './useShopFilters'
+import { tidyName } from '@/lib/seo'
 
 interface Filters {
   category: string
@@ -21,17 +24,18 @@ interface Filters {
 
 export default function FilterSidebar() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  
-  const [filters, setFilters] = useState<Filters>(() => ({
-    category: searchParams.get('category') || '',
-    brand: searchParams.get('brand') || '',
-    model: searchParams.get('model') || '',
-    variant: searchParams.get('variant') || '',
-    minPrice: searchParams.get('minPrice') || '',
-    maxPrice: searchParams.get('maxPrice') || '',
-    sort: searchParams.get('sort') || 'newest',
-  }))
+  const urlFilters = useShopFilters()
+  const fromUrl = (f: typeof urlFilters): Filters => ({
+    category: f.category,
+    brand: f.brand,
+    model: f.model,
+    variant: f.variant,
+    minPrice: f.minPrice,
+    maxPrice: f.maxPrice,
+    sort: f.sort,
+  })
+
+  const [filters, setFilters] = useState<Filters>(() => fromUrl(urlFilters))
 
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     category: true,
@@ -123,36 +127,22 @@ export default function FilterSidebar() {
 
   // Keep filters in sync with the URL. Adjusting state during render (rather
   // than in an effect) avoids the extra cascading render an effect would cause.
-  const [prevSearchParams, setPrevSearchParams] = useState(searchParams)
-  if (searchParams !== prevSearchParams) {
-    setPrevSearchParams(searchParams)
-    setFilters({
-      category: searchParams.get('category') || '',
-      brand: searchParams.get('brand') || '',
-      model: searchParams.get('model') || '',
-      variant: searchParams.get('variant') || '',
-      minPrice: searchParams.get('minPrice') || '',
-      maxPrice: searchParams.get('maxPrice') || '',
-      sort: searchParams.get('sort') || 'newest',
-    })
+  const [prevUrlFilters, setPrevUrlFilters] = useState(urlFilters)
+  if (urlFilters !== prevUrlFilters) {
+    setPrevUrlFilters(urlFilters)
+    setFilters(fromUrl(urlFilters))
   }
 
+  const query = urlFilters.q
+
   const updateURL = useCallback((newFilters: Filters) => {
-    const params = new URLSearchParams()
-    if (newFilters.category) params.set('category', newFilters.category)
-    if (newFilters.brand) params.set('brand', newFilters.brand)
-    if (newFilters.model) params.set('model', newFilters.model)
-    if (newFilters.variant) params.set('variant', newFilters.variant)
-    if (newFilters.minPrice) params.set('minPrice', newFilters.minPrice)
-    if (newFilters.maxPrice) params.set('maxPrice', newFilters.maxPrice)
-    if (newFilters.sort && newFilters.sort !== 'newest') params.set('sort', newFilters.sort)
-    
-    const query = searchParams.get('q')
-    if (query) params.set('q', query)
-    
-    const newUrl = `/shop${params.toString() ? `?${params.toString()}` : ''}`
-    router.replace(newUrl, { scroll: false })
-  }, [router, searchParams])
+    router.replace(shopUrl({ ...newFilters, q: query }), { scroll: false })
+  }, [router, query])
+
+  // Link targets for a category or brand option (selecting one also clears
+  // the page number; changing brand clears model and variant).
+  const categoryHref = (slug: string) => shopUrl({ ...filters, category: slug, q: query })
+  const brandHref = (slug: string) => shopUrl({ ...filters, brand: slug, model: '', variant: '', q: query })
 
   const handleFilterChange = useCallback((updates: Partial<Filters>, immediate = false) => {
     // When parent filter changes, reset children
@@ -199,8 +189,7 @@ export default function FilterSidebar() {
       maxPrice: '',
       sort: 'newest',
     })
-    const query = searchParams.get('q')
-    router.replace(`/shop${query ? `?q=${query}` : ''}`, { scroll: false })
+    router.replace(shopUrl({ q: query }), { scroll: false })
   }
 
   const hasActiveFilters = filters.category || filters.brand || filters.model || filters.variant || filters.minPrice || filters.maxPrice
@@ -228,7 +217,7 @@ export default function FilterSidebar() {
             )}
             {filters.category && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-brand/10 text-brand text-xs font-medium rounded-md">
-                {categoryOptions.find(({ category }) => category.slug === filters.category)?.category.name}
+                {tidyName(categoryOptions.find(({ category }) => category.slug === filters.category)?.category.name ?? '')}
                 <button aria-label="Clear category filter" onClick={() => handleFilterChange({ category: '' })} className="inline-flex min-h-6 min-w-6 items-center justify-center hover:text-brand/70">
                   <X className="w-3 h-3" />
                 </button>
@@ -262,9 +251,16 @@ export default function FilterSidebar() {
                 {categoryOptions.map(({ category: cat, depth }) => {
                   const isActive = filters.category === cat.slug
                   return (
-                    <button
+                    <Link
                       key={cat._id}
-                      onClick={() => handleFilterChange({ category: isActive ? '' : cat.slug })}
+                      href={categoryHref(isActive ? '' : cat.slug)}
+                      replace
+                      scroll={false}
+                      aria-current={isActive ? 'page' : undefined}
+                      onClick={() => {
+                        setFilters({ ...filters, category: isActive ? '' : cat.slug })
+                        setMobileFiltersOpen(false)
+                      }}
                       style={{ paddingLeft: `${0.5 + depth * 1.5}rem` }}
                       className={`w-full flex items-center gap-3 pr-2 py-1.5 rounded-md cursor-pointer transition-colors text-left ${
                         isActive ? 'bg-brand/5' : 'hover:bg-slate-50'
@@ -276,9 +272,9 @@ export default function FilterSidebar() {
                         {isActive && <Check className="w-2.5 h-2.5 text-white" />}
                       </div>
                       <span className={`text-sm flex-1 truncate ${isActive ? 'font-medium text-slate-900' : 'text-slate-600'}`}>
-                        {cat.name}
+                        {tidyName(cat.name)}
                       </span>
-                    </button>
+                    </Link>
                   )
                 })}
               </div>
@@ -305,9 +301,16 @@ export default function FilterSidebar() {
             {brands?.map((brand) => {
               const isActive = filters.brand === brand.slug
               return (
-                <button
+                <Link
                   key={brand._id}
-                  onClick={() => handleFilterChange({ brand: isActive ? '' : brand.slug })}
+                  href={brandHref(isActive ? '' : brand.slug)}
+                  replace
+                  scroll={false}
+                  aria-current={isActive ? 'page' : undefined}
+                  onClick={() => {
+                    setFilters({ ...filters, brand: isActive ? '' : brand.slug, model: '', variant: '' })
+                    setMobileFiltersOpen(false)
+                  }}
                   className={`w-full flex items-center gap-3 px-2 py-1.5 rounded-md cursor-pointer transition-colors text-left ${
                     isActive ? 'bg-brand/5' : 'hover:bg-slate-50'
                   }`}
@@ -320,7 +323,7 @@ export default function FilterSidebar() {
                   <span className={`text-sm flex-1 truncate ${isActive ? 'font-medium text-slate-900' : 'text-slate-600'}`}>
                     {brand.name}
                   </span>
-                </button>
+                </Link>
               )
             })}
           </div>

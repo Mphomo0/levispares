@@ -11,6 +11,7 @@ import Link from 'next/link'
 import { SignInButton, SignUpButton } from '@clerk/nextjs'
 import SmartImage from '@/components/ui/SmartImage'
 import { formatPrice } from '@/lib/format'
+import { productPath } from '@/lib/shopUrl'
 
 const OrderSummary = ({ totalPrice, taxEnabled, taxRate, shippingRate, onCheckout }: { totalPrice: number; taxEnabled: boolean; taxRate: number; shippingRate: number; onCheckout: () => void }) => {
   const [termsAccepted, setTermsAccepted] = useState(false)
@@ -209,7 +210,7 @@ const handleCheckout = () => {
                 className="bg-card rounded-xl p-4 md:p-6 card-shadow flex flex-col sm:flex-row gap-4"
               >
                 <Link
-                  href={`/products/${item._id}`}
+                  href={productPath(item)}
                   className="relative w-full sm:w-32 h-32 bg-secondary rounded-lg overflow-hidden shrink-0"
                 >
                   <SmartImage
@@ -228,7 +229,7 @@ const handleCheckout = () => {
                         {item.category}
                       </span>
                       <Link
-                        href={`/products/${item._id}`}
+                        href={productPath(item)}
                         className="block font-semibold text-foreground text-lg hover:text-accent transition-colors"
                       >
                         {item.name}

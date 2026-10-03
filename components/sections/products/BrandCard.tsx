@@ -4,6 +4,7 @@ import { ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import Image from 'next/image'
 import imagekitLoader from '@/lib/imagekitLoader'
+import { brandPath } from '@/lib/shopUrl'
 
 interface BrandCardProps {
   brand: {
@@ -19,7 +20,7 @@ interface BrandCardProps {
 export default function BrandCard({ brand }: BrandCardProps) {
   return (
     <Link
-      href={`/shop?brand=${brand.slug}`}
+      href={brandPath(brand.slug)}
       className="group relative w-32 sm:w-40 p-4 flex flex-col items-center justify-center bg-white rounded-xl shadow-sm hover:shadow-md transition duration-300"
     >
       <div className="w-20 h-20 relative flex items-center justify-center">

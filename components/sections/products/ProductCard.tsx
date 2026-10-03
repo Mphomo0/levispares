@@ -7,6 +7,7 @@ import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import SmartImage from '@/components/ui/SmartImage'
 import { formatPrice } from '@/lib/format'
+import { productPath } from '@/lib/shopUrl'
 
 interface ProductCardProps {
   product: Product
@@ -34,7 +35,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       animate={{ opacity: 1, y: 0 }}
       className="product-card group relative bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-shadow duration-300 h-full w-full"
     >
-      <Link href={`/products/${product._id}`} className="block">
+      <Link href={productPath(product)} className="block">
         <div className="relative aspect-square overflow-hidden bg-slate-50 p-6 flex items-center justify-center">
           <SmartImage
             src={product.image || '/images/spares.webp'}
@@ -79,7 +80,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           </span>
         </div>
 
-        <Link href={`/products/${product._id}`} className="block group/title">
+        <Link href={productPath(product)} className="block group/title">
           <h3 className="font-display font-bold text-slate-900 text-lg leading-tight line-clamp-2 group-hover/title:text-accent transition-colors">
             {product.name}
           </h3>

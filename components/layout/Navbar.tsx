@@ -28,6 +28,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { formatPrice } from '@/lib/format'
+import { brandPath, shopUrl } from '@/lib/shopUrl'
 
 export default function Navbar() {
   const { totalItems, totalPrice } = useCart()
@@ -77,7 +78,7 @@ const brands = useQuery(api.brands.list, {})
   const handleSearch = (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (searchQuery.trim()) {
-      router.push(`/shop?q=${encodeURIComponent(searchQuery)}`)
+      router.push(shopUrl({ q: searchQuery.trim() }))
     }
   }
 
@@ -317,7 +318,7 @@ const brands = useQuery(api.brands.list, {})
                       brands.map((brand) => (
                         <Link
                           key={brand._id}
-                          href={`/shop?brand=${brand.slug}`}
+                          href={brandPath(brand.slug)}
                           className="block px-4 py-2 text-sm text-slate-200 hover:bg-brand hover:text-white transition-colors"
                         >
                           {brand.name}
@@ -335,7 +336,7 @@ const brands = useQuery(api.brands.list, {})
               {brands && brands.slice(0, 5).map((brand) => (
                 <Link
                   key={brand._id}
-                  href={`/shop?brand=${brand.slug}`}
+                  href={brandPath(brand.slug)}
                   className="text-sm font-medium text-slate-300 hover:text-brand transition-colors"
                 >
                   {brand.name}

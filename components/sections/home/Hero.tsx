@@ -19,6 +19,7 @@ import {
   type MotionValue,
 } from 'motion/react'
 import LoadingScene, { LoadingSteps, SceneBackdrop } from './LoadingScene'
+import { shopUrl } from '@/lib/shopUrl'
 
 // One easing curve for all hero motion: quick start, long gentle settle.
 const EASE = [0.22, 1, 0.36, 1] as const
@@ -40,10 +41,8 @@ function VehicleFinder() {
     e.preventDefault()
     const brand = brands?.find((b) => b._id === brandId)
     if (!brand) return
-    const params = new URLSearchParams({ brand: brand.slug })
     const model = models?.find((m) => m._id === modelId)
-    if (model) params.set('model', model.slug)
-    router.push(`/shop?${params.toString()}`)
+    router.push(shopUrl({ brand: brand.slug, model: model?.slug }))
   }
 
   return (
@@ -127,7 +126,7 @@ function HeroCopy() {
             >
               Truck spares,
             </motion.span>
-          </span>
+          </span>{' '}
           <span className="block overflow-hidden pb-[0.08em]">
             <motion.span
               className="block text-brand"

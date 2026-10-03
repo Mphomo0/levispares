@@ -6,6 +6,8 @@ import Image from 'next/image'
 import imagekitLoader from '@/lib/imagekitLoader'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import { categoryPath } from '@/lib/shopUrl'
+import { tidyName } from '@/lib/seo'
 
 export default function Footer() {
   const categories = useQuery(api.categories.listTopLevel)
@@ -123,10 +125,10 @@ export default function Footer() {
               {(categories ?? []).slice(0, 6).map((cat) => (
                 <li key={cat._id}>
                   <Link
-                    href={`/shop?category=${encodeURIComponent(cat.slug)}`}
+                    href={categoryPath(cat.slug)}
                     className="text-white/70 hover:text-accent transition-colors"
                   >
-                    {cat.name}
+                    {tidyName(cat.name)}
                   </Link>
                 </li>
               ))}
