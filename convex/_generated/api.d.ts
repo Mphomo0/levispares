@@ -15,6 +15,7 @@ import type * as categories from "../categories.js";
 import type * as files from "../files.js";
 import type * as imageActions from "../imageActions.js";
 import type * as lib_auth from "../lib/auth.js";
+import type * as lib_names from "../lib/names.js";
 import type * as lib_productSlug from "../lib/productSlug.js";
 import type * as models from "../models.js";
 import type * as order_items from "../order_items.js";
@@ -42,6 +43,7 @@ declare const fullApi: ApiFromModules<{
   files: typeof files;
   imageActions: typeof imageActions;
   "lib/auth": typeof lib_auth;
+  "lib/names": typeof lib_names;
   "lib/productSlug": typeof lib_productSlug;
   models: typeof models;
   order_items: typeof order_items;

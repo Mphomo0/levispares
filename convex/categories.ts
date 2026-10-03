@@ -3,6 +3,7 @@ import { query, mutation, internalMutation } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 
 import { requireAdmin } from "./lib/auth";
+import { tidyProductName } from "./lib/names";
 
 /**
  * Ops-only bulk rename, run with `npx convex run categories:renameMany`.
@@ -18,6 +19,39 @@ export const renameMany = internalMutation({
       if (!(await ctx.db.get(id))) throw new ConvexError(`Category ${id} not found`);
       await ctx.db.patch(id, { name: trimmed });
     }
+  },
+});
+
+/**
+ * Ops-only: fix category name casing ("CORNER PANEL" -> "Corner Panel"),
+ * and descriptions written entirely in capitals. Slugs are not changed, so
+ * links keep working. Preview with dryRun first:
+ *   npx convex run --prod categories:tidyNames '{"dryRun": true}'
+ *   npx convex run --prod categories:tidyNames '{"dryRun": false}'
+ */
+export const tidyNames = internalMutation({
+  args: { dryRun: v.boolean() },
+  handler: async (ctx, { dryRun }) => {
+    const categories = await ctx.db.query("categories").collect();
+    const changes: { field: "name" | "description"; from: string; to: string }[] = [];
+    for (const category of categories) {
+      const patch: { name?: string; description?: string } = {};
+      const name = tidyProductName(category.name);
+      if (name !== category.name) {
+        patch.name = name;
+        changes.push({ field: "name", from: category.name, to: name });
+      }
+      const description = category.description?.trim();
+      if (description && description === description.toUpperCase() && /[A-Z]{3,}/.test(description)) {
+        const tidied = tidyProductName(description);
+        if (tidied !== category.description) {
+          patch.description = tidied;
+          changes.push({ field: "description", from: category.description!, to: tidied });
+        }
+      }
+      if (!dryRun && Object.keys(patch).length) await ctx.db.patch(category._id, patch);
+    }
+    return { dryRun, changed: changes.length, total: categories.length, changes };
   },
 });
 
