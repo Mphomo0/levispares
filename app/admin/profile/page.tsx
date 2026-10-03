@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { isPaidOrder } from '@/lib/orders'
+import { formatPrice } from '@/lib/format'
 
 export default function AdminProfilePage() {
   const { user, isLoaded } = useUser()
@@ -31,7 +32,7 @@ export default function AdminProfilePage() {
   if (!isLoaded || convexUser === undefined) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-pulse text-muted-foreground">Loading profile...</div>
+        <div className="animate-pulse text-muted-foreground">Loading profile…</div>
       </div>
     )
   }
@@ -146,19 +147,19 @@ export default function AdminProfilePage() {
           <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardContent className="p-3 sm:p-6">
-                <div className="text-xl sm:text-2xl font-bold">{userOrders?.length ?? '...'}</div>
+                <div className="text-xl sm:text-2xl font-bold">{userOrders?.length ?? '…'}</div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider">Total Orders</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-3 sm:p-6">
-                <div className="text-xl sm:text-2xl font-bold">R{totalSpent.toFixed(2)}</div>
+                <div className="text-xl sm:text-2xl font-bold">{formatPrice(totalSpent)}</div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider">Total Spent</p>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-3 sm:p-6">
-                <div className="text-xl sm:text-2xl font-bold">{userAddresses?.length ?? '...'}</div>
+                <div className="text-xl sm:text-2xl font-bold">{userAddresses?.length ?? '…'}</div>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider">Addresses</p>
               </CardContent>
             </Card>

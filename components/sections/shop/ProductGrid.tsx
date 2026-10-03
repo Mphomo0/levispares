@@ -93,7 +93,7 @@ export default function ProductGrid({ products, selectedCategoryName, isLoading,
             {isLoadingMore ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Loading more...
+                Loading more…
               </>
             ) : (
               'Load More Products'

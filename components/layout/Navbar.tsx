@@ -27,6 +27,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import { formatPrice } from '@/lib/format'
 
 export default function Navbar() {
   const { totalItems, totalPrice } = useCart()
@@ -166,11 +167,11 @@ const brands = useQuery(api.brands.list, {})
             <div className="hidden md:flex flex-1 max-w-xl mx-6">
               <form onSubmit={handleSearch} className="relative w-full">
                 <div className="flex items-center bg-slate-800 rounded-lg border-2 border-transparent focus-within:border-brand focus-within:bg-slate-800 transition">
-                  <input
+                  <input name="q" autoComplete="off" enterKeyHint="search"
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search for parts, brands, vehicles..."
+                    placeholder="Search for parts, brands, vehicles…"
                     className="flex-1 px-4 py-2.5 bg-transparent outline-none text-sm placeholder:text-slate-500 text-white"
                   />
                   {searchQuery && (
@@ -270,7 +271,7 @@ const brands = useQuery(api.brands.list, {})
                   <div className="hidden lg:block text-sm">
                     <p className="text-xs text-slate-400 leading-none">Cart</p>
                     <p className="font-semibold text-white">
-                      R{totalPrice.toFixed(2)}
+                      {formatPrice(totalPrice)}
                     </p>
                   </div>
                 </div>
@@ -350,11 +351,11 @@ const brands = useQuery(api.brands.list, {})
       <div className="md:hidden bg-white border-b border-slate-200">
         <div className="container mx-auto px-4 py-3">
           <form onSubmit={handleSearch} className="relative flex items-center">
-            <input
+            <input name="q" autoComplete="off" enterKeyHint="search"
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search parts..."
+              placeholder="Search parts…"
               className="w-full pl-4 pr-12 py-2.5 rounded-lg bg-slate-100 border-2 border-transparent focus:border-brand focus:bg-white outline-none text-sm transition"
             />
             <button
@@ -452,7 +453,7 @@ const brands = useQuery(api.brands.list, {})
                     </div>
                   </div>
                   <span className="font-bold text-white">
-                    R{totalPrice.toFixed(2)}
+                    {formatPrice(totalPrice)}
                   </span>
                 </Link>
 

@@ -68,7 +68,7 @@ export default function SettingsPage() {
                 <p className="text-sm font-medium text-red-600 dark:text-red-400">
                   Type <span className="font-mono font-bold">DELETE</span> to confirm:
                 </p>
-                <input
+                <input name="confirmation" autoComplete="off" spellCheck={false}
                   type="text"
                   value={confirmText}
                   onChange={(e) => setConfirmText(e.target.value)}
@@ -94,7 +94,7 @@ export default function SettingsPage() {
                     onClick={handleDeleteAccount}
                     className="bg-red-600 hover:bg-red-700 text-white"
                   >
-                    {deleting ? 'Deleting...' : 'Permanently Delete'}
+                    {deleting ? 'Deleting…' : 'Permanently Delete'}
                   </Button>
                 </div>
               </div>

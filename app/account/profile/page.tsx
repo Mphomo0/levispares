@@ -119,7 +119,7 @@ export default function ProfilePage() {
                   onClick={() => fileInputRef.current?.click()}
                   disabled={uploadingPhoto}
                 >
-                  {uploadingPhoto ? 'Uploading...' : 'Change Photo'}
+                  {uploadingPhoto ? 'Uploading…' : 'Change Photo'}
                 </Button>
                 <p className="text-xs text-muted-foreground mt-1">JPG, PNG, GIF up to 10MB</p>
                 <input
@@ -188,7 +188,7 @@ export default function ProfilePage() {
               disabled={saving}
               className="bg-brand hover:bg-brand text-white font-semibold"
             >
-              {saving ? 'Saving...' : 'Save Changes'}
+              {saving ? 'Saving…' : 'Save Changes'}
             </Button>
           </CardContent>
         </Card>

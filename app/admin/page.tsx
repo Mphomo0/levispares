@@ -12,6 +12,7 @@ import Link from 'next/link'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { isPaidOrder } from '@/lib/orders'
+import { formatPrice } from '@/lib/format'
 
 export default function AdminDashboardPage() {
   const allOrders = useQuery(api.orders.listAll)
@@ -43,7 +44,7 @@ export default function AdminDashboardPage() {
   const stats = [
     {
       label: 'Total Revenue',
-      value: loading ? '—' : `R${totalRevenue.toLocaleString('en-ZA', { minimumFractionDigits: 2 })}`,
+      value: loading ? '—' : `${formatPrice(totalRevenue)}`,
       icon: (
         <svg aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -242,7 +243,7 @@ export default function AdminDashboardPage() {
                       </div>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="font-semibold text-sm">R{order.total.toLocaleString('en-ZA', { minimumFractionDigits: 2 })}</p>
+                      <p className="font-semibold text-sm">{formatPrice(order.total)}</p>
                       <span
                         className={`text-xs uppercase font-bold inline-flex items-center rounded-full px-2 py-0.5 ${
                           statusStyles[order.status] || 'bg-muted text-muted-foreground'
@@ -302,10 +303,10 @@ export default function AdminDashboardPage() {
                     </div>
                     <div className="text-right shrink-0">
                       <p className="font-semibold text-sm">
-                        R{((product.totalSold ?? 0) * product.price).toLocaleString('en-ZA', { minimumFractionDigits: 2 })}
+                        {formatPrice(((product.totalSold ?? 0) * product.price))}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        @ R{product.price.toFixed(2)}
+                        @ {formatPrice(product.price)}
                       </p>
                     </div>
                   </div>

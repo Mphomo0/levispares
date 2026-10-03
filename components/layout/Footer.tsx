@@ -171,7 +171,7 @@ export default function Footer() {
         <div className="mt-12 pt-8 border-t border-white/10">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-white/50 text-sm">
-              © {new Date().getFullYear()} Levi Truck Spares. All rights
+              © {new Date().getFullYear()} <span translate="no">Levi Truck Spares</span>. All rights
               reserved. Developed by{' '}
               <a
                 href="https://nostalgic-studio.co.za"

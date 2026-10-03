@@ -210,7 +210,7 @@ export default function AdminSettingsPage() {
               >
                 Years in Business
               </label>
-              <input
+              <input name="stats-years"
                 id="stats-years"
                 type="text"
                 value={statsYearsBusiness}
@@ -226,7 +226,7 @@ export default function AdminSettingsPage() {
               >
                 Parts in Stock
               </label>
-              <input
+              <input name="stats-parts"
                 id="stats-parts"
                 type="text"
                 value={statsPartsStock}
@@ -242,7 +242,7 @@ export default function AdminSettingsPage() {
               >
                 Happy Customers
               </label>
-              <input
+              <input name="stats-customers"
                 id="stats-customers"
                 type="text"
                 value={statsHappyCustomers}
@@ -258,7 +258,7 @@ export default function AdminSettingsPage() {
               >
                 Satisfaction Rate
               </label>
-              <input
+              <input name="stats-satisfaction"
                 id="stats-satisfaction"
                 type="text"
                 value={statsSatisfactionRate}
@@ -275,7 +275,7 @@ export default function AdminSettingsPage() {
               disabled={savingStats}
               className="bg-brand text-white hover:bg-brand"
             >
-              {savingStats ? 'Saving...' : 'Save Store Stats'}
+              {savingStats ? 'Saving…' : 'Save Store Stats'}
             </Button>
             {showSavedStatsMessage && (
               <span className="text-sm font-medium text-green-600 dark:text-green-500 animate-in fade-in duration-300">
@@ -346,7 +346,7 @@ export default function AdminSettingsPage() {
                 Tax Rate (%)
               </label>
               <div className="relative max-w-xs">
-                <input
+                <input name="tax-rate"
                   id="tax-rate"
                   type="number"
                   min="0.01"
@@ -374,7 +374,7 @@ export default function AdminSettingsPage() {
               disabled={savingTax}
               className="bg-brand text-white hover:bg-brand"
             >
-              {savingTax ? 'Saving...' : 'Save Tax Settings'}
+              {savingTax ? 'Saving…' : 'Save Tax Settings'}
             </Button>
             {showSavedMessage && (
               <span className="text-sm font-medium text-green-600 dark:text-green-500 animate-in fade-in duration-300">
@@ -422,7 +422,7 @@ export default function AdminSettingsPage() {
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
                   R
                 </span>
-                <input
+                <input name="shipping-rate"
                   id="shipping-rate"
                   type="number"
                   min="0"
@@ -446,7 +446,7 @@ export default function AdminSettingsPage() {
               disabled={savingShipping}
               className="bg-brand text-white hover:bg-brand"
             >
-              {savingShipping ? 'Saving...' : 'Save Shipping Settings'}
+              {savingShipping ? 'Saving…' : 'Save Shipping Settings'}
             </Button>
             {showSavedShippingMessage && (
               <span className="text-sm font-medium text-green-600 dark:text-green-500 animate-in fade-in duration-300">
@@ -495,7 +495,7 @@ export default function AdminSettingsPage() {
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
                 R
               </span>
-              <input
+              <input name="zar-per-usd"
                 id="zar-per-usd"
                 type="number"
                 min="0"
@@ -517,7 +517,7 @@ export default function AdminSettingsPage() {
             disabled={savingRate}
             className="bg-brand text-white hover:bg-brand"
           >
-            {savingRate ? 'Saving...' : 'Save Exchange Rate'}
+            {savingRate ? 'Saving…' : 'Save Exchange Rate'}
           </Button>
         </CardContent>
       </Card>
@@ -570,7 +570,7 @@ export default function AdminSettingsPage() {
                   Type <span className="font-mono font-bold">RESET</span> to
                   confirm:
                 </p>
-                <input
+                <input name="confirmation" autoComplete="off" spellCheck={false}
                   type="text"
                   value={confirmText}
                   onChange={(e) => setConfirmText(e.target.value)}
@@ -596,7 +596,7 @@ export default function AdminSettingsPage() {
                     onClick={handleReset}
                     className="bg-red-600 hover:bg-red-700 text-white"
                   >
-                    {resetting ? 'Resetting...' : 'Permanently Reset'}
+                    {resetting ? 'Resetting…' : 'Permanently Reset'}
                   </Button>
                 </div>
               </div>

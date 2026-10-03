@@ -15,7 +15,6 @@ import {
   Heart, 
   ChevronRight, 
   Star, 
-  ShieldCheck, 
   Truck, 
   RotateCcw,
   Minus,
@@ -30,6 +29,7 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 import ProductCard from '@/components/sections/products/ProductCard'
 import { getErrorMessage } from '@/lib/errors'
+import { formatPrice } from '@/lib/format'
 
 export default function ProductPage() {
   const params = useParams()
@@ -64,7 +64,7 @@ export default function ProductPage() {
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="flex flex-col items-center gap-4" role="status">
           <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin" />
-          <p className="text-slate-500 font-medium font-display animate-pulse">Loading spare part details...</p>
+          <p className="text-slate-500 font-medium font-display animate-pulse">Loading spare part details…</p>
         </div>
       </div>
     )
@@ -96,6 +96,23 @@ export default function ProductPage() {
     stockQty: product.stockQty ?? 0,
   }
   const outOfStock = (product.stockQty ?? 0) <= 0
+
+  const handleShare = async () => {
+    const url = window.location.href
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: product?.name, url })
+      } else {
+        await navigator.clipboard.writeText(url)
+        toast.success('Link copied')
+      }
+    } catch (error) {
+      // The user dismissing the share sheet is not an error
+      if (!(error instanceof DOMException && error.name === 'AbortError')) {
+        toast.error('Could not share this part')
+      }
+    }
+  }
 
   const handleAddToCart = () => {
     if (!addToCart(cartProduct, quantity)) {
@@ -231,10 +248,10 @@ export default function ProductPage() {
 
             <div className="space-y-2">
               <div className="flex items-baseline gap-3">
-                <span className="text-4xl font-display font-bold text-slate-900">R{product.price.toFixed(2)}</span>
+                <span className="text-4xl font-display font-bold text-slate-900">{formatPrice(product.price)}</span>
                 {product.originalPrice && product.originalPrice > product.price && (
                   <>
-                    <span className="text-lg text-slate-500 line-through">R{product.originalPrice.toFixed(2)}</span>
+                    <span className="text-lg text-slate-500 line-through">{formatPrice(product.originalPrice)}</span>
                     <span className="text-sm font-bold text-green-600 bg-green-50 px-2 py-1 rounded-lg">
                       Save {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
                     </span>
@@ -308,8 +325,8 @@ export default function ProductPage() {
                     <Heart className={`w-5 h-5 ${isFavorited ? 'fill-red-500' : ''}`} />
                     {isFavorited ? 'Saved' : 'Save'}
                   </button>
-                  <button className="flex items-center justify-center gap-2 py-4 rounded-2xl font-bold border-2 border-slate-200 bg-white text-slate-700 hover:border-accent hover:text-accent transition">
-                    <Share2 className="w-5 h-5" />
+                  <button type="button" onClick={handleShare} className="flex items-center justify-center gap-2 py-4 rounded-2xl font-bold border-2 border-slate-200 bg-white text-slate-700 hover:border-accent hover:text-accent transition">
+                    <Share2 className="w-5 h-5" aria-hidden="true" />
                     Share
                   </button>
                 </div>
@@ -318,22 +335,14 @@ export default function ProductPage() {
 
             {/* Quick Benefits */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="flex items-center gap-3 p-4 bg-white rounded-2xl border border-slate-100">
-                <ShieldCheck className="w-5 h-5 text-accent" />
-                <span className="text-xs font-bold text-slate-600 uppercase tracking-wide leading-tight">Quality Assured</span>
+              <div className="flex items-center gap-3 p-4 bg-white rounded-xl border border-slate-200">
+                <Truck className="w-5 h-5 text-accent" aria-hidden="true" />
+                <span className="text-sm font-semibold text-slate-700">Delivery across South Africa</span>
               </div>
-              <div className="flex items-center gap-3 p-4 bg-white rounded-2xl border border-slate-100">
-                <Truck className="w-5 h-5 text-accent" />
-                <span className="text-xs font-bold text-slate-600 uppercase tracking-wide leading-tight">Express Nationwide Delivery</span>
-              </div>
-              <div className="flex items-center gap-3 p-4 bg-white rounded-2xl border border-slate-100">
-                <RotateCcw className="w-5 h-5 text-accent" />
-                <span className="text-xs font-bold text-slate-600 uppercase tracking-wide leading-tight">30-Day Returns</span>
-              </div>
-              <div className="flex items-center gap-3 p-4 bg-white rounded-2xl border border-slate-100">
-                <Check className="w-5 h-5 text-accent" />
-                <span className="text-xs font-bold text-slate-600 uppercase tracking-wide leading-tight">Verified Fitment</span>
-              </div>
+              <Link href="/terms-conditions#returns" className="flex items-center gap-3 p-4 bg-white rounded-xl border border-slate-200 hover:border-accent transition-colors">
+                <RotateCcw className="w-5 h-5 text-accent" aria-hidden="true" />
+                <span className="text-sm font-semibold text-slate-700">30-day returns, see policy</span>
+              </Link>
             </div>
           </div>
         </div>
@@ -370,27 +379,16 @@ export default function ProductPage() {
                   exit={{ opacity: 0, y: -10 }}
                   className="max-w-4xl space-y-6"
                 >
-                  <p className="text-slate-600 leading-relaxed text-lg">
-                    {product.description || "This premium spare part is designed for precision fitment and long-lasting durability. Every Levi's Spare component undergoes rigorous quality control to ensure it meets or exceeds original manufacturer standards."}
-                  </p>
-                  <div className="p-8 bg-slate-900 rounded-[2rem] text-white">
-                    <h4 className="text-xl font-display font-bold mb-4">Why Choose This Part?</h4>
-                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {[
-                        "Precision engineering for perfect fit",
-                        "High-grade materials for durability",
-                        "Stress-tested under extreme conditions",
-                        "Corrosion resistant coating",
-                        "Reduces wear on connected components",
-                        "Maintains vehicle resale value"
-                      ].map((item, i) => (
-                        <li key={i} className="flex items-center gap-3 text-slate-300">
-                          <Check className="w-4 h-4 text-accent" />
-                          <span className="text-sm">{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                  {product.description ? (
+                    <p className="text-slate-600 leading-relaxed text-lg whitespace-pre-line text-pretty">
+                      {product.description}
+                    </p>
+                  ) : (
+                    <p className="text-slate-500 text-lg">
+                      No description has been added for this part yet. Call us on 012 770 3389 if you need
+                      help confirming fitment.
+                    </p>
+                  )}
                 </motion.div>
               )}
 
@@ -486,10 +484,10 @@ export default function ProductPage() {
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                     {/* Review List */}
                     <div className="space-y-8">
-                      <h4 className="text-2xl font-display font-bold flex items-center gap-3 text-slate-900">
+                      <h2 className="text-2xl font-display font-bold flex items-center gap-3 text-slate-900">
                         <MessageSquare className="w-6 h-6 text-accent" />
                         Customer Feedback
-                      </h4>
+                      </h2>
                       
                       <div className="space-y-6">
                         {reviews && reviews.length > 0 ? (
@@ -540,7 +538,7 @@ export default function ProductPage() {
 
                     {/* Review Form Area */}
                     <div className="space-y-8">
-                      <h4 className="text-2xl font-display font-bold text-slate-900">Leave a Review</h4>
+                      <h2 className="text-2xl font-display font-bold text-slate-900">Leave a Review</h2>
                       
                       {user ? (
                         <form onSubmit={handleReviewSubmit} className="p-8 bg-white rounded-[2rem] border border-slate-200 shadow-lg space-y-6">
@@ -565,7 +563,7 @@ export default function ProductPage() {
                           <div className="space-y-4">
                             <div>
                               <label htmlFor="review-title" className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-2 mb-1 block">Subject</label>
-                              <input 
+                              <input name="review-title" 
                                 id="review-title"
                                 type="text" 
                                 value={reviewTitle}
@@ -577,11 +575,11 @@ export default function ProductPage() {
                             </div>
                             <div>
                               <label htmlFor="review-comment" className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-2 mb-1 block">Your Thoughts</label>
-                              <textarea 
+                              <textarea name="review-comment" 
                                 id="review-comment"
                                 value={reviewComment}
                                 onChange={(e) => setReviewComment(e.target.value)}
-                                placeholder="Tell us about the part quality, installation process, or vehicle performance Improvements..."
+                                placeholder="Tell us about the part quality, installation process, or vehicle performance Improvements…"
                                 rows={4}
                                 className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm focus:bg-white focus:border-accent focus-visible:ring-2 focus-visible:ring-accent/40 outline-none transition-colors placeholder:text-slate-500 resize-none"
                                 required

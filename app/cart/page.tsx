@@ -10,6 +10,7 @@ import { api } from '@/convex/_generated/api'
 import Link from 'next/link'
 import { SignInButton, SignUpButton } from '@clerk/nextjs'
 import SmartImage from '@/components/ui/SmartImage'
+import { formatPrice } from '@/lib/format'
 
 const OrderSummary = ({ totalPrice, taxEnabled, taxRate, shippingRate, onCheckout }: { totalPrice: number; taxEnabled: boolean; taxRate: number; shippingRate: number; onCheckout: () => void }) => {
   const [termsAccepted, setTermsAccepted] = useState(false)
@@ -31,16 +32,16 @@ const OrderSummary = ({ totalPrice, taxEnabled, taxRate, shippingRate, onCheckou
       <div className="space-y-3 mb-6">
         <div className="flex justify-between text-muted-foreground">
           <span>Subtotal</span>
-          <span>R{totalPrice.toFixed(2)}</span>
+          <span>{formatPrice(totalPrice)}</span>
         </div>
         <div className="flex justify-between text-muted-foreground">
           <span>Shipping</span>
-          <span>R{shippingRate.toFixed(2)}</span>
+          <span>{formatPrice(shippingRate)}</span>
         </div>
         {taxEnabled && (
           <div className="flex justify-between text-muted-foreground">
             <span>Tax ({taxRate}%)</span>
-            <span>R{tax.toFixed(2)}</span>
+            <span>{formatPrice(tax)}</span>
           </div>
         )}
       </div>
@@ -48,7 +49,7 @@ const OrderSummary = ({ totalPrice, taxEnabled, taxRate, shippingRate, onCheckou
       <div className="border-t border-border pt-4 mb-6">
         <div className="flex justify-between text-foreground">
           <span className="font-semibold text-lg">Total</span>
-          <span className="font-bold text-xl">R{grandTotal.toFixed(2)}</span>
+          <span className="font-bold text-xl">{formatPrice(grandTotal)}</span>
         </div>
       </div>
 
@@ -303,7 +304,7 @@ const handleCheckout = () => {
                     </div>
 
                     <span className="text-lg font-bold text-foreground">
-                      R{(item.price * item.quantity).toFixed(2)}
+                      {formatPrice((item.price * item.quantity))}
                     </span>
                   </div>
                 </div>

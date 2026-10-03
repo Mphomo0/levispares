@@ -52,7 +52,7 @@ export default function EditBrandPage({
   if (brand === undefined) {
     return (
       <div className="flex h-100 items-center justify-center">
-        <p className="text-muted-foreground italic">Loading brand data...</p>
+        <p className="text-muted-foreground italic">Loading brand data…</p>
       </div>
     )
   }
@@ -244,7 +244,7 @@ export default function EditBrandPage({
                   id="description"
                   name="description"
                   defaultValue={brand.description || ''}
-                  placeholder="Describe this brand..."
+                  placeholder="Describe this brand…"
                   rows={4}
                 />
               </div>
@@ -324,7 +324,7 @@ export default function EditBrandPage({
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   />
                 </svg>
-                Saving...
+                Saving…
               </>
             ) : (
               <>

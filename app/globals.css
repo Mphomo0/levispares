@@ -164,6 +164,22 @@
   h5,
   h6 {
     @apply font-extrabold tracking-tight;
+    text-wrap: balance;
+  }
+
+  html {
+    color-scheme: light;
+  }
+
+  a,
+  button,
+  [role='button'],
+  input,
+  select,
+  textarea,
+  label,
+  summary {
+    touch-action: manipulation;
   }
 }
 

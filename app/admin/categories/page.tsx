@@ -238,7 +238,7 @@ export default function AdminCategoriesPage() {
                 />
               </svg>
               <Input
-                placeholder="Search categories..."
+                placeholder="Search categories…"
                 className="pl-9"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}

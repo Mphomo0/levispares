@@ -7,6 +7,7 @@ import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { motion, AnimatePresence } from 'motion/react'
 import { Slider } from '@/components/ui/slider'
+import { formatPrice } from '@/lib/format'
 
 interface Filters {
   category: string
@@ -430,7 +431,7 @@ export default function FilterSidebar() {
               <div className="flex-1">
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">R</span>
-                  <input
+                  <input name="minPrice"
                     type="number"
                     placeholder="Min"
                     value={filters.minPrice}
@@ -442,7 +443,7 @@ export default function FilterSidebar() {
               <div className="flex-1">
                 <div className="relative">
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">R</span>
-                  <input
+                  <input name="maxPrice"
                     type="number"
                     placeholder="Max"
                     value={filters.maxPrice}
@@ -462,9 +463,9 @@ export default function FilterSidebar() {
                 onValueCommit={handlePriceSliderCommit}
               />
               <div className="flex items-center justify-between mt-2 text-xs font-medium text-slate-500">
-                <span>R{priceRange[0].toLocaleString()}</span>
+                <span>R{priceRange[0].toLocaleString('en-US')}</span>
                 <span>
-                  R{priceRange[1].toLocaleString()}
+                  R{priceRange[1].toLocaleString('en-US')}
                   {priceRange[1] >= priceBounds.max ? '+' : ''}
                 </span>
               </div>
@@ -477,7 +478,7 @@ export default function FilterSidebar() {
 
       <div className="space-y-3">
         <label className="text-sm font-semibold text-slate-900 uppercase tracking-wide">Sort</label>
-        <select
+        <select name="sort"
           value={filters.sort}
           onChange={(e) => handleFilterChange({ sort: e.target.value })}
           className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition"

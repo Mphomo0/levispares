@@ -6,6 +6,7 @@ import { useFavorites } from '@/lib/FavoritesContext'
 import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import SmartImage from '@/components/ui/SmartImage'
+import { formatPrice } from '@/lib/format'
 
 interface ProductCardProps {
   product: Product
@@ -31,8 +32,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -4 }}
-      className="product-card group relative bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-xl transition-shadow duration-300 h-full w-full"
+      className="product-card group relative bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-shadow duration-300 h-full w-full"
     >
       <Link href={`/products/${product._id}`} className="block">
         <div className="relative aspect-square overflow-hidden bg-slate-50 p-6 flex items-center justify-center">
@@ -41,11 +41,10 @@ export default function ProductCard({ product }: ProductCardProps) {
             alt={product.name}
             fill
             sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
-            className="object-contain transition-transform duration-700 group-hover:scale-110"
+            className="object-contain transition-transform duration-700 group-hover:scale-105"
           />
           
-          <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/5 transition-colors duration-300" />
-        </div>
+                  </div>
       </Link>
 
       <button
@@ -86,19 +85,19 @@ export default function ProductCard({ product }: ProductCardProps) {
           </h3>
         </Link>
 
-        <p className="text-slate-500 text-xs line-clamp-2 font-medium">
-          {product.description || 'Premium quality replacement part for optimal vehicle performance.'}
-        </p>
+        {product.description && (
+          <p className="text-slate-500 text-xs line-clamp-2 font-medium">{product.description}</p>
+        )}
 
         <div className="pt-2 flex items-center justify-between">
           <div className="flex flex-col">
             {product.originalPrice && product.originalPrice > product.price && (
               <span className="text-xs text-brand line-through font-medium leading-none mb-1">
-                R{product.originalPrice.toFixed(2)}
+                {formatPrice(product.originalPrice)}
               </span>
             )}
             <span className="text-xl font-display font-bold text-slate-900">
-              R{product.price.toFixed(2)}
+              {formatPrice(product.price)}
             </span>
           </div>
 

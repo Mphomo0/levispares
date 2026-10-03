@@ -12,6 +12,7 @@ import { toast } from 'sonner'
 import { motion } from 'motion/react'
 import SmartImage from '@/components/ui/SmartImage'
 import { getErrorMessage } from '@/lib/errors'
+import { formatPrice } from '@/lib/format'
 
 export default function FavoritesPage() {
   const { isLoaded: isUserLoaded } = useUser()
@@ -181,7 +182,7 @@ export default function FavoritesPage() {
                         </p>
                         <div className="mt-3 flex items-center justify-between">
                           <span className="text-lg font-bold text-foreground">
-                            R{item.product.price.toFixed(2)}
+                            {formatPrice(item.product.price)}
                           </span>
                           <button
                             onClick={() => handleMoveToCart(item)}
@@ -227,7 +228,7 @@ export default function FavoritesPage() {
         {!isUserLoaded && (
           <div className="rounded-xl border border-slate-200 bg-white p-12 mt-8 flex flex-col items-center justify-center text-center">
             <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin mb-4" />
-            <p className="text-muted-foreground">Loading...</p>
+            <p className="text-muted-foreground">Loading…</p>
           </div>
         )}
       </div>

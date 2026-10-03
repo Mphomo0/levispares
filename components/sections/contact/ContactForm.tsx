@@ -116,7 +116,7 @@ export default function ContactForm() {
         )}
       </motion.div>
 
-      <input
+      <input name="website"
         id="website"
         type="text"
         tabIndex={-1}

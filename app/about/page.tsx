@@ -24,8 +24,8 @@ export default function AboutPage() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-lg md:text-xl text-primary-foreground/80 max-w-2xl"
           >
-            Your trusted partner for premium automotive parts. We&apos;re passionate
-            about keeping your vehicle running at its best.
+            Aftermarket spare parts for trucks and commercial vehicles, based in
+            Pretoria and shipping across South Africa.
           </motion.p>
         </div>
       </div>

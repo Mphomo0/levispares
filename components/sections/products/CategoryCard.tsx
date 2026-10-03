@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronRight } from 'lucide-react'
+import { ChevronRight, Wrench } from 'lucide-react'
 import Link from 'next/link'
 
 interface CategoryCardProps {
@@ -21,13 +21,17 @@ export default function CategoryCard({
       href={`/shop?category=${encodeURIComponent(slug)}`}
       className="category-card group p-6 flex flex-col items-center text-center"
     >
-      <span className="text-4xl mb-3">{icon}</span>
+      {icon ? (
+        <span className="text-4xl mb-3" aria-hidden="true">{icon}</span>
+      ) : (
+        <Wrench className="w-9 h-9 mb-3 text-accent" aria-hidden="true" />
+      )}
       <h3 className="font-semibold text-foreground text-lg mb-1 group-hover:text-accent transition-colors">
         {name}
       </h3>
       <p className="text-muted-foreground text-sm mb-3">{description}</p>
-      <span className="flex items-center gap-1 text-accent text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-        Shop Now <ChevronRight className="w-4 h-4" />
+      <span className="flex items-center gap-1 text-accent text-sm font-medium ">
+        Shop now <ChevronRight className="w-4 h-4" aria-hidden="true" />
       </span>
     </Link>
   )

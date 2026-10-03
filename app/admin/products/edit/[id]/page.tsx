@@ -18,7 +18,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   if (product === undefined) {
     return (
       <div className="flex h-[400px] items-center justify-center">
-        <p className="text-muted-foreground italic">Loading product data...</p>
+        <p className="text-muted-foreground italic">Loading product data…</p>
       </div>
     )
   }

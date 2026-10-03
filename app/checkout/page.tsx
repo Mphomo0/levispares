@@ -18,6 +18,7 @@ import { z } from 'zod'
 import SmartImage from '@/components/ui/SmartImage'
 import { toPayPalAmounts, type PayPalAmounts } from '@/lib/currency'
 import { getErrorMessage } from '@/lib/errors'
+import { formatPrice } from '@/lib/format'
 
 const PAYPAL_CURRENCY = process.env.NEXT_PUBLIC_PAYPAL_CURRENCY || 'USD'
 
@@ -157,7 +158,7 @@ const tax = taxEnabled ? totalPrice * (taxRatePercent / 100) : 0
       })
       if (Math.abs(created.total - grandTotal) >= 0.01) {
         toast.warning(
-          `Prices have been updated. Your order total is R${created.total.toFixed(2)}.`,
+          `Prices have been updated. Your order total is ${formatPrice(created.total)}.`,
         )
       }
       setConvexOrderId(created.orderId)
@@ -544,7 +545,7 @@ function AddressStep({
                 disabled={savingAddress}
                 className="btn-accent w-full md:w-auto text-white disabled:opacity-50"
               >
-                {savingAddress ? 'Saving...' : 'Save Address'}
+                {savingAddress ? 'Saving…' : 'Save Address'}
               </button>
               {addresses.length > 0 && (
                 <button
@@ -669,7 +670,7 @@ function ReviewStep({
                 <p className="text-sm text-muted-foreground">Qty: {item.quantity}</p>
               </div>
               <p className="font-semibold text-foreground whitespace-nowrap">
-                R{(item.price * item.quantity).toFixed(2)}
+                {formatPrice((item.price * item.quantity))}
               </p>
             </div>
           ))}
@@ -681,22 +682,22 @@ function ReviewStep({
         <div className="space-y-2">
           <div className="flex justify-between text-muted-foreground">
             <span>Subtotal</span>
-            <span>R{totalPrice.toFixed(2)}</span>
+            <span>{formatPrice(totalPrice)}</span>
           </div>
           <div className="flex justify-between text-muted-foreground">
             <span>Shipping</span>
-            <span>{shipping === 0 ? 'Free' : `R${shipping.toFixed(2)}`}</span>
+            <span>{shipping === 0 ? 'Free' : `${formatPrice(shipping)}`}</span>
           </div>
         {taxEnabled && (
           <div className="flex justify-between text-muted-foreground">
             <span>Tax ({taxRatePercent}%)</span>
-            <span>R{tax.toFixed(2)}</span>
+            <span>{formatPrice(tax)}</span>
           </div>
         )}
           <div className="border-t border-border pt-2 mt-2">
             <div className="flex justify-between text-foreground">
               <span className="font-semibold text-lg">Total</span>
-              <span className="font-bold text-xl">R{grandTotal.toFixed(2)}</span>
+              <span className="font-bold text-xl">{formatPrice(grandTotal)}</span>
             </div>
           </div>
         </div>
@@ -721,7 +722,7 @@ function ReviewStep({
           {isProcessing ? (
             <>
               <div className="w-5 h-5 border-2 border-accent-foreground border-t-transparent rounded-full animate-spin" />
-              Creating Order...
+              Creating Order…
             </>
           ) : (
             <>
@@ -769,7 +770,7 @@ function OrderSidebar({ items, totalPrice, shipping, tax, taxEnabled, taxRatePer
               <p className="text-xs text-muted-foreground">x{item.quantity}</p>
             </div>
             <p className="text-sm font-semibold text-foreground whitespace-nowrap">
-              R{(item.price * item.quantity).toFixed(2)}
+              {formatPrice((item.price * item.quantity))}
             </p>
           </div>
         ))}
@@ -778,22 +779,22 @@ function OrderSidebar({ items, totalPrice, shipping, tax, taxEnabled, taxRatePer
       <div className="border-t border-border pt-4 space-y-2">
         <div className="flex justify-between text-sm text-muted-foreground">
           <span>Subtotal</span>
-          <span>R{totalPrice.toFixed(2)}</span>
+          <span>{formatPrice(totalPrice)}</span>
         </div>
         <div className="flex justify-between text-sm text-muted-foreground">
           <span>Shipping</span>
-          <span>{shipping === 0 ? 'Free' : `R${shipping.toFixed(2)}`}</span>
+          <span>{shipping === 0 ? 'Free' : `${formatPrice(shipping)}`}</span>
         </div>
         {taxEnabled && (
           <div className="flex justify-between text-sm text-muted-foreground">
             <span>Tax ({taxRatePercent}%)</span>
-            <span>R{tax.toFixed(2)}</span>
+            <span>{formatPrice(tax)}</span>
           </div>
         )}
         <div className="border-t border-border pt-2 mt-2">
           <div className="flex justify-between text-foreground">
             <span className="font-semibold">Total</span>
-            <span className="font-bold text-lg">R{grandTotal.toFixed(2)}</span>
+            <span className="font-bold text-lg">{formatPrice(grandTotal)}</span>
 </div>
 </div>
 </div>

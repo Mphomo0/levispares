@@ -14,7 +14,7 @@ export function SyncUser() {
 
   useEffect(() => {
     if (isAuthenticated && !synced) {
-      console.log("SyncUser: Authenticated, starting sync...");
+      console.log("SyncUser: Authenticated, starting sync…");
       storeUser()
         .then(() => {
           console.log("SyncUser: Successfully synced user to Convex");

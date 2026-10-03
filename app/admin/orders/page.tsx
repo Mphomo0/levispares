@@ -41,6 +41,7 @@ import { api } from '@/convex/_generated/api'
 import type { Id } from '@/convex/_generated/dataModel'
 import { toast } from 'sonner'
 import OrderDetailsDialog from '@/components/admin/OrderDetailsDialog'
+import { formatPrice } from '@/lib/format'
 
 const orderStatuses = ['pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled'] as const
 
@@ -206,7 +207,7 @@ export default function AdminOrdersPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <Input
-                placeholder="Search by order ID, customer name or email..."
+                placeholder="Search by order ID, customer name or email…"
                 className="pl-9"
                 value={searchQuery}
                 onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1) }}
@@ -238,7 +239,7 @@ export default function AdminOrdersPage() {
             <div>
               <CardTitle>All Orders</CardTitle>
               <CardDescription>
-                {loading ? '...' : `${filteredOrders.length} order${filteredOrders.length !== 1 ? 's' : ''} found`}
+                {loading ? '…' : `${filteredOrders.length} order${filteredOrders.length !== 1 ? 's' : ''} found`}
               </CardDescription>
             </div>
           </div>
@@ -279,7 +280,7 @@ export default function AdminOrdersPage() {
                         <p className="font-medium text-sm">{order.items.length} item{order.items.length !== 1 ? 's' : ''}</p>
                         <p className="text-xs text-muted-foreground">{order.customerName || order.customerEmail || 'Unknown customer'}</p>
                       </div>
-                      <p className="font-bold">R{order.total.toFixed(2)}</p>
+                      <p className="font-bold">{formatPrice(order.total)}</p>
                     </div>
                     <div className="flex items-center justify-between pt-2 border-t border-border">
                       {mounted && (
@@ -376,7 +377,7 @@ export default function AdminOrdersPage() {
                         <div className="text-sm">{order.customerName || order.customerEmail || 'Unknown customer'}</div>
                       </TableCell>
                       <TableCell>{order.items.length} item{order.items.length !== 1 ? 's' : ''}</TableCell>
-                      <TableCell className="font-medium">R{order.total.toFixed(2)}</TableCell>
+                      <TableCell className="font-medium">{formatPrice(order.total)}</TableCell>
                       <TableCell>
                         {mounted && (
                           <DropdownMenu>

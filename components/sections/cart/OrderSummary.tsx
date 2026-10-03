@@ -5,6 +5,7 @@ import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
+import { formatPrice } from '@/lib/format'
 
 export default function OrderSummary({ totalPrice }: { totalPrice: number }) {
   const [termsAccepted, setTermsAccepted] = useState(false)
@@ -26,16 +27,16 @@ const shipping = shippingRateSetting
       <div className="space-y-3 mb-6">
         <div className="flex justify-between text-muted-foreground">
           <span>Subtotal</span>
-          <span>R{totalPrice.toFixed(2)}</span>
+          <span>{formatPrice(totalPrice)}</span>
         </div>
         <div className="flex justify-between text-muted-foreground">
           <span>Shipping</span>
-          <span>R{shippingRateSetting.toFixed(2)}</span>
+          <span>{formatPrice(shippingRateSetting)}</span>
         </div>
         {taxEnabled && (
           <div className="flex justify-between text-muted-foreground">
             <span>Tax ({taxRate}%)</span>
-            <span>R{tax.toFixed(2)}</span>
+            <span>{formatPrice(tax)}</span>
           </div>
         )}
       </div>
@@ -43,7 +44,7 @@ const shipping = shippingRateSetting
       <div className="border-t border-border pt-4 mb-6">
         <div className="flex justify-between text-foreground">
           <span className="font-semibold text-lg">Total</span>
-          <span className="font-bold text-xl">R{grandTotal.toFixed(2)}</span>
+          <span className="font-bold text-xl">{formatPrice(grandTotal)}</span>
         </div>
       </div>
 

@@ -285,7 +285,7 @@ export default function AdminUsersPage() {
                 />
               </svg>
               <Input
-                placeholder="Search users..."
+                placeholder="Search users…"
                 className="pl-9"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -438,7 +438,7 @@ export default function AdminUsersPage() {
               {!users ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-10">
-                    <p className="text-muted-foreground animate-pulse">Loading users...</p>
+                    <p className="text-muted-foreground animate-pulse">Loading users…</p>
                   </TableCell>
                 </TableRow>
               ) : paginatedUsers.length === 0 ? (

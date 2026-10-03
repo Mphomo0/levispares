@@ -181,7 +181,7 @@ export default function AdminVariantsPage() {
                 />
               </svg>
               <Input
-                placeholder="Search variants..."
+                placeholder="Search variants…"
                 className="pl-9"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -322,7 +322,7 @@ export default function AdminVariantsPage() {
                 {!variants || !models ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-12">
-                      <p className="text-muted-foreground italic">Loading variants...</p>
+                      <p className="text-muted-foreground italic">Loading variants…</p>
                     </TableCell>
                   </TableRow>
                 ) : filteredVariants.length === 0 ? (

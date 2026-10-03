@@ -11,11 +11,12 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { toPayPalAmounts } from '@/lib/currency'
+import { formatPrice } from '@/lib/format'
 
 const PAYPAL_CURRENCY = process.env.NEXT_PUBLIC_PAYPAL_CURRENCY || 'USD'
 
 const money = (n: number) =>
-  `R${n.toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  `${formatPrice(n)}`
 
 export default function OrderDetailsDialog({
   orderId,
@@ -42,7 +43,7 @@ export default function OrderDetailsDialog({
           <DialogDescription>
             {order
               ? `${new Date(order._creationTime).toLocaleString('en-ZA', { dateStyle: 'medium', timeStyle: 'short' })} · ${order.status}`
-              : 'Loading...'}
+              : 'Loading…'}
           </DialogDescription>
         </DialogHeader>
 
@@ -119,7 +120,7 @@ export default function OrderDetailsDialog({
                   PayPal reference <span className="font-mono">{order.paypalOrderId}</span>
                   {charged && PAYPAL_CURRENCY !== 'ZAR' && (
                     <>
-                      {' '}· charged {PAYPAL_CURRENCY} {charged.total.toFixed(2)} at R{order.exchangeRate?.toFixed(2)} per {PAYPAL_CURRENCY}
+                      {' '}· charged {PAYPAL_CURRENCY} {charged.total.toFixed(2)} at {formatPrice(order.exchangeRate)} per {PAYPAL_CURRENCY}
                     </>
                   )}
                 </p>

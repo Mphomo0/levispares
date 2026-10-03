@@ -163,7 +163,7 @@ export default function AddressesPage() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="label">Label</Label>
-                <select
+                <select name="label"
                   id="label"
                   value={form.label}
                   onChange={(e) => setForm({ ...form, label: e.target.value })}
@@ -267,7 +267,7 @@ export default function AddressesPage() {
                 className="bg-brand hover:bg-brand text-white font-semibold"
               >
                 {saving
-                  ? 'Saving...'
+                  ? 'Saving…'
                   : editingId
                     ? 'Update Address'
                     : 'Save Address'}

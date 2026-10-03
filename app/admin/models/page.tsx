@@ -197,7 +197,7 @@ export default function AdminModelsPage() {
                 />
               </svg>
               <Input
-                placeholder="Search models..."
+                placeholder="Search models…"
                 className="pl-9"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -343,7 +343,7 @@ export default function AdminModelsPage() {
                 {!models || !brands ? (
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-12">
-                      <p className="text-muted-foreground italic">Loading models...</p>
+                      <p className="text-muted-foreground italic">Loading models…</p>
                     </TableCell>
                   </TableRow>
                 ) : filteredModels.length === 0 ? (

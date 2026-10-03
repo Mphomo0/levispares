@@ -7,6 +7,7 @@ import { useUser } from '@clerk/nextjs'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { isPaidOrder, orderStatusLabel } from '@/lib/orders'
+import { formatPrice } from '@/lib/format'
 
 export default function OrdersPage() {
   const { isLoaded } = useUser()
@@ -97,7 +98,7 @@ export default function OrdersPage() {
             {loading ? (
               <div className="h-8 w-12 bg-muted rounded animate-pulse" />
             ) : (
-              <div className="text-2xl font-bold">R{totalSpent.toFixed(2)}</div>
+              <div className="text-2xl font-bold">{formatPrice(totalSpent)}</div>
             )}
             <p className="text-xs text-muted-foreground">All time</p>
           </CardContent>
@@ -155,7 +156,7 @@ export default function OrdersPage() {
                   </div>
                   <div className="flex items-center gap-4 sm:gap-6">
                     <div className="text-right">
-                      <p className="font-bold text-lg">R{order.total.toFixed(2)}</p>
+                      <p className="font-bold text-lg">{formatPrice(order.total)}</p>
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
                           statusStyles[order.status] || 'bg-muted text-muted-foreground'

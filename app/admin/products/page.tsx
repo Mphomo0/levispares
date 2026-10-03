@@ -45,6 +45,7 @@ import { useQuery, useMutation, useAction } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
 import SmartImage from '@/components/ui/SmartImage'
+import { formatPrice } from '@/lib/format'
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -164,7 +165,7 @@ export default function AdminProductsPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
               <Input 
-                placeholder="Search products or SKU..." 
+                placeholder="Search products or SKU…" 
                 className="pl-9" 
                 value={searchQuery}
                 onChange={handleSearchChange}
@@ -296,7 +297,7 @@ export default function AdminProductsPage() {
                   </div>
                   <div className="flex items-center justify-between pt-2 border-t border-border">
                     <div className="flex items-center gap-3">
-                      <span className="font-mono font-medium">R{product.price?.toFixed(2)}</span>
+                      <span className="font-mono font-medium">{formatPrice(product.price)}</span>
                       <span className={`font-mono text-sm ${product.inventory === 0 ? 'text-red-600' : product.inventory < 10 ? 'text-yellow-600' : 'text-muted-foreground'}`}>
                         Stock: {product.inventory}
                       </span>
@@ -371,7 +372,7 @@ export default function AdminProductsPage() {
                     </TableCell>
                     <TableCell className="text-muted-foreground font-mono text-xs">-</TableCell>
                     <TableCell className="text-muted-foreground">{product.category}</TableCell>
-                    <TableCell className="font-mono">R{product.price?.toFixed(2)}</TableCell>
+                    <TableCell className="font-mono">{formatPrice(product.price)}</TableCell>
                     <TableCell>
                       <span className={`font-mono ${product.inventory === 0 ? 'text-red-600' : product.inventory < 10 ? 'text-yellow-600' : ''}`}>
                         {product.inventory}

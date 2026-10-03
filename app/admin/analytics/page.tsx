@@ -12,6 +12,7 @@ import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { useMounted } from '@/lib/useMounted'
 import { isPaidOrder } from '@/lib/orders'
+import { formatPrice } from '@/lib/format'
 
 export default function AdminAnalyticsPage() {
   const mounted = useMounted()
@@ -100,7 +101,7 @@ export default function AdminAnalyticsPage() {
   const stats = [
     {
       title: 'Total Revenue',
-      value: loading ? '—' : `R${totalRevenue.toLocaleString('en-ZA', { minimumFractionDigits: 2 })}`,
+      value: loading ? '—' : `${formatPrice(totalRevenue)}`,
       subtitle: 'From paid orders only',
       icon: (
         <svg aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -133,7 +134,7 @@ export default function AdminAnalyticsPage() {
     },
     {
       title: 'Avg. Order Value',
-      value: loading ? '—' : `R${avgOrderValue.toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      value: loading ? '—' : `${formatPrice(avgOrderValue)}`,
       subtitle: `${totalUsers} registered users`,
       icon: (
         <svg aria-hidden="true" className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -205,7 +206,7 @@ export default function AdminAnalyticsPage() {
                     <div className="relative w-full">
                       {mounted && item.revenue > 0 && (
                         <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-foreground text-background text-xs px-1.5 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                          R{item.revenue.toLocaleString('en-ZA')}
+                          {formatPrice(item.revenue)}
                         </div>
                       )}
                       <div
@@ -304,10 +305,10 @@ export default function AdminAnalyticsPage() {
                     </div>
                     <div className="text-right">
                       <p className="font-semibold">
-                        R{productRevenue.toLocaleString('en-ZA', { minimumFractionDigits: 2 })}
+                        {formatPrice(productRevenue)}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        @ R{product.price.toFixed(2)} each
+                        @ {formatPrice(product.price)} each
                       </p>
                     </div>
                   </div>

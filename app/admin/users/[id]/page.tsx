@@ -27,6 +27,7 @@ import { toast } from 'sonner'
 import { useUser } from '@clerk/nextjs'
 import { isPaidOrder } from '@/lib/orders'
 import { getErrorMessage } from '@/lib/errors'
+import { formatPrice } from '@/lib/format'
 
 const statusStyles: Record<string, string> = {
   delivered: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
@@ -58,7 +59,7 @@ export default function UserProfilePage() {
   if (user === undefined) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-pulse text-muted-foreground">Loading profile...</div>
+        <div className="animate-pulse text-muted-foreground">Loading profile…</div>
       </div>
     )
   }
@@ -165,11 +166,11 @@ export default function UserProfilePage() {
               <span className="text-muted-foreground">Joined:</span>
               <span>{new Date(user._creationTime).toLocaleDateString('en-ZA')}</span>
               <span className="text-muted-foreground">Total Spent:</span>
-              <span className="font-medium">R{totalSpent.toFixed(2)}</span>
+              <span className="font-medium">{formatPrice(totalSpent)}</span>
               <span className="text-muted-foreground">Orders:</span>
-              <span className="font-medium">{userOrders?.length ?? '...'}</span>
+              <span className="font-medium">{userOrders?.length ?? '…'}</span>
               <span className="text-muted-foreground">Addresses:</span>
-              <span className="font-medium">{userAddresses?.length ?? '...'}</span>
+              <span className="font-medium">{userAddresses?.length ?? '…'}</span>
             </div>
             
             <div className="pt-4 flex flex-col gap-2">
@@ -236,7 +237,7 @@ export default function UserProfilePage() {
                       <TableRow key={order._id}>
                         <TableCell className="font-mono text-xs">{order._id.slice(-8).toUpperCase()}</TableCell>
                         <TableCell>{order.items.length} item{order.items.length !== 1 ? 's' : ''}</TableCell>
-                        <TableCell className="font-medium">R{order.total.toFixed(2)}</TableCell>
+                        <TableCell className="font-medium">{formatPrice(order.total)}</TableCell>
                         <TableCell>
                           <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${statusStyles[order.status] || 'bg-muted text-muted-foreground'}`}>
                             {order.status.charAt(0).toUpperCase() + order.status.slice(1)}

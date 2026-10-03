@@ -4,6 +4,7 @@ import { Trash2, Minus, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { CartItem } from '@/lib/CartContext'
 import SmartImage from '@/components/ui/SmartImage'
+import { formatPrice } from '@/lib/format'
 
 interface CartItemsProps {
   items: CartItem[]
@@ -76,7 +77,7 @@ const CartItems = ({ items, removeFromCart, updateQuantity }: CartItemsProps) =>
               </div>
 
               <span className="text-lg font-bold text-foreground">
-                R{(item.price * item.quantity).toFixed(2)}
+                {formatPrice((item.price * item.quantity))}
               </span>
             </div>
           </div>

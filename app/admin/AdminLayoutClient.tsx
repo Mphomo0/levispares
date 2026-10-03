@@ -18,6 +18,7 @@ import { useUser, useClerk } from '@clerk/nextjs'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import SmartImage from '@/components/ui/SmartImage'
+import { formatPrice } from '@/lib/format'
 
 const adminNavItems = [
   {
@@ -446,10 +447,10 @@ className={cn(
                   d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                 />
               </svg>
-              <input
+              <input name="q" autoComplete="off" enterKeyHint="search"
                 type="text"
                 aria-label="Search"
-                placeholder="Search products..."
+                placeholder="Search products…"
                 className="w-full pl-10 pr-4 py-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-brand/50 focus:border-brand transition"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -481,7 +482,7 @@ className={cn(
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{product.name}</p>
-                      <p className="text-xs text-slate-500">R{product.price?.toFixed(2)}</p>
+                      <p className="text-xs text-slate-500">{formatPrice(product.price)}</p>
                     </div>
                   </button>
                 ))}
@@ -569,7 +570,7 @@ className={cn(
                                   New Order #{order._id.slice(-6).toUpperCase()}
                                 </p>
                                 <p className="text-xs text-slate-500">
-                                  R{order.total?.toFixed(2)} • {order.status}
+                                  {formatPrice(order.total)} • {order.status}
                                 </p>
                                 <p className="text-xs text-slate-400 mt-1">
                                   {new Date(order._creationTime).toLocaleString('en-ZA', { 

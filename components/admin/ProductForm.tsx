@@ -416,7 +416,7 @@ export default function ProductForm({ initialData, isEditing }: ProductFormProps
                 name="description"
                 control={control}
                 render={({ field }) => (
-                  <Textarea {...field} id="description" placeholder="Product description..." rows={5} />
+                  <Textarea {...field} id="description" placeholder="Product description…" rows={5} />
                 )}
               />
             </div>
@@ -576,7 +576,7 @@ export default function ProductForm({ initialData, isEditing }: ProductFormProps
           className="w-full sm:w-auto bg-brand hover:bg-brand text-white font-semibold"
           disabled={isSubmitting || images.length < 1}
         >
-          {isSubmitting ? 'Saving...' : isEditing ? 'Update Product' : 'Add Product'}
+          {isSubmitting ? 'Saving…' : isEditing ? 'Update Product' : 'Add Product'}
         </Button>
       </div>
       {images.length < 1 && (

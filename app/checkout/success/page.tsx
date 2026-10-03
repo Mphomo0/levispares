@@ -9,6 +9,7 @@ import type { Id } from '@/convex/_generated/dataModel'
 import Link from 'next/link'
 import { Suspense } from 'react'
 import { orderStatusLabel } from '@/lib/orders'
+import { formatPrice } from '@/lib/format'
 
 function SuccessContent() {
   const searchParams = useSearchParams()
@@ -101,7 +102,7 @@ function SuccessContent() {
                         {item.name} <span className="text-muted-foreground">× {item.quantity}</span>
                       </span>
                       <span className="font-medium text-foreground">
-                        R{(item.price * item.quantity).toFixed(2)}
+                        {formatPrice((item.price * item.quantity))}
                       </span>
                     </div>
                   ))}
@@ -112,15 +113,15 @@ function SuccessContent() {
               <div className="border-t border-border pt-4 mb-4 space-y-2">
                 <div className="flex justify-between text-sm text-muted-foreground">
                   <span>Shipping</span>
-                  <span>{order.shipping === 0 ? 'Free' : `R${order.shipping.toFixed(2)}`}</span>
+                  <span>{order.shipping === 0 ? 'Free' : `${formatPrice(order.shipping)}`}</span>
                 </div>
                 <div className="flex justify-between text-sm text-muted-foreground">
                   <span>Tax</span>
-                  <span>R{order.tax.toFixed(2)}</span>
+                  <span>{formatPrice(order.tax)}</span>
                 </div>
                 <div className="flex justify-between text-foreground font-bold text-lg pt-2 border-t border-border">
                   <span>Total Paid</span>
-                  <span>R{order.total.toFixed(2)}</span>
+                  <span>{formatPrice(order.total)}</span>
                 </div>
               </div>
 

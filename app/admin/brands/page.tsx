@@ -193,7 +193,7 @@ export default function AdminBrandsPage() {
                 />
               </svg>
               <Input
-                placeholder="Search brands..."
+                placeholder="Search brands…"
                 className="pl-9"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -299,7 +299,7 @@ export default function AdminBrandsPage() {
                                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                                 </svg>
-                                Deleting...
+                                Deleting…
                               </>
                             ) : (
                               <>
@@ -316,7 +316,7 @@ export default function AdminBrandsPage() {
                   </div>
                   <div className="flex items-center justify-between pt-2 border-t border-border">
                     <span className="text-sm text-muted-foreground">
-                      {brand.description ? brand.description.substring(0, 50) + '...' : 'No description'}
+                      {brand.description ? brand.description.substring(0, 50) + '…' : 'No description'}
                     </span>
                     <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${getStatusColor(brand.active)}`}>
                       {getStatusLabel(brand.active)}
@@ -343,7 +343,7 @@ export default function AdminBrandsPage() {
                 {!brands ? (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center py-12">
-                      <p className="text-muted-foreground italic">Loading brands...</p>
+                      <p className="text-muted-foreground italic">Loading brands…</p>
                     </TableCell>
                   </TableRow>
                 ) : filteredBrands.length === 0 ? (
@@ -420,7 +420,7 @@ export default function AdminBrandsPage() {
                                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                                       <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                                     </svg>
-                                    Deleting...
+                                    Deleting…
                                   </>
                                 ) : (
                                   <>
