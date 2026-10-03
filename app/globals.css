@@ -263,9 +263,10 @@
     border: 1px solid hsl(var(--border)) !important;
   }
 
-  /* Ensure actions have opaque backgrounds in admin */
-  .admin-scope [data-slot="button"][data-variant="ghost"],
-  .admin-scope [data-slot="button"][data-variant="outline"] {
+  /* Ensure actions have opaque backgrounds in admin. Not while hovered, so
+     the hover colours (red background, white text) still apply. */
+  .admin-scope [data-slot="button"][data-variant="ghost"]:not(:hover),
+  .admin-scope [data-slot="button"][data-variant="outline"]:not(:hover) {
     background-color: hsl(var(--background)) !important;
   }
 }

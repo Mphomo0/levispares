@@ -124,6 +124,29 @@ export default function AdminProductsPage() {
     )
   }
 
+  const handleBulkDelete = async () => {
+    const count = selectedProducts.length
+    if (!count) return
+    const ok = await confirm(
+      `Delete ${count} selected product${count === 1 ? '' : 's'}? This can't be undone.`,
+      { title: `Delete ${count} product${count === 1 ? '' : 's'}?` },
+    )
+    if (!ok) return
+    let failed = 0
+    for (const id of selectedProducts) {
+      try {
+        const result = await removeProduct({ id })
+        if (result?.imageUrls?.length) await deleteImages({ urls: result.imageUrls })
+      } catch (error) {
+        console.error('Failed to delete product:', error)
+        failed++
+      }
+    }
+    setSelectedProducts([])
+    if (failed) toast.error(`${failed} of ${count} products could not be deleted.`)
+    else toast.success(`Deleted ${count} product${count === 1 ? '' : 's'}`)
+  }
+
   const handleDelete = async (id: Id<'products'>) => {
     if (await confirm('Are you sure you want to delete this product?')) {
       try {
@@ -131,6 +154,7 @@ export default function AdminProductsPage() {
         if (result?.imageUrls?.length) {
           await deleteImages({ urls: result.imageUrls })
         }
+        toast.success('Product deleted')
       } catch (error) {
         console.error('Failed to delete product:', error)
         toast.error('Failed to delete product. Please try again.')
@@ -218,7 +242,7 @@ export default function AdminProductsPage() {
               </svg>
               Export
             </Button>
-            <Button variant="outline" size="sm" className="text-destructive">
+            <Button variant="destructive" size="sm" onClick={handleBulkDelete}>
               <svg aria-hidden="true" className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>

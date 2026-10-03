@@ -5,6 +5,7 @@ import type { Doc, Id } from "./_generated/dataModel";
 
 import { requireAdmin } from "./lib/auth";
 import { ensureProductSlug, insertProduct } from "./lib/productSlug";
+import { tidyProductName } from "./lib/names";
 
 /** A category plus all of its active subcategories, at any depth. */
 async function categoryWithDescendants(ctx: QueryCtx, rootId: Id<"categories">) {
@@ -1243,5 +1244,27 @@ export const backfillSlugs = internalMutation({
       updated++;
     }
     return { updated, total: products.length };
+  },
+});
+
+/**
+ * Ops-only: fix product name casing ("FRONT BUMPER CHROME" -> "Front Bumper
+ * Chrome"; LH/RH and sizes are kept). Slugs are not changed, so links keep
+ * working. Preview first with dryRun, then run without it:
+ *   npx convex run --prod products:tidyNames '{"dryRun": true}'
+ *   npx convex run --prod products:tidyNames '{"dryRun": false}'
+ */
+export const tidyNames = internalMutation({
+  args: { dryRun: v.boolean() },
+  handler: async (ctx, { dryRun }) => {
+    const products = await ctx.db.query("products").collect();
+    const changes: { from: string; to: string }[] = [];
+    for (const product of products) {
+      const name = tidyProductName(product.name);
+      if (name === product.name) continue;
+      changes.push({ from: product.name, to: name });
+      if (!dryRun) await ctx.db.patch(product._id, { name });
+    }
+    return { dryRun, changed: changes.length, total: products.length, changes };
   },
 });
