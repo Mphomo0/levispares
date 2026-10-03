@@ -15,10 +15,17 @@ type Props = {
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }
 
+// "UD Trucks" already says trucks, so don't add "Truck" again.
+const saysTrucks = (name: string) => /\btrucks?$/i.test(name.trim())
+/** "Isuzu Truck Spare Parts" / "UD Trucks Spare Parts" */
+const titleFor = (name: string) => (saysTrucks(name) ? `${name} Spare Parts` : `${name} Truck Spare Parts`)
+/** "Isuzu trucks" / "UD Trucks" */
+const vehiclesOf = (name: string) => (saysTrucks(name) ? name : `${name} trucks`)
+
 function describe(name: string, description?: string) {
   return clip(
     description ||
-      `Aftermarket ${name} truck spare parts: body panels, lights, mirrors, engine and electrical parts. Order online with nationwide delivery across South Africa.`,
+      `Aftermarket spare parts for ${vehiclesOf(name)}: body panels, lights, mirrors, engine and electrical parts. Order online with nationwide delivery across South Africa.`,
   )
 }
 
@@ -35,14 +42,14 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   const description = describe(brand.name, brand.description)
 
   return {
-    title: filters.page > 1 ? `${brand.name} Truck Spare Parts – Page ${filters.page}` : `${brand.name} Truck Spare Parts`,
+    title: filters.page > 1 ? `${titleFor(brand.name)} – Page ${filters.page}` : titleFor(brand.name),
     description,
     alternates: { canonical: withPage(path, filters.page) },
     // Refined views, and pages with no parts on them yet, stay out of the index.
     robots: isRefinedView(filters) || empty ? { index: false, follow: true } : undefined,
     openGraph: {
       type: 'website',
-      title: `${brand.name} Truck Spare Parts`,
+      title: titleFor(brand.name),
       description,
       url: `${SITE_URL}${path}`,
       images: brand.logo ? [{ url: brand.logo }] : undefined,
@@ -75,13 +82,13 @@ export default async function BrandPage({ params, searchParams }: Props) {
   return (
     <>
       <JsonLd data={breadcrumbJsonLd(breadcrumb)} />
-      <JsonLd data={collectionJsonLd(`${brand.name} truck spare parts`, brandPath(brand.slug), description, initial)} />
+      <JsonLd data={collectionJsonLd(titleFor(brand.name), brandPath(brand.slug), description, initial)} />
       <Suspense>
         <ShopContent
-          heading={`${brand.name} truck spare parts`}
+          heading={titleFor(brand.name)}
           intro={
             brand.description ||
-            `Aftermarket spare parts for ${brand.name} trucks. Choose your model below, or call 012 770 3389 and we'll help you find the right part.`
+            `Aftermarket spare parts for ${vehiclesOf(brand.name)}. Choose your model below, or call 012 770 3389 and we'll help you find the right part.`
           }
           breadcrumb={breadcrumb}
           related={
