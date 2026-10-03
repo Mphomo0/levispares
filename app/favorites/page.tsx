@@ -130,9 +130,9 @@ export default function FavoritesPage() {
             <div className="flex justify-end mb-6">
               <button
                 onClick={handleMoveAllToCart}
-                className="flex items-center gap-2 bg-accent text-white px-5 py-2.5 rounded-lg font-medium text-sm transition-all hover:brightness-110"
+                className="flex items-center gap-2 bg-accent text-white px-5 py-2.5 rounded-lg font-medium text-sm transition hover:brightness-110"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg aria-hidden="true" className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
                 Move All to Cart
@@ -158,12 +158,12 @@ export default function FavoritesPage() {
                           sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
                           className="object-cover"
                         />
-                        <button
+                        <button aria-label="Remove from favorites"
                           onClick={() => handleRemove(item)}
                           disabled={removingId === item.id}
-                          className="absolute top-2 right-2 p-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow hover:bg-white transition-colors"
+                          className="absolute top-2 right-2 inline-flex min-h-11 min-w-11 items-center justify-center bg-white/90 backdrop-blur-sm rounded-full shadow hover:bg-white transition-colors"
                         >
-                          <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg aria-hidden="true" className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                           </svg>
                         </button>
@@ -186,9 +186,9 @@ export default function FavoritesPage() {
                           <button
                             onClick={() => handleMoveToCart(item)}
                             disabled={removingId === item.id}
-                            className="flex items-center gap-1.5 bg-accent text-white px-3 py-1.5 rounded-lg text-xs font-medium transition-all hover:brightness-110 disabled:opacity-50"
+                            className="flex items-center gap-1.5 bg-accent text-white px-3 py-1.5 rounded-lg text-xs font-medium transition hover:brightness-110 disabled:opacity-50"
                           >
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg aria-hidden="true" className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
                             Move to Cart
@@ -204,7 +204,7 @@ export default function FavoritesPage() {
         ) : (
           <div className="rounded-xl border border-slate-200 bg-white p-12 flex flex-col items-center justify-center text-center">
             <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-              <svg className="w-8 h-8 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg aria-hidden="true" className="w-8 h-8 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
               </svg>
             </div>
@@ -214,10 +214,10 @@ export default function FavoritesPage() {
             </p>
             <Link
               href="/shop"
-              className="inline-flex items-center gap-2 bg-accent text-white px-6 py-3 rounded-lg font-medium transition-all hover:brightness-110"
+              className="inline-flex items-center gap-2 bg-accent text-white px-6 py-3 rounded-lg font-medium transition hover:brightness-110"
             >
               Browse Shop
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg aria-hidden="true" className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
             </Link>

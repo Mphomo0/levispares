@@ -20,7 +20,7 @@ export default function BrandCard({ brand }: BrandCardProps) {
   return (
     <Link
       href={`/shop?brand=${brand.slug}`}
-      className="group relative w-32 sm:w-40 p-4 flex flex-col items-center justify-center bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300"
+      className="group relative w-32 sm:w-40 p-4 flex flex-col items-center justify-center bg-white rounded-xl shadow-sm hover:shadow-md transition duration-300"
     >
       <div className="w-20 h-20 relative flex items-center justify-center">
         {brand.logo || brand.imageKitFileId ? (
@@ -37,7 +37,7 @@ export default function BrandCard({ brand }: BrandCardProps) {
             className="object-contain p-2"
           />
         ) : (
-          <div className="w-16 h-16 bg-slate-100 rounded-lg flex items-center justify-center text-3xl font-bold text-slate-400">
+          <div className="w-16 h-16 bg-slate-100 rounded-lg flex items-center justify-center text-3xl font-bold text-slate-500">
             {brand.name.charAt(0)}
           </div>
         )}

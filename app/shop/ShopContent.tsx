@@ -161,10 +161,10 @@ export default function ShopContent() {
 
             {totalPages > 1 && (
               <div className="flex items-center justify-center gap-2 mt-12 pb-12">
-                <button
+                <button aria-label="Previous page"
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
@@ -185,10 +185,10 @@ export default function ShopContent() {
                   ))}
                 </div>
 
-                <button
+                <button aria-label="Next page"
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   <ChevronRight className="w-5 h-5" />
                 </button>

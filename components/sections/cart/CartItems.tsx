@@ -48,9 +48,10 @@ const CartItems = ({ items, removeFromCart, updateQuantity }: CartItemsProps) =>
               </div>
               <button
                 onClick={() => removeFromCart(item._id)}
-                className="p-2 text-muted-foreground hover:text-destructive transition-colors"
+                aria-label={`Remove ${item.name} from cart`}
+                className="inline-flex min-h-11 min-w-11 items-center justify-center text-muted-foreground hover:text-destructive transition-colors"
               >
-                <Trash2 className="w-5 h-5" />
+                <Trash2 className="w-5 h-5" aria-hidden="true" />
               </button>
             </div>
 
@@ -58,17 +59,19 @@ const CartItems = ({ items, removeFromCart, updateQuantity }: CartItemsProps) =>
               <div className="flex items-center border border-border rounded-lg">
                 <button
                   onClick={() => updateQuantity(item._id, item.quantity - 1)}
-                  className="p-2 hover:bg-secondary transition-colors"
+                  aria-label={`Decrease quantity of ${item.name}`}
+                  className="inline-flex min-h-11 min-w-11 items-center justify-center hover:bg-secondary transition-colors"
                 >
-                  <Minus className="w-4 h-4" />
+                  <Minus className="w-4 h-4" aria-hidden="true" />
                 </button>
-                <span className="px-4 font-medium">{item.quantity}</span>
+                <span className="px-4 font-medium" aria-live="polite">{item.quantity}</span>
                 <button
                   onClick={() => updateQuantity(item._id, item.quantity + 1)}
                   disabled={item.stockQty !== undefined && item.quantity >= item.stockQty}
-                  className="p-2 hover:bg-secondary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  aria-label={`Increase quantity of ${item.name}`}
+                  className="inline-flex min-h-11 min-w-11 items-center justify-center hover:bg-secondary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-4 h-4" aria-hidden="true" />
                 </button>
               </div>
 

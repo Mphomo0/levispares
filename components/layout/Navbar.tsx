@@ -118,9 +118,10 @@ const brands = useQuery(api.brands.list, {})
           <div className="flex items-center justify-between h-16 lg:h-20">
             <div className="flex items-center gap-4">
               <button
-                className="lg:hidden p-2 -ml-2 rounded-lg hover:bg-slate-800 transition-colors"
+                className="lg:hidden inline-flex min-h-11 min-w-11 items-center justify-center -ml-2 rounded-lg hover:bg-slate-800 transition-colors"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 aria-label="Toggle menu"
+                aria-expanded={isMenuOpen}
               >
                 {isMenuOpen ? (
                   <X className="w-6 h-6 text-white" />
@@ -164,7 +165,7 @@ const brands = useQuery(api.brands.list, {})
 
             <div className="hidden md:flex flex-1 max-w-xl mx-6">
               <form onSubmit={handleSearch} className="relative w-full">
-                <div className="flex items-center bg-slate-800 rounded-lg border-2 border-transparent focus-within:border-brand focus-within:bg-slate-800 transition-all">
+                <div className="flex items-center bg-slate-800 rounded-lg border-2 border-transparent focus-within:border-brand focus-within:bg-slate-800 transition">
                   <input
                     type="text"
                     value={searchQuery}
@@ -176,9 +177,10 @@ const brands = useQuery(api.brands.list, {})
                     <button
                       type="button"
                       onClick={() => setSearchQuery('')}
-                      className="p-1.5 text-slate-500 hover:text-white"
+                      aria-label="Clear search"
+                      className="inline-flex min-h-11 min-w-11 items-center justify-center text-slate-400 hover:text-white"
                     >
-                      <X className="w-4 h-4" />
+                      <X className="w-4 h-4" aria-hidden="true" />
                     </button>
                   )}
                   <button
@@ -259,7 +261,7 @@ const brands = useQuery(api.brands.list, {})
                         key={totalItems}
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        className="absolute -top-2 -right-2 w-5 h-5 bg-brand text-white text-[10px] font-bold rounded-full flex items-center justify-center"
+                        className="absolute -top-2 -right-2 min-w-5 h-5 px-1 bg-brand text-white text-xs font-bold rounded-full flex items-center justify-center"
                       >
                         {totalItems > 99 ? '99+' : totalItems}
                       </motion.span>
@@ -283,7 +285,7 @@ const brands = useQuery(api.brands.list, {})
                         key={favoritesCount}
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        className="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center"
+                        className="absolute -top-2 -right-2 min-w-5 h-5 px-1 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center"
                       >
                         {favoritesCount > 99 ? '99+' : favoritesCount}
                       </motion.span>
@@ -308,7 +310,7 @@ const brands = useQuery(api.brands.list, {})
                   <span>All Brands</span>
                   <ChevronDown className="w-4 h-4" />
                 </button>
-                <div className="absolute top-full left-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                <div className="absolute top-full left-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-200 z-50">
                   <div className="bg-slate-800 rounded-lg shadow-xl border border-slate-700 py-2 min-w-56">
                     {brands && brands.length > 0 ? (
                       brands.map((brand) => (
@@ -353,13 +355,14 @@ const brands = useQuery(api.brands.list, {})
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search parts..."
-              className="w-full pl-4 pr-12 py-2.5 rounded-lg bg-slate-100 border-2 border-transparent focus:border-brand focus:bg-white outline-none text-sm transition-all"
+              className="w-full pl-4 pr-12 py-2.5 rounded-lg bg-slate-100 border-2 border-transparent focus:border-brand focus:bg-white outline-none text-sm transition"
             />
             <button
               type="submit"
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-slate-400 hover:text-brand"
+              aria-label="Search"
+              className="absolute right-0 top-1/2 -translate-y-1/2 inline-flex min-h-11 min-w-11 items-center justify-center text-slate-500 hover:text-brand"
             >
-              <Search className="w-5 h-5" />
+              <Search className="w-5 h-5" aria-hidden="true" />
             </button>
           </form>
         </div>

@@ -208,7 +208,7 @@ const tax = taxEnabled ? totalPrice * (taxRatePercent / 100) : 0
         <div className="container mx-auto px-4 py-12">
           <div className="max-w-md mx-auto bg-white rounded-xl border border-slate-200 shadow-sm p-8 text-center">
             <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-6">
-              <svg className="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg aria-hidden="true" className="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </div>
@@ -218,12 +218,12 @@ const tax = taxEnabled ? totalPrice * (taxRatePercent / 100) : 0
             </p>
             <div className="flex flex-col gap-3">
               <SignInButton mode="modal" forceRedirectUrl="/checkout">
-                <button className="w-full bg-accent text-white px-6 py-3 rounded-lg font-medium transition-all hover:brightness-110">
+                <button className="w-full bg-accent text-white px-6 py-3 rounded-lg font-medium transition hover:brightness-110">
                   Sign In
                 </button>
               </SignInButton>
               <SignUpButton mode="modal" forceRedirectUrl="/checkout">
-                <button className="w-full border border-accent text-accent px-6 py-3 rounded-lg font-medium transition-all hover:bg-accent/5">
+                <button className="w-full border border-accent text-accent px-6 py-3 rounded-lg font-medium transition hover:bg-accent/5">
                   Create Account
                 </button>
               </SignUpButton>
@@ -265,14 +265,14 @@ const tax = taxEnabled ? totalPrice * (taxRatePercent / 100) : 0
                     if (i < stepIndex) setCurrentStep(step)
                   }}
                   disabled={i > stepIndex}
-                  className={`flex items-center gap-2 transition-all ${
+                  className={`flex items-center gap-2 transition ${
                     i <= stepIndex
                       ? 'text-primary-foreground'
                       : 'text-primary-foreground/40'
                   } ${i < stepIndex ? 'cursor-pointer hover:text-accent' : ''}`}
                 >
                   <span
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
+                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition ${
                       i < stepIndex
                         ? 'bg-accent text-accent-foreground'
                         : i === stepIndex
@@ -281,7 +281,7 @@ const tax = taxEnabled ? totalPrice * (taxRatePercent / 100) : 0
                     }`}
                   >
                     {i < stepIndex ? (
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg aria-hidden="true" className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                       </svg>
                     ) : (
@@ -419,7 +419,7 @@ function AddressStep({
           {addresses.map((addr) => (
             <label
               key={addr._id}
-              className={`flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+              className={`flex items-start gap-4 p-4 rounded-xl border-2 cursor-pointer transition ${
                 selectedAddressId === addr._id
                   ? 'border-accent bg-accent/5'
                   : 'border-border hover:border-accent/40'
@@ -464,77 +464,77 @@ function AddressStep({
           <form onSubmit={handleSubmit(onSaveAddress)} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Label</label>
-                <select {...register('label')} className="input-styled">
+                <label htmlFor="checkout-label" className="block text-sm font-medium text-foreground mb-1">Label</label>
+                <select id="checkout-label" {...register('label')} className="input-styled">
                   <option value="Home">Home</option>
                   <option value="Work">Work</option>
                   <option value="Other">Other</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Full Name *</label>
+                <label htmlFor="checkout-name" className="block text-sm font-medium text-foreground mb-1">Full Name *</label>
                 <input
-                  {...register('name')}
+                  id="checkout-name" autoComplete="name" {...register('name')}
                   placeholder="Full name"
-                  className={`input-styled ${errors.name ? 'border-red-500 focus:border-red-500' : ''}`}
+                  aria-invalid={errors.name ? true : undefined} className={`input-styled ${errors.name ? 'border-red-500 focus:border-red-500' : ''}`}
                 />
-                {errors.name && <p className="text-xs text-red-500 mt-1">{errors.name.message}</p>}
+                {errors.name && <p role="alert" className="text-xs text-red-600 mt-1">{errors.name.message}</p>}
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1">Street Address *</label>
+              <label htmlFor="checkout-street" className="block text-sm font-medium text-foreground mb-1">Street Address *</label>
               <input
-                {...register('street')}
+                id="checkout-street" autoComplete="street-address" {...register('street')}
                 placeholder="123 Main Street, Apt 4B"
-                className={`input-styled ${errors.street ? 'border-red-500 focus:border-red-500' : ''}`}
+                aria-invalid={errors.street ? true : undefined} className={`input-styled ${errors.street ? 'border-red-500 focus:border-red-500' : ''}`}
               />
-              {errors.street && <p className="text-xs text-red-500 mt-1">{errors.street.message}</p>}
+              {errors.street && <p role="alert" className="text-xs text-red-600 mt-1">{errors.street.message}</p>}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">City *</label>
+                <label htmlFor="checkout-city" className="block text-sm font-medium text-foreground mb-1">City *</label>
                 <input
-                  {...register('city')}
+                  id="checkout-city" autoComplete="address-level2" {...register('city')}
                   placeholder="Johannesburg"
-                  className={`input-styled ${errors.city ? 'border-red-500 focus:border-red-500' : ''}`}
+                  aria-invalid={errors.city ? true : undefined} className={`input-styled ${errors.city ? 'border-red-500 focus:border-red-500' : ''}`}
                 />
-                {errors.city && <p className="text-xs text-red-500 mt-1">{errors.city.message}</p>}
+                {errors.city && <p role="alert" className="text-xs text-red-600 mt-1">{errors.city.message}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Province *</label>
+                <label htmlFor="checkout-province" className="block text-sm font-medium text-foreground mb-1">Province *</label>
                 <input
-                  {...register('province')}
+                  id="checkout-province" autoComplete="address-level1" {...register('province')}
                   placeholder="Gauteng"
-                  className={`input-styled ${errors.province ? 'border-red-500 focus:border-red-500' : ''}`}
+                  aria-invalid={errors.province ? true : undefined} className={`input-styled ${errors.province ? 'border-red-500 focus:border-red-500' : ''}`}
                 />
-                {errors.province && <p className="text-xs text-red-500 mt-1">{errors.province.message}</p>}
+                {errors.province && <p role="alert" className="text-xs text-red-600 mt-1">{errors.province.message}</p>}
               </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Postal Code *</label>
+                <label htmlFor="checkout-postalCode" className="block text-sm font-medium text-foreground mb-1">Postal Code *</label>
                 <input
-                  {...register('postalCode')}
+                  id="checkout-postalCode" autoComplete="postal-code" {...register('postalCode')}
                   placeholder="2000"
-                  className={`input-styled ${errors.postalCode ? 'border-red-500 focus:border-red-500' : ''}`}
+                  aria-invalid={errors.postalCode ? true : undefined} className={`input-styled ${errors.postalCode ? 'border-red-500 focus:border-red-500' : ''}`}
                 />
-                {errors.postalCode && <p className="text-xs text-red-500 mt-1">{errors.postalCode.message}</p>}
+                {errors.postalCode && <p role="alert" className="text-xs text-red-600 mt-1">{errors.postalCode.message}</p>}
               </div>
               <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Phone *</label>
+                <label htmlFor="checkout-phone" className="block text-sm font-medium text-foreground mb-1">Phone *</label>
                 <input
-                  {...register('phone')}
+                  id="checkout-phone" autoComplete="tel" {...register('phone')}
                   type="tel"
                   placeholder="+27 12 345 6789"
-                  className={`input-styled ${errors.phone ? 'border-red-500 focus:border-red-500' : ''}`}
+                  aria-invalid={errors.phone ? true : undefined} className={`input-styled ${errors.phone ? 'border-red-500 focus:border-red-500' : ''}`}
                 />
-                {errors.phone && <p className="text-xs text-red-500 mt-1">{errors.phone.message}</p>}
+                {errors.phone && <p role="alert" className="text-xs text-red-600 mt-1">{errors.phone.message}</p>}
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1">Country</label>
+              <label htmlFor="checkout-country" className="block text-sm font-medium text-foreground mb-1">Country</label>
               <input
-                {...register('country')}
+                id="checkout-country" autoComplete="country-name" {...register('country')}
                 className="input-styled"
               />
             </div>
@@ -566,7 +566,7 @@ function AddressStep({
             onClick={() => onToggleAddForm(true)}
             className="p-4 rounded-xl border-2 border-dashed border-border hover:border-accent/40 transition-colors text-muted-foreground hover:text-accent flex items-center justify-center gap-2"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg aria-hidden="true" className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
             Add New Address
@@ -578,7 +578,7 @@ function AddressStep({
           className="btn-accent text-white disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           Continue to Review
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg aria-hidden="true" className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
           </svg>
         </button>
@@ -636,7 +636,7 @@ function ReviewStep({
       {/* Delivery Address */}
       <div className="bg-card rounded-xl p-5 card-shadow mb-6">
         <h3 className="font-semibold text-foreground mb-3 flex items-center gap-2">
-          <svg className="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg aria-hidden="true" className="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
           </svg>
@@ -653,7 +653,7 @@ function ReviewStep({
       {/* Items */}
       <div className="bg-card rounded-xl p-5 card-shadow mb-6">
         <h3 className="font-semibold text-foreground mb-4 flex items-center gap-2">
-          <svg className="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg aria-hidden="true" className="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
           </svg>
           Items ({items.length})
@@ -708,7 +708,7 @@ function ReviewStep({
           onClick={onBack}
           className="px-6 py-3 rounded-lg border border-border text-foreground hover:bg-secondary transition-colors flex items-center justify-center gap-2 w-full md:w-auto"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg aria-hidden="true" className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
           </svg>
           Back
@@ -726,7 +726,7 @@ function ReviewStep({
           ) : (
             <>
               Continue to Payment
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg aria-hidden="true" className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
               </svg>
             </>

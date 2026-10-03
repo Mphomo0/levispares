@@ -61,8 +61,8 @@ const OrderSummary = ({ totalPrice, taxEnabled, taxRate, shippingRate, onCheckou
               checked={termsAccepted}
               onChange={(e) => setTermsAccepted(e.target.checked)}
             />
-            <div className="w-5 h-5 border-2 border-muted-foreground/30 rounded-md peer-checked:bg-accent peer-checked:border-accent transition-all flex items-center justify-center">
-              <svg className={`w-3.5 h-3.5 text-white ${termsAccepted ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+            <div className="w-5 h-5 border-2 border-muted-foreground/30 rounded-md peer-checked:bg-accent peer-checked:border-accent transition flex items-center justify-center">
+              <svg aria-hidden="true" className={`w-3.5 h-3.5 text-white ${termsAccepted ? 'opacity-100 scale-100' : 'opacity-0 scale-50'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
               </svg>
             </div>
@@ -114,7 +114,7 @@ const handleCheckout = () => {
           transition={{ duration: 0.4 }}
           className="w-20 h-20 mx-auto mb-6 rounded-full bg-secondary flex items-center justify-center"
         >
-          <svg
+          <svg aria-hidden="true"
             className="w-10 h-10 text-muted-foreground"
             fill="none"
             stroke="currentColor"
@@ -151,10 +151,10 @@ const handleCheckout = () => {
         >
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-accent font-medium hover:gap-3 transition-all"
+            className="inline-flex items-center gap-2 text-accent font-medium hover:gap-3 transition"
           >
             Start Shopping{' '}
-            <svg
+            <svg aria-hidden="true"
               className="w-4 h-4"
               fill="none"
               stroke="currentColor"
@@ -238,7 +238,7 @@ const handleCheckout = () => {
                       className="p-2 text-muted-foreground hover:text-destructive transition-colors"
                       aria-label="Remove item"
                     >
-                      <svg
+                      <svg aria-hidden="true"
                         className="w-5 h-5"
                         fill="none"
                         stroke="currentColor"
@@ -263,7 +263,7 @@ const handleCheckout = () => {
                         className="p-2 hover:bg-secondary transition-colors"
                         aria-label="Decrease quantity"
                       >
-                        <svg
+                        <svg aria-hidden="true"
                           className="w-4 h-4"
                           fill="none"
                           stroke="currentColor"
@@ -286,7 +286,7 @@ const handleCheckout = () => {
                         className="p-2 hover:bg-secondary transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                         aria-label="Increase quantity"
                       >
-                        <svg
+                        <svg aria-hidden="true"
                           className="w-4 h-4"
                           fill="none"
                           stroke="currentColor"
@@ -344,17 +344,17 @@ const handleCheckout = () => {
               onClick={(e) => e.stopPropagation()}
               className="bg-white rounded-xl border border-slate-200 shadow-xl p-8 max-w-md w-full mx-4 relative"
             >
-              <button
+              <button aria-label="Close"
                 onClick={() => setShowAuth(false)}
-                className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-foreground transition-colors"
+                className="absolute top-4 right-4 inline-flex min-h-11 min-w-11 items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg aria-hidden="true" className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
               <div className="text-center mb-6">
                 <div className="w-14 h-14 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg className="w-7 h-7 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg aria-hidden="true" className="w-7 h-7 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
                 </div>
@@ -365,12 +365,12 @@ const handleCheckout = () => {
               </div>
               <div className="flex flex-col gap-3">
                 <SignInButton mode="modal" forceRedirectUrl="/checkout">
-                  <button className="w-full bg-accent text-white px-6 py-3 rounded-lg font-medium transition-all hover:brightness-110">
+                  <button className="w-full bg-accent text-white px-6 py-3 rounded-lg font-medium transition hover:brightness-110">
                     Sign In
                   </button>
                 </SignInButton>
                 <SignUpButton mode="modal" forceRedirectUrl="/checkout">
-                  <button className="w-full border border-accent text-accent px-6 py-3 rounded-lg font-medium transition-all hover:bg-accent/5">
+                  <button className="w-full border border-accent text-accent px-6 py-3 rounded-lg font-medium transition hover:bg-accent/5">
                     Create Account
                   </button>
                 </SignUpButton>

@@ -62,7 +62,7 @@ export default function ProductPage() {
   if (product === undefined) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="flex flex-col items-center gap-4">
+        <div className="flex flex-col items-center gap-4" role="status">
           <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin" />
           <p className="text-slate-500 font-medium font-display animate-pulse">Loading spare part details...</p>
         </div>
@@ -75,7 +75,7 @@ export default function ProductPage() {
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 px-4">
         <h1 className="text-4xl font-display font-bold text-slate-800 mb-4">Product Not Found</h1>
         <p className="text-slate-500 mb-8 text-center max-w-md">We couldn&apos;t find the part you&apos;re looking for. It might have been removed or the link is incorrect.</p>
-        <Link href="/shop" className="bg-accent text-white px-8 py-3 rounded-lg font-bold hover:brightness-110 transition-all shadow-lg shadow-accent/20">
+        <Link href="/shop" className="bg-accent text-white px-8 py-3 rounded-lg font-bold hover:brightness-110 transition shadow-lg shadow-accent/20">
           Back to Shop
         </Link>
       </div>
@@ -143,7 +143,7 @@ export default function ProductPage() {
           <ChevronRight className="w-4 h-4 flex-shrink-0" />
           <Link href="/shop" className="hover:text-accent transition-colors">Shop</Link>
           <ChevronRight className="w-4 h-4 flex-shrink-0" />
-          <span className="text-slate-400 capitalize">{product.category?.name}</span>
+          <span className="text-slate-500 capitalize">{product.category?.name}</span>
           <ChevronRight className="w-4 h-4 flex-shrink-0" />
           <span className="text-slate-900 font-semibold truncate">{product.name}</span>
         </div>
@@ -166,11 +166,12 @@ export default function ProductPage() {
                 priority
                 className="object-contain p-8 transition-transform duration-700 group-hover:scale-110"
               />
-              <button
+              <button aria-label="Toggle favorite"
                 onClick={() => toggleFavorite(cartProduct)}
-                className="absolute top-6 right-6 p-4 bg-white/90 backdrop-blur-md rounded-2xl shadow-xl hover:bg-white transition-all transform group-hover:translate-x-0"
+                aria-pressed={isFavorited}
+                className="absolute top-6 right-6 p-4 bg-white/90 backdrop-blur-md rounded-2xl shadow-xl hover:bg-white transition transform group-hover:translate-x-0"
               >
-                <Heart className={`w-6 h-6 transition-all ${isFavorited ? 'fill-red-500 text-red-500 scale-125' : 'text-slate-400'}`} />
+                <Heart aria-hidden="true" className={`w-6 h-6 transition-transform ${isFavorited ? 'fill-red-500 text-red-500 scale-125' : 'text-slate-500'}`} />
               </button>
               
               <div className="absolute bottom-6 left-6">
@@ -187,7 +188,9 @@ export default function ProductPage() {
                   <button
                     key={idx}
                     onClick={() => setSelectedImage(url!)}
-                    className={`relative w-24 h-24 flex-shrink-0 rounded-2xl overflow-hidden border-2 transition-all ${
+                    aria-label={`View image ${idx + 1}`}
+                    aria-pressed={mainImage === url}
+                    className={`relative w-24 h-24 flex-shrink-0 rounded-2xl overflow-hidden border-2 transition ${
                       mainImage === url ? 'border-accent shadow-lg scale-105' : 'border-transparent hover:border-slate-300'
                     } bg-white shadow-sm`}
                   >
@@ -231,7 +234,7 @@ export default function ProductPage() {
                 <span className="text-4xl font-display font-bold text-slate-900">R{product.price.toFixed(2)}</span>
                 {product.originalPrice && product.originalPrice > product.price && (
                   <>
-                    <span className="text-lg text-slate-400 line-through">R{product.originalPrice.toFixed(2)}</span>
+                    <span className="text-lg text-slate-500 line-through">R{product.originalPrice.toFixed(2)}</span>
                     <span className="text-sm font-bold text-green-600 bg-green-50 px-2 py-1 rounded-lg">
                       Save {Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}%
                     </span>
@@ -263,18 +266,20 @@ export default function ProductPage() {
                 <div className="flex items-center bg-slate-100 rounded-2xl p-1 shadow-inner">
                   <button 
                     onClick={() => setQuantity(q => Math.max(1, q - 1))}
-                    className="p-2 hover:bg-white rounded-xl transition-all disabled:opacity-30"
+                    aria-label="Decrease quantity"
+                    className="inline-flex min-h-11 min-w-11 items-center justify-center hover:bg-white rounded-xl transition-colors disabled:opacity-30"
                     disabled={quantity <= 1}
                   >
-                    <Minus className="w-4 h-4" />
+                    <Minus className="w-4 h-4" aria-hidden="true" />
                   </button>
-                  <span className="w-12 text-center font-bold text-slate-900">{quantity}</span>
+                  <span className="w-12 text-center font-bold text-slate-900" aria-live="polite">{quantity}</span>
                   <button 
                     onClick={() => setQuantity(q => Math.min(product.stockQty ?? 0, q + 1))}
-                    className="p-2 hover:bg-white rounded-xl transition-all disabled:opacity-30"
+                    aria-label="Increase quantity"
+                    className="inline-flex min-h-11 min-w-11 items-center justify-center hover:bg-white rounded-xl transition-colors disabled:opacity-30"
                     disabled={quantity >= (product.stockQty ?? 0)}
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus className="w-4 h-4" aria-hidden="true" />
                   </button>
                 </div>
               </div>
@@ -284,7 +289,7 @@ export default function ProductPage() {
                 <button 
                   onClick={handleAddToCart}
                   disabled={outOfStock}
-                  className="w-full bg-accent text-white py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 transition-all hover:scale-[1.02] hover:brightness-110 active:scale-95 shadow-xl shadow-accent/30 disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed"
+                  className="w-full bg-accent text-white py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 transition hover:scale-[1.02] hover:brightness-110 active:scale-95 shadow-xl shadow-accent/30 disabled:opacity-50 disabled:hover:scale-100 disabled:cursor-not-allowed"
                 >
                   <ShoppingBag className="w-6 h-6" />
                   {outOfStock ? 'Out of Stock' : 'Add to Cart'}
@@ -293,7 +298,8 @@ export default function ProductPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <button
                     onClick={() => toggleFavorite(cartProduct)}
-                    className={`flex items-center justify-center gap-2 py-4 rounded-2xl font-bold transition-all border-2 ${
+                aria-pressed={isFavorited}
+                    className={`flex items-center justify-center gap-2 py-4 rounded-2xl font-bold transition border-2 ${
                       isFavorited 
                       ? 'border-red-500 bg-red-50 text-red-500' 
                       : 'border-slate-200 bg-white text-slate-700 hover:border-accent hover:text-accent'
@@ -302,7 +308,7 @@ export default function ProductPage() {
                     <Heart className={`w-5 h-5 ${isFavorited ? 'fill-red-500' : ''}`} />
                     {isFavorited ? 'Saved' : 'Save'}
                   </button>
-                  <button className="flex items-center justify-center gap-2 py-4 rounded-2xl font-bold border-2 border-slate-200 bg-white text-slate-700 hover:border-accent hover:text-accent transition-all">
+                  <button className="flex items-center justify-center gap-2 py-4 rounded-2xl font-bold border-2 border-slate-200 bg-white text-slate-700 hover:border-accent hover:text-accent transition">
                     <Share2 className="w-5 h-5" />
                     Share
                   </button>
@@ -339,8 +345,8 @@ export default function ProductPage() {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
-                className={`px-8 py-5 font-display text-sm font-bold uppercase tracking-widest transition-all relative ${
-                  activeTab === tab ? 'text-accent' : 'text-slate-400 hover:text-slate-600'
+                className={`px-8 py-5 font-display text-sm font-bold uppercase tracking-widest transition relative ${
+                  activeTab === tab ? 'text-accent' : 'text-slate-500 hover:text-slate-700'
                 }`}
               >
                 {tab}
@@ -501,7 +507,7 @@ export default function ProductPage() {
                                   </div>
                                   <div>
                                     <p className="text-sm font-bold text-slate-900">{r.user?.name || 'Verified Mechanic'}</p>
-                                    <p className="text-xs text-slate-400">
+                                    <p className="text-xs text-slate-500">
                                       {new Date(r._creationTime).toLocaleDateString('en-ZA', { day: 'numeric', month: 'long', year: 'numeric' })}
                                     </p>
                                   </div>
@@ -515,7 +521,7 @@ export default function ProductPage() {
                               {r.title && <h5 className="font-bold text-slate-800">{r.title}</h5>}
                               <p className="text-slate-600 text-sm leading-relaxed">{r.comment}</p>
                               {r.verifiedPurchase && (
-                                <div className="flex items-center gap-1.5 text-[10px] font-bold text-green-600 bg-green-50 w-fit px-2 py-1 rounded-md uppercase tracking-wider">
+                                <div className="flex items-center gap-1.5 text-xs font-bold text-green-600 bg-green-50 w-fit px-2 py-1 rounded-md uppercase tracking-wider">
                                   <Check className="w-3 h-3" />
                                   Verified Fitment
                                 </div>
@@ -525,8 +531,8 @@ export default function ProductPage() {
                         ) : (
                           <div className="text-center py-20 bg-slate-100/50 rounded-[2rem] border-2 border-dashed border-slate-200">
                             <MessageSquare className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-                            <p className="text-slate-400 font-medium">No reviews yet for this part.</p>
-                            <p className="text-xs text-slate-400 mt-1">Be the first to share your experience!</p>
+                            <p className="text-slate-500 font-medium">No reviews yet for this part.</p>
+                            <p className="text-xs text-slate-500 mt-1">Be the first to share your experience!</p>
                           </div>
                         )}
                       </div>
@@ -539,16 +545,18 @@ export default function ProductPage() {
                       {user ? (
                         <form onSubmit={handleReviewSubmit} className="p-8 bg-white rounded-[2rem] border border-slate-200 shadow-lg space-y-6">
                           <div className="space-y-4">
-                            <label className="text-sm font-bold text-slate-500 uppercase tracking-widest block text-center">Quality Rating</label>
-                            <div className="flex justify-center gap-3">
+                            <span id="review-rating-label" className="text-sm font-bold text-slate-500 uppercase tracking-widest block text-center">Quality Rating</span>
+                            <div className="flex justify-center gap-1" role="group" aria-labelledby="review-rating-label">
                               {[1, 2, 3, 4, 5].map((star) => (
                                 <button
                                   key={star}
                                   type="button"
                                   onClick={() => setReviewRating(star)}
-                                  className="transition-all hover:scale-125 focus:scale-110"
+                                  aria-label={`${star} star${star > 1 ? 's' : ''}`}
+                                  aria-pressed={reviewRating === star}
+                                  className="inline-flex min-h-11 min-w-11 items-center justify-center transition-transform hover:scale-110 focus-visible:scale-110"
                                 >
-                                  <Star className={`w-10 h-10 ${reviewRating >= star ? 'fill-yellow-400 text-yellow-400' : 'text-slate-200'}`} />
+                                  <Star aria-hidden="true" className={`w-10 h-10 ${reviewRating >= star ? 'fill-yellow-400 text-yellow-400' : 'text-slate-200'}`} />
                                 </button>
                               ))}
                             </div>
@@ -556,24 +564,26 @@ export default function ProductPage() {
 
                           <div className="space-y-4">
                             <div>
-                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-2 mb-1 block">Subject</label>
+                              <label htmlFor="review-title" className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-2 mb-1 block">Subject</label>
                               <input 
+                                id="review-title"
                                 type="text" 
                                 value={reviewTitle}
                                 onChange={(e) => setReviewTitle(e.target.value)}
                                 placeholder="Speedy delivery, perfect fit, etc."
-                                className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm focus:bg-white focus:border-accent outline-none transition-all placeholder:text-slate-300"
+                                className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm focus:bg-white focus:border-accent focus-visible:ring-2 focus-visible:ring-accent/40 outline-none transition-colors placeholder:text-slate-500"
                                 required
                               />
                             </div>
                             <div>
-                              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-2 mb-1 block">Your Thoughts</label>
+                              <label htmlFor="review-comment" className="text-xs font-bold text-slate-500 uppercase tracking-widest ml-2 mb-1 block">Your Thoughts</label>
                               <textarea 
+                                id="review-comment"
                                 value={reviewComment}
                                 onChange={(e) => setReviewComment(e.target.value)}
                                 placeholder="Tell us about the part quality, installation process, or vehicle performance Improvements..."
                                 rows={4}
-                                className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm focus:bg-white focus:border-accent outline-none transition-all placeholder:text-slate-300 resize-none"
+                                className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-sm focus:bg-white focus:border-accent focus-visible:ring-2 focus-visible:ring-accent/40 outline-none transition-colors placeholder:text-slate-500 resize-none"
                                 required
                               />
                             </div>
@@ -582,7 +592,7 @@ export default function ProductPage() {
                           <button 
                             type="submit" 
                             disabled={isSubmitting}
-                            className="w-full bg-slate-900 text-white py-5 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all hover:bg-black active:scale-[0.98] disabled:opacity-50"
+                            className="w-full bg-slate-900 text-white py-5 rounded-2xl font-bold flex items-center justify-center gap-3 transition hover:bg-black active:scale-[0.98] disabled:opacity-50"
                           >
                             {isSubmitting ? (
                               <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
@@ -598,10 +608,10 @@ export default function ProductPage() {
                           </div>
                           <div className="space-y-2">
                             <h5 className="text-xl font-display font-bold text-white">Share Your Expertise</h5>
-                            <p className="text-slate-400 text-sm max-w-xs mx-auto">Must be a verified user to review spare parts. Log in to help other mechanics and owners.</p>
+                            <p className="text-slate-500 text-sm max-w-xs mx-auto">Must be a verified user to review spare parts. Log in to help other mechanics and owners.</p>
                           </div>
                           <SignInButton mode="modal">
-                            <button className="w-full bg-white text-slate-900 py-4 rounded-2xl font-bold hover:bg-slate-100 transition-all flex items-center justify-center gap-2">
+                            <button className="w-full bg-white text-slate-900 py-4 rounded-2xl font-bold hover:bg-slate-100 transition flex items-center justify-center gap-2">
                               Sign In to Review
                               <ChevronRight className="w-4 h-4" />
                             </button>

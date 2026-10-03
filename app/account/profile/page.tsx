@@ -137,7 +137,7 @@ export default function ProfilePage() {
               <div className="space-y-2">
                 <Label htmlFor="firstName">First Name</Label>
                 <Input
-                  id="firstName"
+                  id="firstName" autoComplete="given-name"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                   placeholder="First name"
@@ -146,7 +146,7 @@ export default function ProfilePage() {
               <div className="space-y-2">
                 <Label htmlFor="lastName">Last Name</Label>
                 <Input
-                  id="lastName"
+                  id="lastName" autoComplete="family-name"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                   placeholder="Last name"
@@ -158,7 +158,7 @@ export default function ProfilePage() {
             <div className="space-y-2">
               <Label htmlFor="email">Email Address</Label>
               <Input
-                id="email"
+                id="email" autoComplete="email"
                 type="email"
                 value={email}
                 readOnly
@@ -174,7 +174,7 @@ export default function ProfilePage() {
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone Number</Label>
                 <Input
-                  id="phone"
+                  id="phone" autoComplete="tel"
                   type="tel"
                   value={phone}
                   readOnly

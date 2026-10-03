@@ -36,7 +36,7 @@ export default function Home() {
             </div>
             <Link
               href="/shop"
-              className="inline-flex items-center gap-2 text-accent font-medium hover:gap-3 transition-all mt-4 md:mt-0"
+              className="inline-flex items-center gap-2 text-accent font-medium hover:gap-3 transition mt-4 md:mt-0"
             >
               View All Products <ArrowRight className="w-4 h-4" />
             </Link>

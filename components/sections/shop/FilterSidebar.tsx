@@ -212,7 +212,7 @@ export default function FilterSidebar() {
             {filters.brand && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-brand/10 text-brand text-xs font-medium rounded-md">
                 {brands?.find(b => b.slug === filters.brand)?.name}
-                <button onClick={() => handleFilterChange({ brand: '' })} className="hover:text-brand/70">
+                <button aria-label="Clear brand filter" onClick={() => handleFilterChange({ brand: '' })} className="inline-flex min-h-6 min-w-6 items-center justify-center hover:text-brand/70">
                   <X className="w-3 h-3" />
                 </button>
               </span>
@@ -220,7 +220,7 @@ export default function FilterSidebar() {
             {filters.model && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-brand/10 text-brand text-xs font-medium rounded-md">
                 {models?.find(m => m.slug === filters.model)?.name}
-                <button onClick={() => handleFilterChange({ model: '' })} className="hover:text-brand/70">
+                <button aria-label="Clear model filter" onClick={() => handleFilterChange({ model: '' })} className="inline-flex min-h-6 min-w-6 items-center justify-center hover:text-brand/70">
                   <X className="w-3 h-3" />
                 </button>
               </span>
@@ -228,7 +228,7 @@ export default function FilterSidebar() {
             {filters.category && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-brand/10 text-brand text-xs font-medium rounded-md">
                 {categoryOptions.find(({ category }) => category.slug === filters.category)?.category.name}
-                <button onClick={() => handleFilterChange({ category: '' })} className="hover:text-brand/70">
+                <button aria-label="Clear category filter" onClick={() => handleFilterChange({ category: '' })} className="inline-flex min-h-6 min-w-6 items-center justify-center hover:text-brand/70">
                   <X className="w-3 h-3" />
                 </button>
               </span>
@@ -252,7 +252,7 @@ export default function FilterSidebar() {
                 className="flex items-center gap-2"
               >
                 <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">Category</h3>
-                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${expandedSections.category ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${expandedSections.category ? 'rotate-180' : ''}`} />
               </button>
             </div>
 
@@ -295,7 +295,7 @@ export default function FilterSidebar() {
             className="flex items-center gap-2"
           >
             <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">Brand</h3>
-            <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${expandedSections.brand ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${expandedSections.brand ? 'rotate-180' : ''}`} />
           </button>
         </div>
         
@@ -336,7 +336,7 @@ export default function FilterSidebar() {
               className="flex items-center gap-2"
             >
               <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">Model</h3>
-              <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${expandedSections.model ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${expandedSections.model ? 'rotate-180' : ''}`} />
             </button>
           </div>
           
@@ -378,7 +378,7 @@ export default function FilterSidebar() {
                 className="flex items-center gap-2"
               >
                 <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">Variant</h3>
-                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${expandedSections.variant ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${expandedSections.variant ? 'rotate-180' : ''}`} />
               </button>
             </div>
             
@@ -420,7 +420,7 @@ export default function FilterSidebar() {
             className="flex items-center gap-2"
           >
             <h3 className="text-sm font-semibold text-slate-900 uppercase tracking-wide">Price</h3>
-            <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${expandedSections.price ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`w-4 h-4 text-slate-500 transition-transform ${expandedSections.price ? 'rotate-180' : ''}`} />
           </button>
         </div>
         
@@ -429,25 +429,25 @@ export default function FilterSidebar() {
             <div className="flex gap-3">
               <div className="flex-1">
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">R</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">R</span>
                   <input
                     type="number"
                     placeholder="Min"
                     value={filters.minPrice}
                     onChange={(e) => handleFilterChange({ minPrice: e.target.value })}
-                    className="w-full pl-7 pr-2 py-2 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all"
+                    className="w-full pl-7 pr-2 py-2 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition"
                   />
                 </div>
               </div>
               <div className="flex-1">
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">R</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">R</span>
                   <input
                     type="number"
                     placeholder="Max"
                     value={filters.maxPrice}
                     onChange={(e) => handleFilterChange({ maxPrice: e.target.value })}
-                    className="w-full pl-7 pr-2 py-2 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all"
+                    className="w-full pl-7 pr-2 py-2 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition"
                   />
                 </div>
               </div>
@@ -480,7 +480,7 @@ export default function FilterSidebar() {
         <select
           value={filters.sort}
           onChange={(e) => handleFilterChange({ sort: e.target.value })}
-          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition-all"
+          className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand transition"
         >
           <option value="newest">Newest First</option>
           <option value="price-asc">Price: Low to High</option>
@@ -501,7 +501,7 @@ export default function FilterSidebar() {
           <SlidersHorizontal className="w-4 h-4" />
           Filters
           {hasActiveFilters && (
-            <span className="w-5 h-5 bg-brand text-white text-xs rounded-full flex items-center justify-center">
+            <span className="min-w-5 h-5 px-1 bg-brand text-white text-xs rounded-full flex items-center justify-center">
               {Object.values(filters).filter(v => v && v !== 'newest').length}
             </span>
           )}
@@ -528,9 +528,9 @@ export default function FilterSidebar() {
             >
               <div className="sticky top-0 bg-white border-b border-slate-100 px-5 py-4 flex items-center justify-between">
                 <h2 className="font-semibold text-lg text-slate-900">Filter</h2>
-                <button
+                <button aria-label="Close filters"
                   onClick={() => setMobileFiltersOpen(false)}
-                  className="p-1.5 hover:bg-slate-100 rounded-md transition-colors"
+                  className="inline-flex min-h-11 min-w-11 items-center justify-center hover:bg-slate-100 rounded-md transition-colors"
                 >
                   <X className="w-5 h-5 text-slate-500" />
                 </button>

@@ -133,7 +133,7 @@ export default function AddressesPage() {
             onClick={openAddForm}
             className="bg-brand hover:bg-brand/90 text-white font-semibold"
           >
-            <svg
+            <svg aria-hidden="true"
               className="w-4 h-4 mr-2"
               fill="none"
               stroke="currentColor"
@@ -177,7 +177,7 @@ export default function AddressesPage() {
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name *</Label>
                 <Input
-                  id="name"
+                  id="name" autoComplete="name"
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                   placeholder="Full name"
@@ -187,7 +187,7 @@ export default function AddressesPage() {
             <div className="space-y-2">
               <Label htmlFor="street">Street Address *</Label>
               <Input
-                id="street"
+                id="street" autoComplete="street-address"
                 value={form.street}
                 onChange={(e) => setForm({ ...form, street: e.target.value })}
                 placeholder="123 Main Street, Apt 4B"
@@ -197,7 +197,7 @@ export default function AddressesPage() {
               <div className="space-y-2">
                 <Label htmlFor="city">City *</Label>
                 <Input
-                  id="city"
+                  id="city" autoComplete="address-level2"
                   value={form.city}
                   onChange={(e) => setForm({ ...form, city: e.target.value })}
                   placeholder="Johannesburg"
@@ -206,7 +206,7 @@ export default function AddressesPage() {
               <div className="space-y-2">
                 <Label htmlFor="province">Province *</Label>
                 <Input
-                  id="province"
+                  id="province" autoComplete="address-level1"
                   value={form.province}
                   onChange={(e) =>
                     setForm({ ...form, province: e.target.value })
@@ -219,7 +219,7 @@ export default function AddressesPage() {
               <div className="space-y-2">
                 <Label htmlFor="postalCode">Postal Code *</Label>
                 <Input
-                  id="postalCode"
+                  id="postalCode" autoComplete="postal-code"
                   value={form.postalCode}
                   onChange={(e) =>
                     setForm({ ...form, postalCode: e.target.value })
@@ -230,7 +230,7 @@ export default function AddressesPage() {
               <div className="space-y-2">
                 <Label htmlFor="phone">Phone *</Label>
                 <Input
-                  id="phone"
+                  id="phone" autoComplete="tel"
                   type="tel"
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
@@ -241,7 +241,7 @@ export default function AddressesPage() {
             <div className="space-y-2">
               <Label htmlFor="country">Country</Label>
               <Input
-                id="country"
+                id="country" autoComplete="country-name"
                 value={form.country}
                 onChange={(e) => setForm({ ...form, country: e.target.value })}
               />
@@ -297,7 +297,7 @@ export default function AddressesPage() {
       ) : addresses.length === 0 && !showForm ? (
         <Card className="card-shadow">
           <CardContent className="flex flex-col items-center justify-center py-12">
-            <svg
+            <svg aria-hidden="true"
               className="h-16 w-16 text-muted-foreground/40"
               fill="none"
               stroke="currentColor"
@@ -345,13 +345,13 @@ export default function AddressesPage() {
                   )}
                 </div>
                 <div className="flex gap-1">
-                  <Button
+                  <Button aria-label="Edit address"
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8"
+                    className="h-11 w-11 md:h-8 md:w-8"
                     onClick={() => openEditForm(address)}
                   >
-                    <svg
+                    <svg aria-hidden="true"
                       className="w-4 h-4"
                       fill="none"
                       stroke="currentColor"
@@ -365,13 +365,13 @@ export default function AddressesPage() {
                       />
                     </svg>
                   </Button>
-                  <Button
+                  <Button aria-label="Delete address"
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-destructive"
+                    className="h-11 w-11 md:h-8 md:w-8 text-destructive"
                     onClick={() => handleDelete(address._id)}
                   >
-                    <svg
+                    <svg aria-hidden="true"
                       className="w-4 h-4"
                       fill="none"
                       stroke="currentColor"
@@ -423,7 +423,7 @@ export default function AddressesPage() {
             >
               <CardContent className="flex flex-col items-center justify-center h-full min-h-[200px] py-8">
                 <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
-                  <svg
+                  <svg aria-hidden="true"
                     className="w-6 h-6 text-muted-foreground"
                     fill="none"
                     stroke="currentColor"

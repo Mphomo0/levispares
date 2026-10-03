@@ -50,12 +50,12 @@ export default function ProductCard({ product }: ProductCardProps) {
 
       <button
         onClick={handleToggleFavorite}
-        className="absolute top-4 right-4 p-2.5 bg-white/90 backdrop-blur-md rounded-xl shadow-lg hover:bg-white hover:scale-110 transition-all z-10"
+        className="absolute top-4 right-4 p-2.5 bg-white/90 backdrop-blur-md rounded-xl shadow-lg hover:bg-white hover:scale-110 transition z-10"
         aria-label={favorited ? 'Remove from favorites' : 'Add to favorites'}
       >
-        <svg
-          className={`w-5 h-5 transition-all ${
-            favorited ? 'text-red-500 fill-red-500 scale-110' : 'text-slate-400 hover:text-red-400'
+        <svg aria-hidden="true"
+          className={`w-5 h-5 transition ${
+            favorited ? 'text-red-500 fill-red-500 scale-110' : 'text-slate-500 hover:text-red-500'
           }`}
           fill={favorited ? 'currentColor' : 'none'}
           stroke="currentColor"
@@ -72,10 +72,10 @@ export default function ProductCard({ product }: ProductCardProps) {
 
       <div className="p-5 space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-bold text-accent uppercase tracking-widest bg-accent/5 px-2 py-1 rounded-md">
+          <span className="text-xs font-bold text-accent uppercase tracking-widest bg-accent/5 px-2 py-1 rounded-md">
             {product.category}
           </span>
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+          <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">
             {product.sku?.split('-')[0]}
           </span>
         </div>
@@ -113,9 +113,9 @@ export default function ProductCard({ product }: ProductCardProps) {
                 toast.error('No more stock available', { description: product.name });
               }
             }}
-            className="p-3 bg-accent text-white rounded-xl shadow-lg shadow-accent/20 hover:brightness-110 hover:scale-110 active:scale-95 transition-all disabled:opacity-40 disabled:hover:scale-100 disabled:hover:brightness-100 disabled:cursor-not-allowed"
+            className="p-3 bg-accent text-white rounded-xl shadow-lg shadow-accent/20 hover:brightness-110 hover:scale-110 active:scale-95 transition disabled:opacity-40 disabled:hover:scale-100 disabled:hover:brightness-100 disabled:cursor-not-allowed"
           >
-            <svg
+            <svg aria-hidden="true"
               className="w-5 h-5"
               fill="none"
               stroke="currentColor"
