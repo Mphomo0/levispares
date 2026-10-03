@@ -117,8 +117,9 @@ export default function ProductForm({ initialData, isEditing }: ProductFormProps
   const updateWithRelations = useMutation(api.products.updateWithRelations)
 
   // Load the initial images from initialData. Adjusting state during render
-  // (rather than in an effect) avoids an extra cascading render.
-  const [prevInitialDataForImages, setPrevInitialDataForImages] = useState(initialData)
+  // (rather than in an effect) avoids an extra cascading render. The tracker
+  // starts as undefined so the first render with initialData also loads them.
+  const [prevInitialDataForImages, setPrevInitialDataForImages] = useState<typeof initialData>(undefined)
   if (initialData !== prevInitialDataForImages) {
     setPrevInitialDataForImages(initialData)
 
