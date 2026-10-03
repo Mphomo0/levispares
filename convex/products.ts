@@ -88,60 +88,32 @@ export const list = query({
 
 export const listAdmin = query({
   args: {
-    paginationOpts: paginationOptsValidator,
     search: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const query = ctx.db.query("products").order("desc");
-    
+    let products = await ctx.db.query("products").order("desc").collect();
+
     if (args.search) {
       const searchLower = args.search.toLowerCase();
-      const allProducts = await ctx.db.query("products").collect();
-      const filteredProducts = allProducts.filter((p) =>
+      products = products.filter((p) =>
         p.name.toLowerCase().includes(searchLower) ||
         p.sku?.toLowerCase().includes(searchLower) ||
         p.partNumber?.toLowerCase().includes(searchLower) ||
         p.description?.toLowerCase().includes(searchLower)
       );
-      
-      const enriched = await Promise.all(
-        filteredProducts.map(async (product) => {
-          const category = await ctx.db.get(product.categoryId);
-          return {
-            ...product,
-            inventory: product.stockQty ?? 0,
-            category: category?.name ?? 'Uncategorized',
-          };
-        })
-      );
-      
-      const start = (args.paginationOpts.numItems * (args.paginationOpts.cursor ? 1 : 0));
-      const paginated = enriched.slice(start, start + args.paginationOpts.numItems);
-      
-      return {
-        page: paginated,
-        continueCursor: enriched.length > start + args.paginationOpts.numItems ? `cursor-${start + args.paginationOpts.numItems}` : undefined,
-        count: enriched.length,
-      };
     }
-    
-    const products = await query.paginate(args.paginationOpts);
 
-    const enriched = await Promise.all(
-      products.page.map(async (product) => {
-        const category = await ctx.db.get(product.categoryId);
-        return {
-          ...product,
-          inventory: product.stockQty ?? 0,
-          category: category?.name ?? 'Uncategorized',
-        };
-      })
-    );
+    const categoryNames = new Map<string, string>();
+    for (const categoryId of new Set(products.map((p) => p.categoryId))) {
+      const category = await ctx.db.get(categoryId);
+      categoryNames.set(categoryId, category?.name ?? 'Uncategorized');
+    }
 
-    return {
-      ...products,
-      page: enriched,
-    };
+    return products.map((product) => ({
+      ...product,
+      inventory: product.stockQty ?? 0,
+      category: categoryNames.get(product.categoryId) ?? 'Uncategorized',
+    }));
   },
 });
 

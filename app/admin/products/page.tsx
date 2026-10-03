@@ -67,7 +67,6 @@ export default function AdminProductsPage() {
   const mounted = useMounted()
 
   const productsResult = useQuery(api.products.listAdmin, {
-    paginationOpts: { numItems: 50, cursor: null },
     search: debouncedSearch || undefined
   })
   const categoriesDocs = useQuery(api.categories.list, {})
@@ -92,7 +91,7 @@ export default function AdminProductsPage() {
   const statuses = ['All', 'Active', 'Low Stock', 'Out of Stock']
 
   const filteredProducts = useMemo(() => {
-    const allProducts = productsResult?.page || []
+    const allProducts = productsResult || []
     return allProducts.filter((product) => {
       const status = product.inventory === 0 ? 'Out of Stock' : product.inventory < 10 ? 'Low Stock' : 'Active'
       const matchesStatus = statusFilter === 'All' || status === statusFilter
