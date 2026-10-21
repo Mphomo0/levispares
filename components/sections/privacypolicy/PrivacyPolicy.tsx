@@ -90,6 +90,11 @@ export default function PrivacyPolicy() {
           <li>Process payments securely</li>
           <li>Improve our website and services</li>
           <li>Send promotional emails (with your consent)</li>
+          <li>
+            If you are signed in, save your cart and send you a reminder email
+            when you leave items in it. You can turn these reminders off at any
+            time from the link in the email or in your account settings
+          </li>
           <li>Comply with legal obligations</li>
           <li>Prevent fraud and ensure security</li>
         </ul>
@@ -104,7 +109,7 @@ export default function PrivacyPolicy() {
           <ul className="list-disc pl-6 space-y-2">
             <li>
               <strong>Service Providers:</strong> Shipping companies, payment
-              processors, and IT service providers who assist in our operations
+              processors, email delivery providers, and IT service providers who assist in our operations
             </li>
             <li>
               <strong>Vehicle Compatibility:</strong> Information may be shared

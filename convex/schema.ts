@@ -104,6 +104,8 @@ export default defineSchema({
     name: v.optional(v.string()),
     role: v.string(),
     isActive: v.optional(v.boolean()),
+    // True when the customer has asked not to get cart reminder emails.
+    cartRemindersOff: v.optional(v.boolean()),
   })
     .index("by_clerkId", ["clerkId"]),
 
@@ -174,6 +176,27 @@ export default defineSchema({
   })
     .index("by_orderId", ["orderId"])
     .index("by_productId", ["productId"]),
+
+  // A signed-in customer's cart, kept in step with the browser so a reminder
+  // email can be sent when it is left behind.
+  carts: defineTable({
+    userId: v.id("users"),
+    items: v.array(v.object({
+      productId: v.id("products"),
+      quantity: v.number(),
+    })),
+    // When the items last changed.
+    updatedAt: v.number(),
+    // Unguessable key for the "return to your cart" and unsubscribe links.
+    token: v.string(),
+    // When the last reminder email was sent for this cart.
+    remindedAt: v.optional(v.number()),
+    // When an order was paid after a reminder was sent.
+    recoveredAt: v.optional(v.number()),
+  })
+    .index("by_userId", ["userId"])
+    .index("by_token", ["token"])
+    .index("by_updatedAt", ["updatedAt"]),
 
   // Wishlist tables
   wishlists: defineTable({

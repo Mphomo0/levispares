@@ -8,6 +8,9 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { deleteAccount } from '@/app/account/actions'
 import { getErrorMessage } from '@/lib/errors'
+import { useMutation, useQuery } from 'convex/react'
+import { api } from '@/convex/_generated/api'
+import { Checkbox } from '@/components/ui/checkbox'
 
 export default function SettingsPage() {
   const { signOut } = useClerk()
@@ -15,6 +18,17 @@ export default function SettingsPage() {
   const [showConfirm, setShowConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [confirmText, setConfirmText] = useState('')
+  const user = useQuery(api.users.getCurrent)
+  const setReminders = useMutation(api.carts.setReminders)
+
+  const handleRemindersChange = async (enabled: boolean) => {
+    try {
+      await setReminders({ enabled })
+      toast.success(enabled ? 'Cart reminders turned on' : 'Cart reminders turned off')
+    } catch (err) {
+      toast.error(getErrorMessage(err, 'Could not update your email settings.'))
+    }
+  }
 
   const handleDeleteAccount = async () => {
     setDeleting(true)
@@ -36,6 +50,29 @@ export default function SettingsPage() {
         <h2 className="text-2xl font-bold tracking-tight">Account Settings</h2>
         <p className="text-muted-foreground">Manage your account preferences.</p>
       </div>
+
+      <Card className="card-shadow">
+        <CardHeader>
+          <CardTitle>Email</CardTitle>
+          <CardDescription>Choose which emails we send you.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <label className="flex items-start gap-3 cursor-pointer">
+            <Checkbox
+              className="mt-0.5"
+              checked={!user?.cartRemindersOff}
+              disabled={!user}
+              onCheckedChange={(checked) => handleRemindersChange(checked === true)}
+            />
+            <span>
+              <span className="block font-medium">Cart reminders</span>
+              <span className="block text-sm text-muted-foreground">
+                Email me if I leave items in my cart.
+              </span>
+            </span>
+          </label>
+        </CardContent>
+      </Card>
 
       <Card className="card-shadow border-red-200 dark:border-red-900/50">
         <CardHeader>

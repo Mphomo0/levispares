@@ -1,6 +1,7 @@
 import { v, ConvexError } from "convex/values";
 import { internalQuery, mutation, query } from "./_generated/server";
 import { isAdmin, requireAdmin } from "./lib/auth";
+import { deleteCart } from "./carts";
 
 /**
  * Insert or update the user information from Clerk.
@@ -183,6 +184,8 @@ export const deleteMyData = mutation({
       .collect();
     for (const review of reviews) await ctx.db.delete(review._id);
 
+    await deleteCart(ctx, user._id);
+
     await ctx.db.patch(user._id, {
       name: "Deleted customer",
       email: `deleted-${user._id}@deleted.invalid`,
@@ -203,6 +206,7 @@ export const deleteById = mutation({
       throw new ConvexError("You cannot delete your own user record.");
     }
 
+    await deleteCart(ctx, args.id);
     await ctx.db.delete(args.id);
   },
 });

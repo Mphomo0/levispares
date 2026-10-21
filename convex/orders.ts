@@ -2,6 +2,7 @@ import { v, ConvexError } from "convex/values";
 import { mutation, query, QueryCtx, MutationCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { isAdmin, requireAdmin } from "./lib/auth";
+import { clearCartAfterPayment } from "./carts";
 
 // Stock is held back for an order from the moment it is paid until it is
 // cancelled (or moved back to pending).
@@ -399,6 +400,7 @@ export const markPaid = mutation({
       paypalOrderId: args.paypalOrderId,
       stockDeducted: true,
     });
+    await clearCartAfterPayment(ctx, order.userId);
   },
 });
 
