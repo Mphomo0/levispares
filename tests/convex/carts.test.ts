@@ -102,14 +102,14 @@ describe('cartReminders.sendDue', () => {
   afterEach(() => {
     vi.unstubAllGlobals()
     delete process.env.RESEND_API_KEY
-    delete process.env.CART_EMAIL_FROM
+    delete process.env.EMAIL_FROM
   })
 
   it('emails each due cart through Resend and records the reminder', async () => {
     const t = setup()
     const s = await seed(t)
     process.env.RESEND_API_KEY = 're_test'
-    process.env.CART_EMAIL_FROM = 'Shop <shop@example.com>'
+    process.env.EMAIL_FROM = 'Shop <shop@example.com>'
     const fetchMock = vi.fn(async () => new Response('{"id":"1"}', { status: 200 }))
     vi.stubGlobal('fetch', fetchMock)
 
@@ -133,7 +133,7 @@ describe('cartReminders.sendDue', () => {
     const t = setup()
     const s = await seed(t)
     process.env.RESEND_API_KEY = 're_test'
-    process.env.CART_EMAIL_FROM = 'Shop <shop@example.com>'
+    process.env.EMAIL_FROM = 'Shop <shop@example.com>'
     vi.stubGlobal('fetch', vi.fn(async () => new Response('bad', { status: 422 })))
     vi.spyOn(console, 'error').mockImplementation(() => {})
 

@@ -127,7 +127,11 @@ export default defineSchema({
 
   // Order tables
   orders: defineTable({
-    userId: v.id("users"),
+    // Unset for guest orders, which carry guestEmail and guestToken instead.
+    userId: v.optional(v.id("users")),
+    guestEmail: v.optional(v.string()),
+    // Unguessable key that lets a guest pay for and view their own order.
+    guestToken: v.optional(v.string()),
     shippingAddressId: v.optional(v.id("addresses")),
     billingAddressId: v.optional(v.id("addresses")),
     status: v.union(
@@ -143,6 +147,9 @@ export default defineSchema({
     tax: v.number(),
     discount: v.optional(v.number()),
     total: v.number(),
+    // The promo code the discount came from, as entered at checkout.
+    promotionId: v.optional(v.id("promotions")),
+    promoCode: v.optional(v.string()),
     paypalOrderId: v.optional(v.string()),
     notes: v.optional(v.string()),
     // True while this order's items are deducted from product stock.

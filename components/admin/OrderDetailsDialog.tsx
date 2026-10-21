@@ -28,7 +28,7 @@ export default function OrderDetailsDialog({
   const order = useQuery(api.orders.getAdminDetail, orderId ? { id: orderId } : 'skip')
   const charged = order
     ? toPayPalAmounts(
-        { items: order.items, shipping: order.shipping, tax: order.tax, exchangeRate: order.exchangeRate },
+        { items: order.items, shipping: order.shipping, tax: order.tax, discount: order.discount, exchangeRate: order.exchangeRate },
         PAYPAL_CURRENCY,
       )
     : null
@@ -108,6 +108,9 @@ export default function OrderDetailsDialog({
 
             <section className="space-y-1">
               <div className="flex justify-between"><span>Subtotal</span><span>{money(order.subtotal)}</span></div>
+              {(order.discount ?? 0) > 0 && (
+                <div className="flex justify-between"><span>Discount{order.promoCode ? ` (${order.promoCode})` : ''}</span><span>-{money(order.discount ?? 0)}</span></div>
+              )}
               <div className="flex justify-between"><span>Shipping</span><span>{money(order.shipping)}</span></div>
               {order.tax > 0 && <div className="flex justify-between"><span>Tax</span><span>{money(order.tax)}</span></div>}
               <div className="flex justify-between font-bold border-t pt-1"><span>Total</span><span>{money(order.total)}</span></div>

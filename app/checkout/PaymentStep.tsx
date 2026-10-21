@@ -9,12 +9,14 @@ const PAYPAL_CURRENCY = process.env.NEXT_PUBLIC_PAYPAL_CURRENCY || 'USD'
 
 interface PaymentStepProps {
   convexOrderId: string
+  /** Set for guest checkouts: proves the order is theirs to the payment routes. */
+  guestToken?: string
   payment: PaymentInfo | null
   onSuccess: () => void
   onBack: () => void
 }
 
-export default function PaymentStep({ convexOrderId, payment, onSuccess, onBack }: PaymentStepProps) {
+export default function PaymentStep({ convexOrderId, guestToken, payment, onSuccess, onBack }: PaymentStepProps) {
   const clientId = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID!
   const currency = PAYPAL_CURRENCY
 
@@ -81,7 +83,7 @@ export default function PaymentStep({ convexOrderId, payment, onSuccess, onBack 
               const response = await fetch('/api/paypal/create-order', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ convexOrderId }),
+                body: JSON.stringify({ convexOrderId, guestToken }),
               })
               const data = await response.json()
               if (!response.ok) throw new Error(data.error)
@@ -94,6 +96,7 @@ export default function PaymentStep({ convexOrderId, payment, onSuccess, onBack 
                 body: JSON.stringify({
                   paypalOrderId: data.orderID,
                   convexOrderId,
+                  guestToken,
                 }),
               })
               const result = await response.json()

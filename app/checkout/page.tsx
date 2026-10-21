@@ -58,6 +58,12 @@ const addressSchema = z.object({
 
 type AddressFormData = z.infer<typeof addressSchema>
 
+const guestSchema = addressSchema.omit({ label: true }).extend({
+  email: z.string().trim().email('Enter a valid email address'),
+})
+
+type GuestFormData = z.infer<typeof guestSchema>
+
 const defaultAddressValues: AddressFormData = {
   label: 'Home',
   name: '',
@@ -76,6 +82,7 @@ export default function CheckoutPage() {
   const addresses = useQuery(api.addresses.listByUser)
   const addAddress = useMutation(api.addresses.add)
   const createOrder = useMutation(api.orders.create)
+  const createGuestOrder = useMutation(api.orders.createGuest)
   const storeSettings = useQuery(api.settings.get)
 const taxEnabled = storeSettings?.taxEnabled ?? false
 const taxRatePercent = storeSettings?.taxRate ?? 0
@@ -88,10 +95,22 @@ const [currentStep, setCurrentStep] = useState<Step>('Address')
   const [convexOrderId, setConvexOrderId] = useState<string | null>(null)
   const [payment, setPayment] = useState<PaymentInfo | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
+  // Checking out without an account: their details, and the order and token
+  // once it is created (so going back and forth reuses the same order).
+  const [isGuest, setIsGuest] = useState(false)
+  const [guestDetails, setGuestDetails] = useState<GuestFormData | null>(null)
+  const [guestOrder, setGuestOrder] = useState<{ id: Id<'orders'>; token: string } | null>(null)
+
+  const [appliedCode, setAppliedCode] = useState<string | null>(null)
+  const promoCheck = useQuery(
+    api.promotions.check,
+    appliedCode ? { code: appliedCode, subtotal: totalPrice } : 'skip',
+  )
+  const discount = promoCheck?.ok ? promoCheck.discount : 0
 
 const shipping = shippingRateSetting
-const tax = taxEnabled ? totalPrice * (taxRatePercent / 100) : 0
-  const grandTotal = totalPrice + shipping + tax
+const tax = taxEnabled ? (totalPrice - discount) * (taxRatePercent / 100) : 0
+  const grandTotal = totalPrice - discount + shipping + tax
 
   // Redirect if cart is empty
   useEffect(() => {
@@ -144,18 +163,40 @@ const tax = taxEnabled ? totalPrice * (taxRatePercent / 100) : 0
     setCurrentStep('Review')
   }
 
+  const handleGuestDetails = (data: GuestFormData) => {
+    setGuestDetails(data)
+    setCurrentStep('Review')
+  }
+
   const handleContinueToPayment = async () => {
-    if (!user?.id || !selectedAddress) return
+    if (isGuest ? !guestDetails : !user?.id || !selectedAddress) return
     setIsProcessing(true)
     try {
       // Send only what was chosen: the server prices the order itself.
-      const created = await createOrder({
-        items: items.map((item) => ({
-          productId: item._id as Id<'products'>,
-          quantity: item.quantity,
-        })),
-        shippingAddressId: selectedAddress._id as Id<'addresses'>,
-      })
+      const cartItems = items.map((item) => ({
+        productId: item._id as Id<'products'>,
+        quantity: item.quantity,
+      }))
+      const promoCode = promoCheck?.ok ? promoCheck.code : undefined
+      let created
+      if (isGuest && guestDetails) {
+        const { email, ...address } = guestDetails
+        const guestCreated = await createGuestOrder({
+          items: cartItems,
+          email,
+          address,
+          promoCode,
+          previous: guestOrder ?? undefined,
+        })
+        setGuestOrder({ id: guestCreated.orderId, token: guestCreated.guestToken })
+        created = guestCreated
+      } else {
+        created = await createOrder({
+          items: cartItems,
+          shippingAddressId: selectedAddress!._id as Id<'addresses'>,
+          promoCode,
+        })
+      }
       if (Math.abs(created.total - grandTotal) >= 0.01) {
         toast.warning(
           `Prices have been updated. Your order total is ${formatPrice(created.total)}.`,
@@ -170,6 +211,7 @@ const tax = taxEnabled ? totalPrice * (taxRatePercent / 100) : 0
             items: created.items,
             shipping: created.shipping,
             tax: created.tax,
+            discount: created.discount,
             exchangeRate: created.exchangeRate,
           },
           PAYPAL_CURRENCY,
@@ -193,7 +235,7 @@ const tax = taxEnabled ? totalPrice * (taxRatePercent / 100) : 0
     )
   }
 
-  if (!user) {
+  if (!user && !isGuest) {
     return (
       <>
         <div className="hero-gradient text-primary-foreground py-12 md:py-16">
@@ -202,7 +244,7 @@ const tax = taxEnabled ? totalPrice * (taxRatePercent / 100) : 0
               CHECKOUT
             </h1>
             <p className="text-primary-foreground/70">
-              Sign in to complete your order
+              Sign in or check out as a guest
             </p>
           </div>
         </div>
@@ -213,9 +255,10 @@ const tax = taxEnabled ? totalPrice * (taxRatePercent / 100) : 0
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
             </div>
-            <h2 className="text-xl font-bold text-foreground mb-2">Sign in to checkout</h2>
+            <h2 className="text-xl font-bold text-foreground mb-2">How would you like to check out?</h2>
             <p className="text-muted-foreground mb-6">
-              Please sign in or create an account to complete your purchase.
+              Sign in to use your saved addresses and see your orders later, or
+              check out as a guest.
             </p>
             <div className="flex flex-col gap-3">
               <SignInButton mode="modal" forceRedirectUrl="/checkout">
@@ -228,6 +271,17 @@ const tax = taxEnabled ? totalPrice * (taxRatePercent / 100) : 0
                   Create Account
                 </button>
               </SignUpButton>
+              <div className="flex items-center gap-3 my-1 text-xs text-muted-foreground">
+                <span className="h-px flex-1 bg-border" />
+                or
+                <span className="h-px flex-1 bg-border" />
+              </div>
+              <button
+                onClick={() => setIsGuest(true)}
+                className="w-full border border-border text-foreground px-6 py-3 rounded-lg font-medium transition hover:bg-secondary"
+              >
+                Continue as Guest
+              </button>
             </div>
             <Link href="/cart" className="block mt-6 text-sm text-muted-foreground hover:text-accent transition-colors">
               &larr; Back to Cart
@@ -310,7 +364,14 @@ const tax = taxEnabled ? totalPrice * (taxRatePercent / 100) : 0
           {/* Main Content */}
           <div className="lg:col-span-2">
             <AnimatePresence mode="wait">
-              {currentStep === 'Address' && (
+              {currentStep === 'Address' && isGuest && (
+                <GuestDetailsStep
+                  key="guest"
+                  defaultValues={guestDetails}
+                  onContinue={handleGuestDetails}
+                />
+              )}
+              {currentStep === 'Address' && !isGuest && (
                 <AddressStep
                   key="address"
                   addresses={addresses ?? []}
@@ -327,7 +388,10 @@ const tax = taxEnabled ? totalPrice * (taxRatePercent / 100) : 0
                 <ReviewStep
                   key="review"
                   items={items}
-                  selectedAddress={selectedAddress!}
+                  selectedAddress={isGuest ? guestDetails! : selectedAddress!}
+                  email={isGuest ? guestDetails?.email : undefined}
+                  discount={discount}
+                  promoCode={promoCheck?.ok ? promoCheck.code : undefined}
                   shipping={shipping}
                   tax={tax}
                   taxEnabled={taxEnabled}
@@ -343,10 +407,12 @@ const tax = taxEnabled ? totalPrice * (taxRatePercent / 100) : 0
                 <PaymentStep
                   key="payment"
                   convexOrderId={convexOrderId!}
+                  guestToken={isGuest ? guestOrder?.token : undefined}
                   payment={payment}
                   onSuccess={() => {
                     clearCart()
-                    router.push(`/checkout/success?orderId=${convexOrderId}`)
+                    const token = isGuest && guestOrder ? `&token=${encodeURIComponent(guestOrder.token)}` : ''
+                    router.push(`/checkout/success?orderId=${convexOrderId}${token}`)
                   }}
                   onBack={() => setCurrentStep('Review')}
                 />
@@ -356,7 +422,15 @@ const tax = taxEnabled ? totalPrice * (taxRatePercent / 100) : 0
 
           {/* Order Summary Sidebar */}
           <div className="lg:col-span-1">
-            <OrderSidebar items={items} totalPrice={totalPrice} shipping={shipping} tax={tax} taxEnabled={taxEnabled} taxRatePercent={taxRatePercent} grandTotal={grandTotal} />
+            <OrderSidebar items={items} totalPrice={totalPrice} discount={discount} shipping={shipping} tax={tax} taxEnabled={taxEnabled} taxRatePercent={taxRatePercent} grandTotal={grandTotal}>
+              <PromoCodeBox
+                appliedCode={appliedCode}
+                check={promoCheck}
+                locked={currentStep === 'Payment'}
+                onApply={setAppliedCode}
+                onRemove={() => setAppliedCode(null)}
+              />
+            </OrderSidebar>
           </div>
         </div>
       </div>
@@ -601,6 +675,10 @@ interface ReviewStepProps {
     country: string
     phone?: string
   }
+  /** Shown for guest checkouts, where the order confirmation will be sent. */
+  email?: string
+  discount: number
+  promoCode?: string
   shipping: number
   tax: number
   taxEnabled: boolean
@@ -615,6 +693,9 @@ interface ReviewStepProps {
 function ReviewStep({
   items,
   selectedAddress,
+  email,
+  discount,
+  promoCode,
   shipping,
   tax,
   taxEnabled,
@@ -649,6 +730,11 @@ function ReviewStep({
           {selectedAddress.city}, {selectedAddress.province} {selectedAddress.postalCode}
         </p>
         <p className="text-sm text-muted-foreground">{selectedAddress.phone}</p>
+        {email && (
+          <p className="text-sm text-muted-foreground mt-2">
+            Order updates go to <span className="text-foreground">{email}</span>
+          </p>
+        )}
       </div>
 
       {/* Items */}
@@ -684,6 +770,12 @@ function ReviewStep({
             <span>Subtotal</span>
             <span>{formatPrice(totalPrice)}</span>
           </div>
+          {discount > 0 && (
+            <div className="flex justify-between text-green-700">
+              <span>Discount{promoCode ? ` (${promoCode})` : ''}</span>
+              <span>-{formatPrice(discount)}</span>
+            </div>
+          )}
           <div className="flex justify-between text-muted-foreground">
             <span>Shipping</span>
             <span>{shipping === 0 ? 'Free' : `${formatPrice(shipping)}`}</span>
@@ -742,6 +834,8 @@ function ReviewStep({
 interface OrderSidebarProps {
   items: Array<{ _id: string; name: string; price: number; quantity: number; image?: string }>
   totalPrice: number
+  discount: number
+  children?: React.ReactNode
   shipping: number
   tax: number
   taxEnabled: boolean
@@ -749,7 +843,7 @@ interface OrderSidebarProps {
   grandTotal: number
 }
 
-function OrderSidebar({ items, totalPrice, shipping, tax, taxEnabled, taxRatePercent, grandTotal }: OrderSidebarProps) {
+function OrderSidebar({ items, totalPrice, discount, shipping, tax, taxEnabled, taxRatePercent, grandTotal, children }: OrderSidebarProps) {
   return (
     <motion.div
       initial={{ opacity: 0, x: 20 }}
@@ -776,11 +870,19 @@ function OrderSidebar({ items, totalPrice, shipping, tax, taxEnabled, taxRatePer
         ))}
       </div>
 
+      {children}
+
       <div className="border-t border-border pt-4 space-y-2">
         <div className="flex justify-between text-sm text-muted-foreground">
           <span>Subtotal</span>
           <span>{formatPrice(totalPrice)}</span>
         </div>
+        {discount > 0 && (
+          <div className="flex justify-between text-sm text-green-700">
+            <span>Discount</span>
+            <span>-{formatPrice(discount)}</span>
+          </div>
+        )}
         <div className="flex justify-between text-sm text-muted-foreground">
           <span>Shipping</span>
           <span>{shipping === 0 ? 'Free' : `${formatPrice(shipping)}`}</span>
@@ -802,6 +904,154 @@ function OrderSidebar({ items, totalPrice, shipping, tax, taxEnabled, taxRatePer
 <Link href="/cart" className="block mt-4 text-center text-sm text-accent hover:underline">
         ← Edit Cart
       </Link>
+    </motion.div>
+  )
+}
+
+/* ─── Promo Code ─── */
+interface PromoCodeBoxProps {
+  appliedCode: string | null
+  check: { ok: true; code: string; name: string; discount: number } | { ok: false; message: string } | undefined
+  /** No changes once the order has been created for payment. */
+  locked: boolean
+  onApply: (code: string) => void
+  onRemove: () => void
+}
+
+function PromoCodeBox({ appliedCode, check, locked, onApply, onRemove }: PromoCodeBoxProps) {
+  const [code, setCode] = useState('')
+
+  if (appliedCode && check?.ok) {
+    return (
+      <div className="border-t border-border pt-4 mb-4 flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-sm font-medium text-foreground">
+            Code <span className="font-mono">{check.code}</span> applied
+          </p>
+          <p className="text-xs text-muted-foreground truncate">{check.name}</p>
+        </div>
+        {!locked && (
+          <button onClick={onRemove} className="text-sm text-accent hover:underline shrink-0">
+            Remove
+          </button>
+        )}
+      </div>
+    )
+  }
+  if (locked) return null
+
+  return (
+    <form
+      className="border-t border-border pt-4 mb-4"
+      onSubmit={(e) => {
+        e.preventDefault()
+        if (code.trim()) onApply(code.trim())
+      }}
+    >
+      <label htmlFor="promo-code" className="block text-sm font-medium text-foreground mb-1">Promo code</label>
+      <div className="flex gap-2">
+        <input
+          id="promo-code"
+          name="promoCode"
+          autoComplete="off"
+          spellCheck={false}
+          value={code}
+          onChange={(e) => {
+            setCode(e.target.value)
+            if (appliedCode) onRemove()
+          }}
+          placeholder="Enter code"
+          className="input-styled flex-1 min-w-0 uppercase"
+        />
+        <button
+          type="submit"
+          disabled={!code.trim() || (appliedCode !== null && check === undefined)}
+          className="px-4 rounded-lg border border-accent text-accent font-medium hover:bg-accent/5 transition disabled:opacity-50"
+        >
+          Apply
+        </button>
+      </div>
+      {appliedCode && check && !check.ok && (
+        <p role="alert" className="text-xs text-red-600 mt-1">{check.message}</p>
+      )}
+    </form>
+  )
+}
+
+/* ─── Guest Details Step ─── */
+function GuestDetailsStep({
+  defaultValues,
+  onContinue,
+}: {
+  defaultValues: GuestFormData | null
+  onContinue: (data: GuestFormData) => void
+}) {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<GuestFormData>({
+    resolver: zodResolver(guestSchema),
+    defaultValues: defaultValues ?? { ...defaultAddressValues, email: '' },
+  })
+
+  const field = (
+    name: Exclude<keyof GuestFormData, 'country'>,
+    label: string,
+    props: React.InputHTMLAttributes<HTMLInputElement>,
+  ) => (
+    <div>
+      <label htmlFor={`guest-${name}`} className="block text-sm font-medium text-foreground mb-1">{label} *</label>
+      <input
+        id={`guest-${name}`}
+        {...register(name)}
+        {...props}
+        aria-invalid={errors[name] ? true : undefined}
+        className={`input-styled ${errors[name] ? 'border-red-500 focus:border-red-500' : ''}`}
+      />
+      {errors[name] && <p role="alert" className="text-xs text-red-600 mt-1">{errors[name]?.message}</p>}
+    </div>
+  )
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: -20 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 20 }}
+      transition={{ duration: 0.3 }}
+    >
+      <h2 className="text-2xl font-bold text-foreground mb-2">Your Details</h2>
+      <p className="text-muted-foreground mb-6">
+        We will send your order confirmation and delivery updates to this email.
+      </p>
+      <form onSubmit={handleSubmit(onContinue)} className="bg-card rounded-xl p-6 card-shadow space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {field('email', 'Email', { type: 'email', autoComplete: 'email', placeholder: 'you@example.com', spellCheck: false })}
+          {field('name', 'Full Name', { autoComplete: 'name', placeholder: 'Full name' })}
+        </div>
+        {field('street', 'Street Address', { autoComplete: 'street-address', placeholder: '123 Main Street, Apt 4B' })}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {field('city', 'City', { autoComplete: 'address-level2', placeholder: 'Johannesburg' })}
+          {field('province', 'Province', { autoComplete: 'address-level1', placeholder: 'Gauteng' })}
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {field('postalCode', 'Postal Code', { autoComplete: 'postal-code', placeholder: '2000' })}
+          {field('phone', 'Phone', { type: 'tel', autoComplete: 'tel', placeholder: '+27 12 345 6789' })}
+        </div>
+        <div>
+          <label htmlFor="guest-country" className="block text-sm font-medium text-foreground mb-1">Country</label>
+          <input id="guest-country" autoComplete="country-name" {...register('country')} className="input-styled" />
+        </div>
+        <button
+          type="submit"
+          className="btn-accent text-white flex items-center justify-center gap-2 w-full md:w-auto"
+        >
+          Continue to Review
+          <svg aria-hidden="true" className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+          </svg>
+        </button>
+      </form>
     </motion.div>
   )
 }

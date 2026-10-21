@@ -48,6 +48,7 @@ interface CreatePayPalOrderParams {
   items: CreateOrderItem[]
   shipping: number
   tax: number
+  discount: number
   totalAmount: number
 }
 
@@ -89,6 +90,12 @@ export async function createPayPalOrder(
                 currency_code: PAYPAL_CURRENCY,
                 value: params.tax.toFixed(2),
               },
+              ...(params.discount > 0 && {
+                discount: {
+                  currency_code: PAYPAL_CURRENCY,
+                  value: params.discount.toFixed(2),
+                },
+              }),
             },
           },
           items: params.items.map((item) => ({

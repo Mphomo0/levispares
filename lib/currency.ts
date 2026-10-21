@@ -12,6 +12,8 @@ export interface PayableOrder {
   items: Array<{ name: string; price: number; quantity: number }>
   shipping: number
   tax: number
+  /** Promo code discount off the items, in rand. */
+  discount?: number
   /** Rand per 1 unit of the PayPal currency. Not needed when paying in ZAR. */
   exchangeRate?: number
 }
@@ -20,6 +22,7 @@ export interface PayPalAmounts {
   currency: string
   items: Array<{ name: string; quantity: number; price: number }>
   itemTotal: number
+  discount: number
   shipping: number
   tax: number
   total: number
@@ -41,6 +44,7 @@ export function toPayPalAmounts(order: PayableOrder, currency: string): PayPalAm
   const itemTotalCents = items.reduce((sum, item) => sum + item.priceCents * item.quantity, 0)
   const shippingCents = cents(order.shipping)
   const taxCents = cents(order.tax)
+  const discountCents = Math.min(cents(order.discount ?? 0), itemTotalCents)
 
   return {
     currency,
@@ -50,8 +54,9 @@ export function toPayPalAmounts(order: PayableOrder, currency: string): PayPalAm
       price: item.priceCents / 100,
     })),
     itemTotal: itemTotalCents / 100,
+    discount: discountCents / 100,
     shipping: shippingCents / 100,
     tax: taxCents / 100,
-    total: (itemTotalCents + shippingCents + taxCents) / 100,
+    total: (itemTotalCents - discountCents + shippingCents + taxCents) / 100,
   }
 }

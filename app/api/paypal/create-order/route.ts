@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { createPayPalOrder, PAYPAL_CURRENCY } from "@/lib/paypal";
 import { toPayPalAmounts } from "@/lib/currency";
 import { getConvexAsUser } from "@/lib/serverConvex";
+import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
+
+const convexServer = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 /**
  * Starts a PayPal payment for an order the customer already created. The
@@ -11,19 +14,28 @@ import type { Id } from "@/convex/_generated/dataModel";
  */
 export async function POST(request: NextRequest) {
   try {
-    const convex = await getConvexAsUser();
-    if (!convex) {
-      return NextResponse.json({ error: "Please sign in to pay" }, { status: 401 });
-    }
-
-    const { convexOrderId } = await request.json();
+    const { convexOrderId, guestToken } = await request.json();
     if (typeof convexOrderId !== "string") {
       return NextResponse.json({ error: "Missing convexOrderId" }, { status: 400 });
     }
 
-    const order = await convex.query(api.orders.getOwned, {
-      id: convexOrderId as Id<"orders">,
-    });
+    // Guests prove the order is theirs with the token from checkout;
+    // everyone else must be signed in as the customer who placed it.
+    let order;
+    if (typeof guestToken === "string") {
+      order = await convexServer.query(api.orders.getGuest, {
+        id: convexOrderId as Id<"orders">,
+        token: guestToken,
+      });
+    } else {
+      const convex = await getConvexAsUser();
+      if (!convex) {
+        return NextResponse.json({ error: "Please sign in to pay" }, { status: 401 });
+      }
+      order = await convex.query(api.orders.getOwned, {
+        id: convexOrderId as Id<"orders">,
+      });
+    }
     if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
@@ -45,6 +57,7 @@ export async function POST(request: NextRequest) {
       items: amounts.items,
       shipping: amounts.shipping,
       tax: amounts.tax,
+      discount: amounts.discount,
       totalAmount: amounts.total,
     });
 

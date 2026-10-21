@@ -3,6 +3,8 @@ import { mutation, query, QueryCtx, MutationCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { isAdmin, requireAdmin } from "./lib/auth";
 import { clearCartAfterPayment } from "./carts";
+import { applyPromotion, countPromotionUse } from "./promotions";
+import { internal } from "./_generated/api";
 
 // Stock is held back for an order from the moment it is paid until it is
 // cancelled (or moved back to pending).
@@ -109,12 +111,12 @@ export const listAll = query({
           .query("orderItems")
           .withIndex("by_orderId", (q) => q.eq("orderId", order._id))
           .collect();
-        const customer = await ctx.db.get(order.userId);
+        const customer = order.userId ? await ctx.db.get(order.userId) : null;
         return {
           ...order,
           items,
-          customerName: customer?.name ?? null,
-          customerEmail: customer?.email ?? null,
+          customerName: customer?.name ?? order.shippingSnapshot?.name ?? null,
+          customerEmail: customer?.email ?? order.guestEmail ?? null,
         };
       })
     );
@@ -142,7 +144,7 @@ export const getById = query({
 
     // Only the customer who placed the order (or an admin) may read it.
     const callerId = await getUserIdFromAuth(ctx);
-    if (order.userId !== callerId && !(await isAdmin(ctx))) return null;
+    if ((!order.userId || order.userId !== callerId) && !(await isAdmin(ctx))) return null;
 
     const items = await ctx.db
       .query("orderItems")
@@ -173,13 +175,17 @@ function assertServerSecret(secret: string) {
   }
 }
 
+/** Which email (if any) a customer gets when an admin moves their order from one status to another. */
+function statusEmail(from: string, to: string) {
+  if (from === to) return null;
+  if (to === "paid" && from === "pending") return "confirmation" as const;
+  if (to === "shipped" || to === "delivered") return to;
+  if (to === "cancelled" && from !== "pending") return "cancelled" as const;
+  return null;
+}
+
 const round2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
 
-/**
- * Creates a pending order. The browser only says what it wants (product ids
- * and quantities); names, prices, shipping, tax and the total are all worked
- * out here from the database, so they cannot be tampered with.
- */
 /** Everything an admin needs to fulfil an order: customer, items, delivery details. */
 export const getAdminDetail = query({
   args: { id: v.id("orders") },
@@ -193,7 +199,7 @@ export const getAdminDetail = query({
       .query("orderItems")
       .withIndex("by_orderId", (q) => q.eq("orderId", args.id))
       .collect();
-    const customer = await ctx.db.get(order.userId);
+    const customer = order.userId ? await ctx.db.get(order.userId) : null;
     const shippingAddress = order.shippingSnapshot
       ?? (order.shippingAddressId ? await ctx.db.get(order.shippingAddressId) : null);
 
@@ -202,21 +208,123 @@ export const getAdminDetail = query({
       items,
       customer: customer
         ? { name: customer.name, email: customer.email }
-        : null,
+        : order.guestEmail
+          ? { name: `${order.shippingSnapshot?.name ?? "Guest"} (guest)`, email: order.guestEmail }
+          : null,
       shippingAddress,
     };
   },
 });
 
+const itemsValidator = v.array(v.object({
+  productId: v.id("products"),
+  quantity: v.number(),
+}));
+
+/**
+ * Prices an order. The browser only says what it wants (product ids,
+ * quantities and a promo code); names, prices, discount, shipping, tax and
+ * the total are all worked out here from the database, so they cannot be
+ * tampered with. Tax is charged on the discounted subtotal.
+ */
+async function priceOrder(
+  ctx: QueryCtx,
+  items: Array<{ productId: Id<"products">; quantity: number }>,
+  promoCode: string | undefined,
+) {
+  if (items.length === 0) throw new ConvexError("Your cart is empty");
+
+  // Merge repeated products so stock is checked against the full quantity.
+  const quantities = new Map<Id<"products">, number>();
+  for (const item of items) {
+    if (!Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > MAX_LINE_QUANTITY) {
+      throw new ConvexError("Invalid quantity");
+    }
+    quantities.set(item.productId, (quantities.get(item.productId) ?? 0) + item.quantity);
+  }
+
+  const lines = [];
+  let subtotal = 0;
+  for (const [productId, quantity] of quantities) {
+    const product = await ctx.db.get(productId);
+    if (!product || product.active === false) {
+      throw new ConvexError("A product in your cart is no longer available");
+    }
+    const stock = product.stockQty ?? 0;
+    if (stock < quantity) {
+      throw new ConvexError(`Insufficient stock for "${product.name}". Available: ${stock}, requested: ${quantity}`);
+    }
+
+    const price = round2(product.price);
+    const total = round2(price * quantity);
+    subtotal = round2(subtotal + total);
+    lines.push({
+      productId,
+      name: product.name,
+      partNumber: product.partNumber,
+      sku: product.sku,
+      price,
+      quantity,
+      total,
+    });
+  }
+
+  const promo = promoCode?.trim() ? await applyPromotion(ctx, promoCode, subtotal) : null;
+  const discount = promo?.discount ?? 0;
+
+  const settings = await ctx.db
+    .query("storeSettings")
+    .withIndex("by_key", (q) => q.eq("key", "global"))
+    .first();
+  const shipping = round2(settings?.shippingRate ?? 250);
+  const taxable = round2(subtotal - discount);
+  const tax = settings?.taxEnabled ? round2(taxable * ((settings.taxRate ?? 0) / 100)) : 0;
+  const total = round2(taxable + shipping + tax);
+
+  return {
+    lines,
+    fields: {
+      exchangeRate: settings?.zarPerUsd,
+      subtotal,
+      shipping,
+      tax,
+      discount,
+      total,
+      promotionId: promo?.promotion._id,
+      promoCode: promo?.promotion.code,
+    },
+  };
+}
+
+async function replaceItems(ctx: MutationCtx, orderId: Id<"orders">, lines: Awaited<ReturnType<typeof priceOrder>>["lines"]) {
+  await deleteOrderItems(ctx, orderId);
+  for (const line of lines) {
+    await ctx.db.insert("orderItems", { orderId, ...line });
+  }
+}
+
+function priced(orderId: Id<"orders">, { lines, fields }: Awaited<ReturnType<typeof priceOrder>>) {
+  return {
+    orderId,
+    subtotal: fields.subtotal,
+    discount: fields.discount,
+    promoCode: fields.promoCode,
+    shipping: fields.shipping,
+    tax: fields.tax,
+    total: fields.total,
+    exchangeRate: fields.exchangeRate,
+    items: lines.map((line) => ({ name: line.name, price: line.price, quantity: line.quantity })),
+  };
+}
+
+/** Creates (or refreshes) the signed-in customer's pending order. */
 export const create = mutation({
   args: {
-    items: v.array(v.object({
-      productId: v.id("products"),
-      quantity: v.number(),
-    })),
+    items: itemsValidator,
     shippingAddressId: v.optional(v.id("addresses")),
     billingAddressId: v.optional(v.id("addresses")),
     notes: v.optional(v.string()),
+    promoCode: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const userId = await getUserIdFromAuth(ctx);
@@ -241,48 +349,7 @@ export const create = mutation({
       }
     }
 
-    // Merge repeated products so stock is checked against the full quantity.
-    const quantities = new Map<Id<"products">, number>();
-    for (const item of args.items) {
-      if (!Number.isInteger(item.quantity) || item.quantity < 1 || item.quantity > MAX_LINE_QUANTITY) {
-        throw new ConvexError("Invalid quantity");
-      }
-      quantities.set(item.productId, (quantities.get(item.productId) ?? 0) + item.quantity);
-    }
-
-    const lines = [];
-    let subtotal = 0;
-    for (const [productId, quantity] of quantities) {
-      const product = await ctx.db.get(productId);
-      if (!product || product.active === false) {
-        throw new ConvexError("A product in your cart is no longer available");
-      }
-      const stock = product.stockQty ?? 0;
-      if (stock < quantity) {
-        throw new ConvexError(`Insufficient stock for "${product.name}". Available: ${stock}, requested: ${quantity}`);
-      }
-
-      const price = round2(product.price);
-      const total = round2(price * quantity);
-      subtotal = round2(subtotal + total);
-      lines.push({
-        productId,
-        name: product.name,
-        partNumber: product.partNumber,
-        sku: product.sku,
-        price,
-        quantity,
-        total,
-      });
-    }
-
-    const settings = await ctx.db
-      .query("storeSettings")
-      .withIndex("by_key", (q) => q.eq("key", "global"))
-      .first();
-    const shipping = round2(settings?.shippingRate ?? 250);
-    const tax = settings?.taxEnabled ? round2(subtotal * ((settings.taxRate ?? 0) / 100)) : 0;
-    const total = round2(subtotal + shipping + tax);
+    const pricing = await priceOrder(ctx, args.items, args.promoCode);
 
     // One open checkout per customer: reuse their unpaid order (and clear any
     // older unpaid duplicates) instead of adding another each time they
@@ -303,13 +370,8 @@ export const create = mutation({
     }
 
     const fields = {
+      ...pricing.fields,
       shippingSnapshot,
-      exchangeRate: settings?.zarPerUsd,
-      subtotal,
-      shipping,
-      tax,
-      discount: 0,
-      total,
       shippingAddressId: args.shippingAddressId,
       billingAddressId: args.billingAddressId,
       notes: args.notes,
@@ -318,25 +380,90 @@ export const create = mutation({
     let orderId: Id<"orders">;
     if (reusable) {
       orderId = reusable._id;
-      await deleteOrderItems(ctx, orderId);
       await ctx.db.patch(orderId, fields);
     } else {
       orderId = await ctx.db.insert("orders", { userId, status: "pending", ...fields });
     }
+    await replaceItems(ctx, orderId, pricing.lines);
 
-    for (const line of lines) {
-      await ctx.db.insert("orderItems", { orderId, ...line });
+    return priced(orderId, pricing);
+  },
+});
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+ * Creates a pending order for a customer without an account. The returned
+ * guestToken is what lets them pay for it and see it afterwards. Passing the
+ * previous order and token back refreshes that order instead of adding another.
+ */
+export const createGuest = mutation({
+  args: {
+    items: itemsValidator,
+    email: v.string(),
+    address: v.object({
+      name: v.string(),
+      street: v.string(),
+      city: v.string(),
+      province: v.optional(v.string()),
+      postalCode: v.string(),
+      country: v.string(),
+      phone: v.optional(v.string()),
+    }),
+    notes: v.optional(v.string()),
+    promoCode: v.optional(v.string()),
+    previous: v.optional(v.object({ id: v.id("orders"), token: v.string() })),
+  },
+  handler: async (ctx, args) => {
+    const email = args.email.trim().toLowerCase();
+    if (!EMAIL_PATTERN.test(email) || email.length > 254) throw new ConvexError("Please enter a valid email address");
+    const address = Object.fromEntries(
+      Object.entries(args.address).map(([key, value]) => [key, value?.trim()]),
+    ) as typeof args.address;
+    if (!address.name || !address.street || !address.city || !address.postalCode || !address.country) {
+      throw new ConvexError("Please fill in your delivery address");
+    }
+    if (Object.values(address).some((value) => (value?.length ?? 0) > 200)) {
+      throw new ConvexError("Your delivery address is too long");
     }
 
-    return {
-      orderId,
-      subtotal,
-      shipping,
-      tax,
-      total,
-      exchangeRate: settings?.zarPerUsd,
-      items: lines.map((line) => ({ name: line.name, price: line.price, quantity: line.quantity })),
-    };
+    const pricing = await priceOrder(ctx, args.items, args.promoCode);
+    const fields = { ...pricing.fields, guestEmail: email, shippingSnapshot: address, notes: args.notes };
+
+    const previous = args.previous ? await ctx.db.get(args.previous.id) : null;
+    const reusable = previous && !previous.userId && previous.guestToken === args.previous!.token &&
+      previous.status === "pending" && !previous.paypalOrderId;
+
+    let orderId: Id<"orders">;
+    let guestToken: string;
+    if (reusable) {
+      orderId = previous._id;
+      guestToken = previous.guestToken!;
+      await ctx.db.patch(orderId, fields);
+    } else {
+      guestToken = crypto.randomUUID();
+      orderId = await ctx.db.insert("orders", { status: "pending", guestToken, ...fields });
+    }
+    await replaceItems(ctx, orderId, pricing.lines);
+
+    return { ...priced(orderId, pricing), guestToken };
+  },
+});
+
+/** A guest's own order, found by the token they were given at checkout. */
+export const getGuest = query({
+  args: { id: v.id("orders"), token: v.string() },
+  handler: async (ctx, args) => {
+    const order = await ctx.db.get(args.id);
+    if (!order || order.userId || !order.guestToken || order.guestToken !== args.token) return null;
+
+    const items = await ctx.db
+      .query("orderItems")
+      .withIndex("by_orderId", (q) => q.eq("orderId", args.id))
+      .collect();
+    const { guestToken: _token, ...rest } = order;
+    void _token;
+    return { ...rest, items, shippingAddress: order.shippingSnapshot ?? null };
   },
 });
 
@@ -400,7 +527,10 @@ export const markPaid = mutation({
       paypalOrderId: args.paypalOrderId,
       stockDeducted: true,
     });
-    await clearCartAfterPayment(ctx, order.userId);
+    if (order.userId) await clearCartAfterPayment(ctx, order.userId);
+    if (order.promotionId) await countPromotionUse(ctx, order.promotionId);
+    await ctx.scheduler.runAfter(0, internal.orderEmails.send, { orderId: args.id, kind: "confirmation" });
+    await ctx.scheduler.runAfter(0, internal.orderEmails.send, { orderId: args.id, kind: "newOrder" });
   },
 });
 
@@ -434,5 +564,10 @@ export const updateStatus = mutation({
     }
 
     await ctx.db.patch(args.id, { status: args.status, stockDeducted: shouldBeDeducted });
+
+    // Let the customer know when their order moves on. Cancelling a checkout
+    // that was never paid for is not worth an email.
+    const kind = statusEmail(order.status, args.status);
+    if (kind) await ctx.scheduler.runAfter(0, internal.orderEmails.send, { orderId: args.id, kind });
   },
 });

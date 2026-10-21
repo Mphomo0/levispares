@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const getOwned = vi.fn()
 const mutation = vi.fn()
+const serverQuery = vi.fn()
 
 vi.mock('@/lib/serverConvex', () => ({
   getConvexAsUser: vi.fn(async () => ({ query: getOwned })),
@@ -10,6 +11,7 @@ vi.mock('@/lib/serverConvex', () => ({
 vi.mock('convex/browser', () => ({
   ConvexHttpClient: class {
     mutation = mutation
+    query = serverQuery
   },
 }))
 
@@ -169,5 +171,45 @@ describe('capture-order', () => {
     getOwned.mockResolvedValueOnce({ ...ORDER, exchangeRate: undefined })
     expect((await post(captureRoute, { paypalOrderId: 'PP-1', convexOrderId: 'order1' })).status).toBe(503)
     expect(paypalCalls).toHaveLength(0)
+  })
+})
+
+describe('promo code discounts', () => {
+  it('passes the discount to PayPal and takes it off the charge', async () => {
+    // R18 off is $1.00 at R18 per $1.
+    getOwned.mockResolvedValueOnce({ ...ORDER, discount: 18 })
+    expect((await post(createRoute, { convexOrderId: 'order1' })).status).toBe(200)
+    const create = paypalCalls.find((c) => c.url.endsWith('/v2/checkout/orders') && c.method === 'POST')!
+    const amount = create.body.purchase_units[0].amount
+    expect(amount.value).toBe('28.87')
+    expect(amount.breakdown.discount).toMatchObject({ currency_code: 'USD', value: '1.00' })
+  })
+
+  it('sends no discount line when there is none', async () => {
+    await post(createRoute, { convexOrderId: 'order1' })
+    const create = paypalCalls.find((c) => c.url.endsWith('/v2/checkout/orders') && c.method === 'POST')!
+    expect(create.body.purchase_units[0].amount.breakdown.discount).toBeUndefined()
+  })
+})
+
+describe('guest payments', () => {
+  it('looks a guest order up by its token, without needing a sign-in', async () => {
+    vi.mocked(getConvexAsUser).mockResolvedValue(null)
+    serverQuery.mockResolvedValue({ ...ORDER })
+
+    expect((await post(createRoute, { convexOrderId: 'order1', guestToken: 'tok' })).status).toBe(200)
+    expect(serverQuery.mock.calls[0][1]).toEqual({ id: 'order1', token: 'tok' })
+
+    expect((await post(captureRoute, { paypalOrderId: 'PP-1', convexOrderId: 'order1', guestToken: 'tok' })).status).toBe(200)
+    expect(mutation).toHaveBeenCalledTimes(2)
+    expect(getOwned).not.toHaveBeenCalled()
+  })
+
+  it('refuses a wrong token', async () => {
+    serverQuery.mockResolvedValue(null)
+    expect((await post(createRoute, { convexOrderId: 'order1', guestToken: 'wrong' })).status).toBe(404)
+    expect((await post(captureRoute, { paypalOrderId: 'PP-1', convexOrderId: 'order1', guestToken: 'wrong' })).status).toBe(404)
+    expect(paypalCalls.some((c) => c.url.endsWith('/capture'))).toBe(false)
+    expect(mutation).not.toHaveBeenCalled()
   })
 })

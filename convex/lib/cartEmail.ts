@@ -1,28 +1,10 @@
-// Kept in step with SITE_URL / SITE_NAME / SITE_LOGO in lib/site.ts.
-const SITE_URL = "https://www.levispares.co.za";
-const SITE_NAME = "Levi's Spares";
-const SITE_LOGO = "https://ik.imagekit.io/qvmqqewsu/logo.webp";
+import { SITE_LOGO, SITE_NAME, SITE_URL, escapeHtml, formatPrice } from "./email";
 
 export interface ReminderLine {
   name: string;
   price: number;
   quantity: number;
   image?: string;
-}
-
-const amountFormatter = new Intl.NumberFormat("en-US", {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
-const formatPrice = (value: number) => `R${amountFormatter.format(value)}`;
-
-function escapeHtml(text: string) {
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
 }
 
 export function cartLinks(token: string) {

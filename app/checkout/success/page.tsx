@@ -14,10 +14,17 @@ import { formatPrice } from '@/lib/format'
 function SuccessContent() {
   const searchParams = useSearchParams()
   const orderId = searchParams.get('orderId')
-  const order = useQuery(
+  // Guests reach their order with the token from checkout (or their email).
+  const token = searchParams.get('token')
+  const ownOrder = useQuery(
     api.orders.getById,
-    orderId ? { id: orderId as Id<'orders'> } : 'skip'
+    orderId && !token ? { id: orderId as Id<'orders'> } : 'skip'
   )
+  const guestOrder = useQuery(
+    api.orders.getGuest,
+    orderId && token ? { id: orderId as Id<'orders'>, token } : 'skip'
+  )
+  const order = token ? guestOrder : ownOrder
 
   // Scroll to top on mount
   useEffect(() => {
@@ -111,6 +118,12 @@ function SuccessContent() {
 
               {/* Totals */}
               <div className="border-t border-border pt-4 mb-4 space-y-2">
+                {(order.discount ?? 0) > 0 && (
+                  <div className="flex justify-between text-sm text-green-700">
+                    <span>Discount{order.promoCode ? ` (${order.promoCode})` : ''}</span>
+                    <span>-{formatPrice(order.discount ?? 0)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm text-muted-foreground">
                   <span>Shipping</span>
                   <span>{order.shipping === 0 ? 'Free' : `${formatPrice(order.shipping)}`}</span>
@@ -160,9 +173,11 @@ function SuccessContent() {
           transition={{ duration: 0.4, delay: 0.5 }}
           className="flex flex-col sm:flex-row gap-4"
         >
-          <Link href="/account/orders" className="btn-accent text-center flex-1">
-            View My Orders
-          </Link>
+          {!token && (
+            <Link href="/account/orders" className="btn-accent text-center flex-1">
+              View My Orders
+            </Link>
+          )}
           <Link
             href="/shop"
             className="px-6 py-3 rounded-lg border border-border text-foreground hover:bg-secondary transition-colors text-center flex-1"

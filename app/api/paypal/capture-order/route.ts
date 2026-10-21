@@ -10,12 +10,7 @@ const convexServer = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 export async function POST(request: NextRequest) {
   try {
-    const convex = await getConvexAsUser();
-    if (!convex) {
-      return NextResponse.json({ error: "Please sign in to pay" }, { status: 401 });
-    }
-
-    const { paypalOrderId, convexOrderId } = await request.json();
+    const { paypalOrderId, convexOrderId, guestToken } = await request.json();
     if (typeof paypalOrderId !== "string" || typeof convexOrderId !== "string") {
       return NextResponse.json(
         { error: "Missing paypalOrderId or convexOrderId" },
@@ -23,9 +18,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const order = await convex.query(api.orders.getOwned, {
-      id: convexOrderId as Id<"orders">,
-    });
+    // Guests prove the order is theirs with the token from checkout;
+    // everyone else must be signed in as the customer who placed it.
+    let order;
+    if (typeof guestToken === "string") {
+      order = await convexServer.query(api.orders.getGuest, {
+        id: convexOrderId as Id<"orders">,
+        token: guestToken,
+      });
+    } else {
+      const convex = await getConvexAsUser();
+      if (!convex) {
+        return NextResponse.json({ error: "Please sign in to pay" }, { status: 401 });
+      }
+      order = await convex.query(api.orders.getOwned, {
+        id: convexOrderId as Id<"orders">,
+      });
+    }
     if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
