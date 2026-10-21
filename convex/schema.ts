@@ -248,6 +248,8 @@ export default defineSchema({
     startsAt: v.optional(v.number()),
     expiresAt: v.optional(v.number()),
     active: v.optional(v.boolean()),
+    // When set, the code only discounts this product, not the whole order.
+    productId: v.optional(v.id("products")),
   })
     .index("by_code", ["code"])
     .index("by_active", ["active"]),

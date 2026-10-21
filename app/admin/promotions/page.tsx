@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label'
 import { getErrorMessage } from '@/lib/errors'
 import { formatPrice } from '@/lib/format'
 
-type Promotion = Doc<'promotions'>
+type Promotion = Doc<'promotions'> & { productName: string | null }
 
 interface FormState {
   code: string
@@ -24,6 +24,8 @@ interface FormState {
   maxUses: string
   startsOn: string
   endsOn: string
+  /** The one product the code discounts, or null for the whole order. */
+  product: { id: Id<'products'>; name: string } | null
 }
 
 const EMPTY_FORM: FormState = {
@@ -35,6 +37,7 @@ const EMPTY_FORM: FormState = {
   maxUses: '',
   startsOn: '',
   endsOn: '',
+  product: null,
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000
@@ -59,6 +62,7 @@ function toForm(p: Promotion): FormState {
     maxUses: p.maxUses !== undefined ? String(p.maxUses) : '',
     startsOn: p.startsAt !== undefined ? toDateInput(p.startsAt) : '',
     endsOn: p.expiresAt !== undefined ? toDateInput(p.expiresAt - DAY_MS) : '',
+    product: p.productId ? { id: p.productId, name: p.productName ?? 'Deleted product' } : null,
   }
 }
 
@@ -70,8 +74,9 @@ function status(p: Promotion, now: number) {
   return { label: 'Live', className: 'bg-green-100 text-green-800' }
 }
 
-function describeDiscount(p: Pick<Promotion, 'type' | 'value'>) {
-  return p.type === 'fixed' ? `${formatPrice(p.value)} off` : `${p.value}% off`
+function describeDiscount(p: Pick<Promotion, 'type' | 'value' | 'productName'>) {
+  const amount = p.type === 'fixed' ? `${formatPrice(p.value)} off` : `${p.value}% off`
+  return p.productName ? `${amount} ${p.productName}` : `${amount} the whole order`
 }
 
 export default function AdminPromotionsPage() {
@@ -87,17 +92,20 @@ export default function AdminPromotionsPage() {
   const [form, setForm] = useState<FormState>(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [now] = useState(() => Date.now())
+  const [appliesToProduct, setAppliesToProduct] = useState(false)
 
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((f) => ({ ...f, [key]: value }))
 
   const openNew = () => {
     setForm(EMPTY_FORM)
+    setAppliesToProduct(false)
     setEditing('new')
   }
 
   const openEdit = (p: Promotion) => {
     setForm(toForm(p))
+    setAppliesToProduct(Boolean(p.productId))
     setEditing(p._id)
   }
 
@@ -113,6 +121,11 @@ export default function AdminPromotionsPage() {
       maxUses: optionalNumber(form.maxUses),
       startsAt: form.startsOn ? dayStart(form.startsOn) : undefined,
       expiresAt: form.endsOn ? dayStart(form.endsOn) + DAY_MS : undefined,
+      productId: form.product?.id,
+    }
+    if (appliesToProduct && !form.product) {
+      toast.error('Choose the product this code is for.')
+      return
     }
     if ([fields.value, fields.minOrderValue, fields.maxUses].some((n) => n !== undefined && Number.isNaN(n))) {
       toast.error('Please enter numbers only in the amount fields.')
@@ -179,7 +192,7 @@ export default function AdminPromotionsPage() {
           <CardHeader>
             <CardTitle>{editing === 'new' ? 'New promo code' : `Edit ${form.code.toUpperCase()}`}</CardTitle>
             <CardDescription>
-              The discount comes off the item subtotal, before shipping. VAT is worked out on the discounted amount.
+              The discount comes off the items, before shipping. VAT is worked out on the discounted amount.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -212,6 +225,31 @@ export default function AdminPromotionsPage() {
                 </div>
               </div>
 
+              <fieldset className="space-y-2">
+                <legend className="text-sm font-medium">Applies to</legend>
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-6">
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input
+                      type="radio"
+                      name="applies-to"
+                      checked={!appliesToProduct}
+                      onChange={() => {
+                        setAppliesToProduct(false)
+                        set('product', null)
+                      }}
+                    />
+                    The whole order
+                  </label>
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input type="radio" name="applies-to" checked={appliesToProduct} onChange={() => setAppliesToProduct(true)} />
+                    One product only
+                  </label>
+                </div>
+                {appliesToProduct && (
+                  <ProductPicker value={form.product} onChange={(product) => set('product', product)} />
+                )}
+              </fieldset>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label htmlFor="promo-type">Discount type</Label>
@@ -224,6 +262,9 @@ export default function AdminPromotionsPage() {
                     <option value="percentage">Percentage off</option>
                     <option value="fixed">Fixed amount off (R)</option>
                   </select>
+                  {appliesToProduct && form.type === 'fixed' && (
+                    <p className="text-xs text-muted-foreground">Comes off once per order, however many of the product are bought.</p>
+                  )}
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="promo-value">{form.type === 'percentage' ? 'Percentage' : 'Amount (R)'}</Label>
@@ -353,6 +394,65 @@ export default function AdminPromotionsPage() {
           )}
         </CardContent>
       </Card>
+    </div>
+  )
+}
+
+/** Search for and choose the product a code is limited to. */
+function ProductPicker({
+  value,
+  onChange,
+}: {
+  value: { id: Id<'products'>; name: string } | null
+  onChange: (product: { id: Id<'products'>; name: string } | null) => void
+}) {
+  const [search, setSearch] = useState('')
+  const results = useQuery(api.products.search, search.trim().length >= 2 ? { query: search.trim() } : 'skip')
+
+  if (value) {
+    return (
+      <div className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2">
+        <span className="text-sm font-medium truncate">{value.name}</span>
+        <Button type="button" variant="ghost" size="sm" onClick={() => onChange(null)}>Change</Button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-2">
+      <Label htmlFor="promo-product-search" className="sr-only">Search products</Label>
+      <Input
+        id="promo-product-search"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Search products by name…"
+        autoComplete="off"
+      />
+      {search.trim().length >= 2 && (
+        <ul className="max-h-60 overflow-y-auto rounded-lg border border-border divide-y divide-border">
+          {results === undefined ? (
+            <li className="px-3 py-2 text-sm text-muted-foreground">Searching…</li>
+          ) : results.length === 0 ? (
+            <li className="px-3 py-2 text-sm text-muted-foreground">No products match.</li>
+          ) : (
+            results.map((product) => (
+              <li key={product._id}>
+                <button
+                  type="button"
+                  onClick={() => onChange({ id: product._id, name: product.name })}
+                  className="w-full text-left px-3 py-2 hover:bg-muted flex items-center justify-between gap-3"
+                >
+                  <span className="min-w-0">
+                    <span className="block text-sm truncate">{product.name}</span>
+                    <span className="block text-xs text-muted-foreground">{product.sku}{product.active === false ? ' · inactive' : ''}</span>
+                  </span>
+                  <span className="text-sm shrink-0">{formatPrice(product.price)}</span>
+                </button>
+              </li>
+            ))
+          )}
+        </ul>
+      )}
     </div>
   )
 }

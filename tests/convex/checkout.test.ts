@@ -9,6 +9,7 @@ const DAY = 24 * 60 * 60 * 1000
 async function addCode(t: T, fields: Partial<{
   code: string; name: string; type: 'percentage' | 'fixed'; value: number
   minOrderValue: number; maxUses: number; startsAt: number; expiresAt: number
+  productId: Id<'products'>
 }> = {}) {
   return asAdmin(t).mutation(api.promotions.add, { code: 'save10', name: 'Ten off', type: 'percentage', value: 10, ...fields })
 }
@@ -58,13 +59,13 @@ describe('promo codes: admin', () => {
 describe('promo codes: checking a code', () => {
   it('works out percentage and fixed discounts, ignoring case', async () => {
     const t = setup()
-    await seed(t)
+    const s = await seed(t)
     await addCode(t)
     await addCode(t, { code: 'R50', name: 'R50 off', type: 'fixed', value: 50 })
-    expect(await t.query(api.promotions.check, { code: 'save10', subtotal: 249.99 }))
+    expect(await t.query(api.promotions.check, { code: 'save10', items: [{ productId: s.p1, quantity: 2 }, { productId: s.p2, quantity: 1 }] }))
       .toEqual({ ok: true, code: 'SAVE10', name: 'Ten off', discount: 25 })
-    expect(await t.query(api.promotions.check, { code: 'r50', subtotal: 30 }))
-      .toMatchObject({ ok: true, discount: 30 }) // never more than the items cost
+    expect(await t.query(api.promotions.check, { code: 'r50', items: [{ productId: s.p2, quantity: 1 }] }))
+      .toMatchObject({ ok: true, discount: 49.99 }) // never more than the items cost
   })
 
   it.each([
@@ -74,23 +75,70 @@ describe('promo codes: checking a code', () => {
     ['below the minimum', { minOrderValue: 1000 }, 'SAVE10', 'at least R1000.00'],
   ])('refuses a code that is %s', async (_label, fields, code, message) => {
     const t = setup()
-    await seed(t)
+    const s = await seed(t)
     await addCode(t, fields)
-    const result = await t.query(api.promotions.check, { code, subtotal: 200 })
+    const result = await t.query(api.promotions.check, { code, items: [{ productId: s.p1, quantity: 2 }] })
     expect(result.ok).toBe(false)
     expect(!result.ok && result.message).toContain(message)
   })
 
   it('refuses a code that is used up or turned off', async () => {
     const t = setup()
-    await seed(t)
+    const s = await seed(t)
+    const items = [{ productId: s.p1, quantity: 2 }]
     const id = await addCode(t, { maxUses: 1 })
     await t.run((ctx) => ctx.db.patch(id, { usedCount: 1 }))
-    expect(await t.query(api.promotions.check, { code: 'SAVE10', subtotal: 200 })).toMatchObject({ ok: false, message: expect.stringContaining('fully used') })
+    expect(await t.query(api.promotions.check, { code: 'SAVE10', items })).toMatchObject({ ok: false, message: expect.stringContaining('fully used') })
 
     await t.run((ctx) => ctx.db.patch(id, { usedCount: 0 }))
     await asAdmin(t).mutation(api.promotions.setActive, { id, active: false })
-    expect(await t.query(api.promotions.check, { code: 'SAVE10', subtotal: 200 })).toMatchObject({ ok: false, message: expect.stringContaining('no longer active') })
+    expect(await t.query(api.promotions.check, { code: 'SAVE10', items })).toMatchObject({ ok: false, message: expect.stringContaining('no longer active') })
+  })
+})
+
+describe('promo codes for one product', () => {
+  it('discounts only that product, and a fixed amount only once', async () => {
+    const t = setup()
+    const s = await seed(t)
+    await addCode(t, { code: 'PADS20', type: 'percentage', value: 20, productId: s.p1 })
+    await addCode(t, { code: 'PADSR30', type: 'fixed', value: 30, productId: s.p1 })
+    const items = [{ productId: s.p1, quantity: 2 }, { productId: s.p2, quantity: 1 }]
+
+    // 20% of the two brake pads (R200), nothing off the oil filter.
+    expect(await t.query(api.promotions.check, { code: 'PADS20', items })).toMatchObject({ ok: true, discount: 40 })
+    expect(await t.query(api.promotions.check, { code: 'PADSR30', items })).toMatchObject({ ok: true, discount: 30 })
+
+    // R249.99 - R40 = R209.99, + R31.50 VAT + R250 shipping.
+    const order = await asUser(t, 'user_a').mutation(api.orders.create, { items, promoCode: 'PADS20' })
+    expect(order).toMatchObject({ subtotal: 249.99, discount: 40, tax: 31.5, total: 491.49 })
+  })
+
+  it('never takes off more than the product costs', async () => {
+    const t = setup()
+    const s = await seed(t)
+    await addCode(t, { code: 'FILTERFREE', type: 'fixed', value: 500, productId: s.p2 })
+    const items = [{ productId: s.p1, quantity: 1 }, { productId: s.p2, quantity: 1 }]
+    expect(await t.query(api.promotions.check, { code: 'FILTERFREE', items })).toMatchObject({ ok: true, discount: 49.99 })
+  })
+
+  it('refuses the code when that product is not in the cart', async () => {
+    const t = setup()
+    const s = await seed(t)
+    await addCode(t, { code: 'PADS20', productId: s.p1 })
+    const items = [{ productId: s.p2, quantity: 1 }]
+    expect(await t.query(api.promotions.check, { code: 'PADS20', items }))
+      .toEqual({ ok: false, message: 'This code is only for Brake pad' })
+    await expect(asUser(t, 'user_a').mutation(api.orders.create, { items, promoCode: 'PADS20' }))
+      .rejects.toThrow('only for Brake pad')
+  })
+
+  it('shows the product name to admins, and can be switched back to the whole order', async () => {
+    const t = setup()
+    const s = await seed(t)
+    const id = await addCode(t, { productId: s.p1 })
+    expect((await asAdmin(t).query(api.promotions.listAll, {}))[0]).toMatchObject({ productId: s.p1, productName: 'Brake pad' })
+    await asAdmin(t).mutation(api.promotions.update, { id, code: 'SAVE10', name: 'Ten off', type: 'percentage', value: 10 })
+    expect((await t.run((ctx) => ctx.db.get(id)))?.productId).toBeUndefined()
   })
 })
 

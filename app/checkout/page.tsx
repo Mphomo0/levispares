@@ -104,7 +104,12 @@ const [currentStep, setCurrentStep] = useState<Step>('Address')
   const [appliedCode, setAppliedCode] = useState<string | null>(null)
   const promoCheck = useQuery(
     api.promotions.check,
-    appliedCode ? { code: appliedCode, subtotal: totalPrice } : 'skip',
+    appliedCode
+      ? {
+          code: appliedCode,
+          items: items.map((item) => ({ productId: item._id as Id<'products'>, quantity: item.quantity })),
+        }
+      : 'skip',
   )
   const discount = promoCheck?.ok ? promoCheck.discount : 0
 

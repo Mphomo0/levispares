@@ -269,7 +269,7 @@ async function priceOrder(
     });
   }
 
-  const promo = promoCode?.trim() ? await applyPromotion(ctx, promoCode, subtotal) : null;
+  const promo = promoCode?.trim() ? await applyPromotion(ctx, promoCode, subtotal, lines) : null;
   const discount = promo?.discount ?? 0;
 
   const settings = await ctx.db

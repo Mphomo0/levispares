@@ -27,11 +27,31 @@ function whyNotUsable(promotion: Doc<"promotions">, subtotal: number, now: numbe
   return null;
 }
 
-function discountFor(promotion: Doc<"promotions">, subtotal: number) {
+export interface PricedLine {
+  productId: Id<"products">;
+  /** Price times quantity, in rand. */
+  total: number;
+}
+
+/**
+ * What a code takes off. A whole-order code discounts the item subtotal; a
+ * product code discounts only that product's lines (a fixed amount comes off
+ * once, not per unit).
+ */
+function discountFor(promotion: Doc<"promotions">, subtotal: number, lines: PricedLine[]) {
+  const base = promotion.productId
+    ? lines.filter((line) => line.productId === promotion.productId).reduce((sum, line) => sum + line.total, 0)
+    : subtotal;
   const amount = promotion.type === "percentage"
-    ? subtotal * (promotion.value / 100)
+    ? base * (promotion.value / 100)
     : promotion.value;
-  return round2(Math.min(Math.max(amount, 0), subtotal));
+  return round2(Math.min(Math.max(amount, 0), base));
+}
+
+async function notInCart(ctx: QueryCtx, promotion: Doc<"promotions">, lines: PricedLine[]) {
+  if (!promotion.productId || lines.some((line) => line.productId === promotion.productId)) return null;
+  const product = await ctx.db.get(promotion.productId);
+  return product ? `This code is only for ${product.name}` : "This code cannot be used any more";
 }
 
 async function findByCode(ctx: QueryCtx, code: string) {
@@ -44,12 +64,12 @@ async function findByCode(ctx: QueryCtx, code: string) {
 }
 
 /** Looks up a code for an order, throwing a customer-facing error when it cannot be used. */
-export async function applyPromotion(ctx: QueryCtx, code: string, subtotal: number) {
+export async function applyPromotion(ctx: QueryCtx, code: string, subtotal: number, lines: PricedLine[]) {
   const promotion = await findByCode(ctx, code);
   if (!promotion) throw new ConvexError("That promo code is not valid");
-  const problem = whyNotUsable(promotion, subtotal, Date.now());
+  const problem = whyNotUsable(promotion, subtotal, Date.now()) ?? await notInCart(ctx, promotion, lines);
   if (problem) throw new ConvexError(problem);
-  return { promotion, discount: discountFor(promotion, subtotal) };
+  return { promotion, discount: discountFor(promotion, subtotal, lines) };
 }
 
 /** Counts one use of a code, once its order is paid. */
@@ -58,19 +78,33 @@ export async function countPromotionUse(ctx: MutationCtx, promotionId: Id<"promo
   if (promotion) await ctx.db.patch(promotionId, { usedCount: (promotion.usedCount ?? 0) + 1 });
 }
 
-/** Checkout preview: what a code would take off this subtotal. The order itself is priced on the server. */
+/**
+ * Checkout preview: what a code would take off this cart, at current prices.
+ * The order itself is priced again on the server when it is created.
+ */
 export const check = query({
-  args: { code: v.string(), subtotal: v.number() },
+  args: {
+    code: v.string(),
+    items: v.array(v.object({ productId: v.id("products"), quantity: v.number() })),
+  },
   handler: async (ctx, args) => {
+    const lines: PricedLine[] = [];
+    for (const item of args.items.slice(0, 100)) {
+      const product = await ctx.db.get(item.productId);
+      if (!product || product.active === false || !(item.quantity > 0)) continue;
+      lines.push({ productId: item.productId, total: round2(product.price * item.quantity) });
+    }
+    const subtotal = round2(lines.reduce((sum, line) => sum + line.total, 0));
+
     const promotion = await findByCode(ctx, args.code);
     if (!promotion) return { ok: false as const, message: "That promo code is not valid" };
-    const problem = whyNotUsable(promotion, args.subtotal, Date.now());
+    const problem = whyNotUsable(promotion, subtotal, Date.now()) ?? await notInCart(ctx, promotion, lines);
     if (problem) return { ok: false as const, message: problem };
     return {
       ok: true as const,
       code: promotion.code!,
       name: promotion.name,
-      discount: discountFor(promotion, args.subtotal),
+      discount: discountFor(promotion, subtotal, lines),
     };
   },
 });
@@ -78,7 +112,11 @@ export const check = query({
 export const listAll = query({
   handler: async (ctx) => {
     if (!(await isAdmin(ctx))) return [];
-    return await ctx.db.query("promotions").order("desc").collect();
+    const promotions = await ctx.db.query("promotions").order("desc").collect();
+    return Promise.all(promotions.map(async (promotion) => ({
+      ...promotion,
+      productName: promotion.productId ? (await ctx.db.get(promotion.productId))?.name ?? "Deleted product" : null,
+    })));
   },
 });
 
@@ -90,6 +128,7 @@ const promotionFields = {
   maxUses: v.optional(v.number()),
   startsAt: v.optional(v.number()),
   expiresAt: v.optional(v.number()),
+  productId: v.optional(v.id("products")),
 };
 
 function validate(args: {
@@ -113,6 +152,10 @@ function validate(args: {
   }
 }
 
+async function assertProductExists(ctx: QueryCtx, productId: Id<"products"> | undefined) {
+  if (productId && !(await ctx.db.get(productId))) throw new ConvexError("That product no longer exists");
+}
+
 async function assertCodeFree(ctx: QueryCtx, code: string, except?: Id<"promotions">) {
   if (!/^[A-Z0-9_-]{3,32}$/.test(code)) {
     throw new ConvexError("Codes are 3 to 32 letters, numbers, dashes or underscores");
@@ -131,6 +174,7 @@ export const add = mutation({
     const code = normalizeCode(args.code);
     validate(args);
     await assertCodeFree(ctx, code);
+    await assertProductExists(ctx, args.productId);
 
     return await ctx.db.insert("promotions", {
       ...args,
@@ -150,6 +194,7 @@ export const update = mutation({
     const code = normalizeCode(data.code);
     validate(data);
     await assertCodeFree(ctx, code, id);
+    await assertProductExists(ctx, data.productId);
 
     // Optional limits left blank are cleared rather than kept.
     await ctx.db.patch(id, {
@@ -160,6 +205,7 @@ export const update = mutation({
       maxUses: data.maxUses,
       startsAt: data.startsAt,
       expiresAt: data.expiresAt,
+      productId: data.productId,
     });
   },
 });
