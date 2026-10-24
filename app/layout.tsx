@@ -10,6 +10,8 @@ import FavoritesMerge from '@/components/FavoritesMerge'
 import { SITE_URL, SITE_NAME, SITE_DESCRIPTION, SITE_LOGO } from '@/lib/site'
 import { Toaster } from 'sonner'
 import { ConvexClientProvider } from '@/components/providers/ConvexClientProvider'
+import JsonLd from '@/components/seo/JsonLd'
+import { storeJsonLd, websiteJsonLd } from '@/lib/seo'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -51,10 +53,12 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en-ZA" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <JsonLd data={storeJsonLd()} />
+        <JsonLd data={websiteJsonLd()} />
         <MotionConfig reducedMotion="user">
           <ConvexClientProvider>
             <CartProvider>

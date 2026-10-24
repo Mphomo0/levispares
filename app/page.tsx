@@ -1,6 +1,28 @@
+import type { Metadata } from 'next'
 import { ConvexHttpClient } from 'convex/browser'
 import { api } from '@/convex/_generated/api'
 import HomeContent from '@/components/sections/home/HomeContent'
+import { SITE_LOGO, SITE_NAME, SITE_URL } from '@/lib/site'
+
+const TITLE = `Truck Spares & Parts in Pretoria | ${SITE_NAME}`
+const DESCRIPTION =
+  'Truck spares for Isuzu, Hino, Fuso, UD, FAW and Mercedes-Benz from our Montana, Pretoria store. Shop online with nationwide delivery across South Africa.'
+
+export const metadata: Metadata = {
+  title: { absolute: TITLE },
+  description: DESCRIPTION,
+  alternates: { canonical: '/' },
+  openGraph: {
+    type: 'website',
+    siteName: SITE_NAME,
+    locale: 'en_ZA',
+    url: SITE_URL,
+    title: TITLE,
+    description: DESCRIPTION,
+    images: [{ url: SITE_LOGO }],
+  },
+  twitter: { card: 'summary', title: TITLE, description: DESCRIPTION, images: [SITE_LOGO] },
+}
 
 // Rebuilt in the background at most every 5 minutes; the client keeps it live.
 export const revalidate = 300
