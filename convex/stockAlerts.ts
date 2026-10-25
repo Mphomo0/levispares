@@ -1,8 +1,7 @@
 import { v, ConvexError } from "convex/values";
-import { internalAction, internalMutation, internalQuery, mutation, query } from "./_generated/server";
+import { internalAction, internalMutation, internalQuery, mutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
-import { isAdmin } from "./lib/auth";
 import { SITE_NAME, SITE_URL, emailButton, emailConfigured, emailLayout, escapeHtml, formatPrice, sendEmail } from "./lib/email";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -25,21 +24,6 @@ export const subscribe = mutation({
       .collect();
     if (waiting.some((alert) => alert.email === email && alert.notifiedAt === undefined)) return;
     await ctx.db.insert("stockAlerts", { productId: args.productId, email });
-  },
-});
-
-/** How many customers are waiting for each out-of-stock product (admin only). */
-export const waitingCounts = query({
-  args: {},
-  handler: async (ctx) => {
-    if (!(await isAdmin(ctx))) return {};
-    const waiting = await ctx.db
-      .query("stockAlerts")
-      .withIndex("by_notifiedAt", (q) => q.eq("notifiedAt", undefined))
-      .collect();
-    const counts: Record<string, number> = {};
-    for (const alert of waiting) counts[alert.productId] = (counts[alert.productId] ?? 0) + 1;
-    return counts;
   },
 });
 
