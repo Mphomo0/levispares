@@ -18,10 +18,14 @@ export async function sendEmail(email: {
   idempotencyKey: string;
   headers?: Record<string, string>;
   category: string;
+  /** Overrides EMAIL_REPLY_TO, e.g. so the shop can reply straight to a customer. */
+  replyTo?: string;
+  /** Files to attach, as base64. */
+  attachments?: Array<{ filename: string; content: string }>;
 }) {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.EMAIL_FROM;
-  const replyTo = process.env.EMAIL_REPLY_TO;
+  const replyTo = email.replyTo ?? process.env.EMAIL_REPLY_TO;
   if (!apiKey || !from) return { ok: false as const, error: "RESEND_API_KEY or EMAIL_FROM is not set" };
 
   const response = await fetch("https://api.resend.com/emails", {
@@ -40,6 +44,7 @@ export async function sendEmail(email: {
       text: email.text,
       headers: email.headers,
       tags: [{ name: "category", value: email.category }],
+      ...(email.attachments?.length && { attachments: email.attachments }),
     }),
   });
 

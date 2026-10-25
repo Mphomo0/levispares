@@ -95,6 +95,11 @@ export default function PrivacyPolicy() {
             when you leave items in it. You can turn these reminders off at any
             time from the link in the email or in your account settings
           </li>
+          <li>
+            Answer part requests: the details and photos you send through the
+            &ldquo;Can&apos;t find your part?&rdquo; form are emailed to our team and used only to
+            find the part for you
+          </li>
           <li>Comply with legal obligations</li>
           <li>Prevent fraud and ensure security</li>
         </ul>

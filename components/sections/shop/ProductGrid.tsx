@@ -74,12 +74,14 @@ export default function ProductGrid({ products, selectedCategoryName, isLoading,
           <p className="text-muted-foreground text-lg">
             No products found in this category.
           </p>
-          <Link
-            href="/shop"
-            className="mt-4 text-accent hover:underline inline-block"
-          >
-            View all products
-          </Link>
+          <div className="mt-4 flex flex-col items-center gap-2">
+            <Link href="/part-request" className="btn-accent text-white">
+              Ask us to find it
+            </Link>
+            <Link href="/shop" className="text-accent hover:underline">
+              View all products
+            </Link>
+          </div>
         </motion.div>
       )}
 

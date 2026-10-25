@@ -7,7 +7,7 @@ import { brandPath, categoryPath, productPath } from '@/lib/shopUrl'
 export const revalidate = 3600
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const staticRoutes = ['', '/shop', '/about', '/faq', '/contact', '/privacy-policy', '/terms-conditions']
+  const staticRoutes = ['', '/shop', '/about', '/faq', '/contact', '/part-request', '/privacy-policy', '/terms-conditions']
   const pages: MetadataRoute.Sitemap = staticRoutes.map((route) => ({
     url: `${SITE_URL}${route}`,
     lastModified: new Date(),

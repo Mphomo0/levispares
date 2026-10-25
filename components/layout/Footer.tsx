@@ -115,6 +115,11 @@ export default function Footer() {
                   </Link>
                 </li>
               ))}
+              <li>
+                <Link href="/part-request" className="text-white/70 hover:text-accent transition-colors">
+                  Can&apos;t find a part?
+                </Link>
+              </li>
             </ul>
           </div>
 

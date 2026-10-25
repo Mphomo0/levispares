@@ -189,6 +189,12 @@ export default function ShopContent({ heading, intro, breadcrumb, related, initi
           <div className="flex-1">
             <MyVehicleBar filters={filters} filtered={filteredVehicle} />
             <ProductGrid products={results} selectedCategoryName="" isLoading={isLoading} />
+            {results.length > 0 && (
+              <p className="mt-8 text-center text-sm text-muted-foreground">
+                Can&apos;t find the part you need?{' '}
+                <Link href="/part-request" className="text-accent font-medium hover:underline">Ask us to find it</Link>
+              </p>
+            )}
 
             {totalPages > 1 && (
               <nav aria-label="Pagination" className="flex items-center justify-center gap-2 mt-12 pb-12">
