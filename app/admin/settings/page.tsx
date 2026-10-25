@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { useMutation, useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { toast } from 'sonner'
+import InvoiceDetailsCard from '@/components/admin/InvoiceDetailsCard'
 
 export default function AdminSettingsPage() {
   const resetAllData = useMutation(api.admin.resetAllData)
@@ -177,6 +178,8 @@ export default function AdminSettingsPage() {
           Manage your admin panel preferences.
         </p>
       </div>
+
+      <InvoiceDetailsCard />
 
       {/* Store Stats Configuration */}
       <Card>

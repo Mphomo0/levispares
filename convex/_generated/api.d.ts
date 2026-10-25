@@ -17,6 +17,7 @@ import type * as categories from "../categories.js";
 import type * as crons from "../crons.js";
 import type * as files from "../files.js";
 import type * as imageActions from "../imageActions.js";
+import type * as invoices from "../invoices.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as lib_cartEmail from "../lib/cartEmail.js";
 import type * as lib_email from "../lib/email.js";
@@ -52,6 +53,7 @@ declare const fullApi: ApiFromModules<{
   crons: typeof crons;
   files: typeof files;
   imageActions: typeof imageActions;
+  invoices: typeof invoices;
   "lib/auth": typeof lib_auth;
   "lib/cartEmail": typeof lib_cartEmail;
   "lib/email": typeof lib_email;

@@ -159,6 +159,15 @@ function SuccessContent() {
                     {orderStatusLabel(order.status)}
                   </span>
                 </div>
+                {order.invoiceNumber && (
+                  <Link
+                    href={`/invoice/${order._id}${token ? `?token=${encodeURIComponent(token)}` : ''}`}
+                    target="_blank"
+                    className="inline-block mt-3 text-sm text-accent hover:underline"
+                  >
+                    View or download invoice {order.invoiceNumber}
+                  </Link>
+                )}
               </div>
             </>
           ) : (

@@ -6,6 +6,8 @@ export interface OrderEmailData {
   orderId: string;
   /** Set for guest orders: lets the "view order" link work without an account. */
   guestToken?: string;
+  /** Set once the order is paid; the confirmation email links to the invoice. */
+  invoiceNumber?: string;
   customerName?: string;
   customerEmail: string;
   items: Array<{ name: string; quantity: number; price: number; partNumber?: string }>;
@@ -34,6 +36,11 @@ function orderLink(data: OrderEmailData) {
   return data.guestToken
     ? `${SITE_URL}/checkout/success?orderId=${encodeURIComponent(data.orderId)}&token=${encodeURIComponent(data.guestToken)}`
     : `${SITE_URL}/account/orders`;
+}
+
+function invoiceLink(data: OrderEmailData) {
+  const token = data.guestToken ? `?token=${encodeURIComponent(data.guestToken)}` : "";
+  return `${SITE_URL}/invoice/${encodeURIComponent(data.orderId)}${token}`;
 }
 
 function summaryHtml(data: OrderEmailData) {
@@ -132,17 +139,24 @@ ${summaryHtml(data)}
   const firstName = data.customerName?.trim().split(/\s+/)[0];
   const greeting = firstName ? `Hi ${firstName},` : "Hi there,";
   const link = orderLink(data);
+  const invoice = kind === "confirmation" && data.invoiceNumber
+    ? { number: data.invoiceNumber, url: invoiceLink(data) }
+    : null;
   const body = `
         <p style="font-size:20px;font-weight:bold;color:#111827;margin:0 0 4px">${escapeHtml(copy.heading)}</p>
         <p style="font-size:14px;color:#6b7280;margin:0 0 24px">Order ${escapeHtml(number)}</p>
         <p style="font-size:16px;color:#111827;margin:0 0 8px">${escapeHtml(greeting)}</p>
         <p style="font-size:16px;color:#374151;margin:0 0 24px">${escapeHtml(copy.message)}</p>
 ${summaryHtml(data)}
-        ${emailButton(link, "View your order")}`;
+        ${emailButton(link, "View your order")}${invoice ? `
+        <p style="font-size:14px;color:#374151;margin:0;text-align:center">
+          <a href="${escapeHtml(invoice.url)}" style="color:#dc2626">Download your invoice (${escapeHtml(invoice.number)})</a>
+        </p>` : ""}`;
 
   return {
     subject: `${copy.subject} (${number})`,
     html: emailLayout(body, `${escapeHtml(SITE_NAME)}, Stand 10 Zambezi, Montana, Pretoria. You are getting this email about an order you placed with us.`),
-    text: [greeting, "", copy.message, "", `Order ${number}`, summaryText(data), "", `View your order: ${link}`].join("\n"),
+    text: [greeting, "", copy.message, "", `Order ${number}`, summaryText(data), "", `View your order: ${link}`,
+      ...(invoice ? [`Your invoice (${invoice.number}): ${invoice.url}`] : [])].join("\n"),
   };
 }

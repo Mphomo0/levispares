@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next'
 import { SITE_URL } from '@/lib/site'
 
-const PRIVATE_PATHS = ['/admin', '/account', '/api', '/checkout', '/cart', '/unsubscribe']
+const PRIVATE_PATHS = ['/admin', '/account', '/api', '/checkout', '/cart', '/unsubscribe', '/invoice']
 
 // AI search and assistant crawlers, named so the choice to let them in is
 // explicit. Remove a bot here (and add it with `disallow: '/'`) to block it.

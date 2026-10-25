@@ -31,6 +31,7 @@ export const emailData = internalQuery({
     return {
       orderId: order._id,
       guestToken: order.userId ? undefined : order.guestToken,
+      invoiceNumber: order.invoiceNumber,
       customerName: user?.name ?? order.shippingSnapshot?.name,
       customerEmail: email,
       items: items.map(({ name, quantity, price, partNumber }) => ({ name, quantity, price, partNumber })),

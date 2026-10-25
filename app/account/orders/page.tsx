@@ -164,6 +164,15 @@ export default function OrdersPage() {
                       >
                         {orderStatusLabel(order.status)}
                       </span>
+                      {order.invoiceNumber && (
+                        <Link
+                          href={`/invoice/${order._id}`}
+                          target="_blank"
+                          className="block text-sm text-brand hover:underline mt-1"
+                        >
+                          Invoice {order.invoiceNumber}
+                        </Link>
+                      )}
                     </div>
                   </div>
                 </div>

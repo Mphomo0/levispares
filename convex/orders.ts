@@ -4,6 +4,7 @@ import type { Id } from "./_generated/dataModel";
 import { isAdmin, requireAdmin } from "./lib/auth";
 import { clearCartAfterPayment } from "./carts";
 import { applyPromotion, countPromotionUse } from "./promotions";
+import { assignInvoiceNumber } from "./invoices";
 import { internal } from "./_generated/api";
 
 // Stock is held back for an order from the moment it is paid until it is
@@ -216,6 +217,23 @@ export const getAdminDetail = query({
   },
 });
 
+const companyValidator = v.optional(v.object({
+  name: v.string(),
+  vatNumber: v.optional(v.string()),
+}));
+
+/** The business details a customer wants on their invoice, tidied up. */
+function companyFields(company: { name: string; vatNumber?: string } | undefined) {
+  const name = company?.name.trim();
+  const vatNumber = company?.vatNumber?.replace(/\s/g, "");
+  if (!name) return { billingCompany: undefined, billingVatNumber: undefined };
+  if (name.length > 200) throw new ConvexError("The company name is too long");
+  if (vatNumber && !/^4\d{9}$/.test(vatNumber)) {
+    throw new ConvexError("A South African VAT number is 10 digits starting with 4");
+  }
+  return { billingCompany: name, billingVatNumber: vatNumber || undefined };
+}
+
 const itemsValidator = v.array(v.object({
   productId: v.id("products"),
   quantity: v.number(),
@@ -278,7 +296,8 @@ async function priceOrder(
     .first();
   const shipping = round2(settings?.shippingRate ?? 250);
   const taxable = round2(subtotal - discount);
-  const tax = settings?.taxEnabled ? round2(taxable * ((settings.taxRate ?? 0) / 100)) : 0;
+  const taxRate = settings?.taxEnabled ? settings.taxRate ?? 0 : 0;
+  const tax = round2(taxable * (taxRate / 100));
   const total = round2(taxable + shipping + tax);
 
   return {
@@ -288,6 +307,7 @@ async function priceOrder(
       subtotal,
       shipping,
       tax,
+      taxRate,
       discount,
       total,
       promotionId: promo?.promotion._id,
@@ -325,6 +345,7 @@ export const create = mutation({
     billingAddressId: v.optional(v.id("addresses")),
     notes: v.optional(v.string()),
     promoCode: v.optional(v.string()),
+    company: companyValidator,
   },
   handler: async (ctx, args) => {
     const userId = await getUserIdFromAuth(ctx);
@@ -371,6 +392,7 @@ export const create = mutation({
 
     const fields = {
       ...pricing.fields,
+      ...companyFields(args.company),
       shippingSnapshot,
       shippingAddressId: args.shippingAddressId,
       billingAddressId: args.billingAddressId,
@@ -412,6 +434,7 @@ export const createGuest = mutation({
     }),
     notes: v.optional(v.string()),
     promoCode: v.optional(v.string()),
+    company: companyValidator,
     previous: v.optional(v.object({ id: v.id("orders"), token: v.string() })),
   },
   handler: async (ctx, args) => {
@@ -428,7 +451,13 @@ export const createGuest = mutation({
     }
 
     const pricing = await priceOrder(ctx, args.items, args.promoCode);
-    const fields = { ...pricing.fields, guestEmail: email, shippingSnapshot: address, notes: args.notes };
+    const fields = {
+      ...pricing.fields,
+      ...companyFields(args.company),
+      guestEmail: email,
+      shippingSnapshot: address,
+      notes: args.notes,
+    };
 
     const previous = args.previous ? await ctx.db.get(args.previous.id) : null;
     const reusable = previous && !previous.userId && previous.guestToken === args.previous!.token &&
@@ -527,6 +556,7 @@ export const markPaid = mutation({
       paypalOrderId: args.paypalOrderId,
       stockDeducted: true,
     });
+    await assignInvoiceNumber(ctx, args.id);
     if (order.userId) await clearCartAfterPayment(ctx, order.userId);
     if (order.promotionId) await countPromotionUse(ctx, order.promotionId);
     await ctx.scheduler.runAfter(0, internal.orderEmails.send, { orderId: args.id, kind: "confirmation" });
@@ -564,6 +594,8 @@ export const updateStatus = mutation({
     }
 
     await ctx.db.patch(args.id, { status: args.status, stockDeducted: shouldBeDeducted });
+    // An order marked paid by hand (e.g. an EFT) gets its invoice then.
+    if (shouldBeDeducted) await assignInvoiceNumber(ctx, args.id);
 
     // Let the customer know when their order moves on. Cancelling a checkout
     // that was never paid for is not worth an email.

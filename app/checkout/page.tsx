@@ -101,6 +101,12 @@ const [currentStep, setCurrentStep] = useState<Step>('Address')
   const [guestDetails, setGuestDetails] = useState<GuestFormData | null>(null)
   const [guestOrder, setGuestOrder] = useState<{ id: Id<'orders'>; token: string } | null>(null)
 
+  // Optional business details for the invoice.
+  const [company, setCompany] = useState({ name: '', vatNumber: '' })
+  const companyArg = company.name.trim()
+    ? { name: company.name, vatNumber: company.vatNumber.trim() || undefined }
+    : undefined
+
   const [appliedCode, setAppliedCode] = useState<string | null>(null)
   const promoCheck = useQuery(
     api.promotions.check,
@@ -191,6 +197,7 @@ const tax = taxEnabled ? (totalPrice - discount) * (taxRatePercent / 100) : 0
           email,
           address,
           promoCode,
+          company: companyArg,
           previous: guestOrder ?? undefined,
         })
         setGuestOrder({ id: guestCreated.orderId, token: guestCreated.guestToken })
@@ -200,6 +207,7 @@ const tax = taxEnabled ? (totalPrice - discount) * (taxRatePercent / 100) : 0
           items: cartItems,
           shippingAddressId: selectedAddress!._id as Id<'addresses'>,
           promoCode,
+          company: companyArg,
         })
       }
       if (Math.abs(created.total - grandTotal) >= 0.01) {
@@ -397,6 +405,8 @@ const tax = taxEnabled ? (totalPrice - discount) * (taxRatePercent / 100) : 0
                   email={isGuest ? guestDetails?.email : undefined}
                   discount={discount}
                   promoCode={promoCheck?.ok ? promoCheck.code : undefined}
+                  company={company}
+                  onCompanyChange={setCompany}
                   shipping={shipping}
                   tax={tax}
                   taxEnabled={taxEnabled}
@@ -684,6 +694,8 @@ interface ReviewStepProps {
   email?: string
   discount: number
   promoCode?: string
+  company: { name: string; vatNumber: string }
+  onCompanyChange: (company: { name: string; vatNumber: string }) => void
   shipping: number
   tax: number
   taxEnabled: boolean
@@ -701,6 +713,8 @@ function ReviewStep({
   email,
   discount,
   promoCode,
+  company,
+  onCompanyChange,
   shipping,
   tax,
   taxEnabled,
@@ -741,6 +755,9 @@ function ReviewStep({
           </p>
         )}
       </div>
+
+      {/* Company details for the invoice */}
+      <CompanyDetails company={company} onChange={onCompanyChange} />
 
       {/* Items */}
       <div className="bg-card rounded-xl p-5 card-shadow mb-6">
@@ -1058,5 +1075,59 @@ function GuestDetailsStep({
         </button>
       </form>
     </motion.div>
+  )
+}
+
+/* ─── Company Details ─── */
+function CompanyDetails({
+  company,
+  onChange,
+}: {
+  company: { name: string; vatNumber: string }
+  onChange: (company: { name: string; vatNumber: string }) => void
+}) {
+  const [open, setOpen] = useState(Boolean(company.name))
+
+  return (
+    <div className="bg-card rounded-xl p-5 card-shadow mb-6">
+      <label className="flex items-center gap-3 cursor-pointer">
+        <input
+          type="checkbox"
+          checked={open}
+          onChange={(e) => {
+            setOpen(e.target.checked)
+            if (!e.target.checked) onChange({ name: '', vatNumber: '' })
+          }}
+          className="h-4 w-4 accent-[oklch(0.75_0.183_47.752)]"
+        />
+        <span className="font-medium text-foreground">Buying for a business? Add company details to your invoice</span>
+      </label>
+      {open && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+          <div>
+            <label htmlFor="company-name" className="block text-sm font-medium text-foreground mb-1">Company name</label>
+            <input
+              id="company-name"
+              autoComplete="organization"
+              value={company.name}
+              onChange={(e) => onChange({ ...company, name: e.target.value })}
+              className="input-styled"
+            />
+          </div>
+          <div>
+            <label htmlFor="company-vat" className="block text-sm font-medium text-foreground mb-1">VAT number (optional)</label>
+            <input
+              id="company-vat"
+              inputMode="numeric"
+              autoComplete="off"
+              value={company.vatNumber}
+              onChange={(e) => onChange({ ...company, vatNumber: e.target.value })}
+              placeholder="4123456789"
+              className="input-styled"
+            />
+          </div>
+        </div>
+      )}
+    </div>
   )
 }

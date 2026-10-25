@@ -150,6 +150,14 @@ export default defineSchema({
     // The promo code the discount came from, as entered at checkout.
     promotionId: v.optional(v.id("promotions")),
     promoCode: v.optional(v.string()),
+    // VAT rate (percent) charged on this order; 0 when VAT was switched off.
+    taxRate: v.optional(v.number()),
+    // Optional business details the customer gave for their invoice.
+    billingCompany: v.optional(v.string()),
+    billingVatNumber: v.optional(v.string()),
+    // Sequential invoice number, given when the order is paid (e.g. INV-00042).
+    invoiceNumber: v.optional(v.string()),
+    invoicedAt: v.optional(v.number()),
     paypalOrderId: v.optional(v.string()),
     notes: v.optional(v.string()),
     // True while this order's items are deducted from product stock.
@@ -275,6 +283,15 @@ export default defineSchema({
     statsPartsStock: v.optional(v.string()),
     statsHappyCustomers: v.optional(v.string()),
     statsSatisfactionRate: v.optional(v.string()),
+    // Seller details printed on invoices.
+    businessName: v.optional(v.string()),
+    businessAddress: v.optional(v.string()),
+    businessPhone: v.optional(v.string()),
+    businessEmail: v.optional(v.string()),
+    vatNumber: v.optional(v.string()),
+    registrationNumber: v.optional(v.string()),
+    // Last invoice number handed out.
+    invoiceCounter: v.optional(v.number()),
   })
     .index("by_key", ["key"]),
 });

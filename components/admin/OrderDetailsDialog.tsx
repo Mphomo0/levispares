@@ -130,6 +130,11 @@ export default function OrderDetailsDialog({
               ) : (
                 <p className="text-muted-foreground">Not paid yet.</p>
               )}
+              {order.invoiceNumber && (
+                <a href={`/invoice/${order._id}`} target="_blank" rel="noopener" className="text-brand hover:underline">
+                  Invoice {order.invoiceNumber}
+                </a>
+              )}
             </section>
 
             {order.notes && (
