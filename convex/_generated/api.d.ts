@@ -38,6 +38,7 @@ import type * as returnEmails from "../returnEmails.js";
 import type * as returns from "../returns.js";
 import type * as reviews from "../reviews.js";
 import type * as settings from "../settings.js";
+import type * as stockAlerts from "../stockAlerts.js";
 import type * as users from "../users.js";
 import type * as variants from "../variants.js";
 import type * as wishlists from "../wishlists.js";
@@ -79,6 +80,7 @@ declare const fullApi: ApiFromModules<{
   returns: typeof returns;
   reviews: typeof reviews;
   settings: typeof settings;
+  stockAlerts: typeof stockAlerts;
   users: typeof users;
   variants: typeof variants;
   wishlists: typeof wishlists;

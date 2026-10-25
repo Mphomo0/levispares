@@ -32,6 +32,7 @@ import { getErrorMessage } from '@/lib/errors'
 import { formatPrice } from '@/lib/format'
 import { categoryPath } from '@/lib/shopUrl'
 import FitmentNote from '@/components/vehicle/FitmentNote'
+import NotifyWhenBack from '@/components/products/NotifyWhenBack'
 
 type ProductDetails = FunctionReturnType<typeof api.products.getWithFullHierarchy>
 
@@ -326,6 +327,7 @@ export default function ProductContent({
                   <ShoppingBag className="w-6 h-6" />
                   {outOfStock ? 'Out of Stock' : 'Add to Cart'}
                 </button>
+                {outOfStock && <NotifyWhenBack productId={product._id} />}
                 
                 <div className="grid grid-cols-2 gap-4">
                   <button

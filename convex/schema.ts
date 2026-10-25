@@ -250,6 +250,16 @@ export default defineSchema({
     .index("by_token", ["token"])
     .index("by_updatedAt", ["updatedAt"]),
 
+  // "Email me when it's back in stock" sign-ups.
+  stockAlerts: defineTable({
+    productId: v.id("products"),
+    email: v.string(),
+    // When the back-in-stock email went out; unset while still waiting.
+    notifiedAt: v.optional(v.number()),
+  })
+    .index("by_productId", ["productId"])
+    .index("by_notifiedAt", ["notifiedAt"]),
+
   // Wishlist tables
   wishlists: defineTable({
     userId: v.id("users"),

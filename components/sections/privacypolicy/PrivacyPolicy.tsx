@@ -95,6 +95,7 @@ export default function PrivacyPolicy() {
             when you leave items in it. You can turn these reminders off at any
             time from the link in the email or in your account settings
           </li>
+          <li>Send you a single back-in-stock email for a part, when you ask for one</li>
           <li>
             Answer part requests: the details and photos you send through the
             &ldquo;Can&apos;t find your part?&rdquo; form are emailed to our team and used only to
