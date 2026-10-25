@@ -484,7 +484,7 @@ export const getGuest = query({
   args: { id: v.id("orders"), token: v.string() },
   handler: async (ctx, args) => {
     const order = await ctx.db.get(args.id);
-    if (!order || order.userId || !order.guestToken || order.guestToken !== args.token) return null;
+    if (!order || !order.guestToken || order.guestToken !== args.token) return null;
 
     const items = await ctx.db
       .query("orderItems")
@@ -493,6 +493,38 @@ export const getGuest = query({
     const { guestToken: _token, ...rest } = order;
     void _token;
     return { ...rest, items, shippingAddress: order.shippingSnapshot ?? null };
+  },
+});
+
+/**
+ * Moves guest orders placed with a customer's email into their account, so
+ * they show under My Orders. Called by the website's server once Clerk has
+ * confirmed the customer owns those email addresses.
+ */
+export const linkGuestOrders = mutation({
+  args: { clerkId: v.string(), verifiedEmails: v.array(v.string()), serverSecret: v.string() },
+  handler: async (ctx, args) => {
+    assertServerSecret(args.serverSecret);
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerkId", (q) => q.eq("clerkId", args.clerkId))
+      .unique();
+    if (!user || user.isActive === false) return { linked: 0 };
+
+    let linked = 0;
+    for (const email of new Set(args.verifiedEmails.map((e) => e.trim().toLowerCase()))) {
+      const orders = await ctx.db
+        .query("orders")
+        .withIndex("by_guestEmail", (q) => q.eq("guestEmail", email))
+        .collect();
+      for (const order of orders) {
+        if (order.userId) continue;
+        await ctx.db.patch(order._id, { userId: user._id });
+        // Only paid orders are worth telling the customer about.
+        if (order.status !== "pending") linked++;
+      }
+    }
+    return { linked };
   },
 });
 

@@ -181,7 +181,8 @@ export default defineSchema({
     })),
   })
     .index("by_userId", ["userId"])
-    .index("by_status", ["status"]),
+    .index("by_status", ["status"])
+    .index("by_guestEmail", ["guestEmail"]),
 
   // A customer's request to send parts back for a refund.
   returns: defineTable({

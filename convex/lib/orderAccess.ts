@@ -8,7 +8,9 @@ import { isAdmin } from "./auth";
  */
 export async function canAccessOrder(ctx: QueryCtx, order: Doc<"orders">, guestToken: string | undefined) {
   if (guestToken !== undefined) {
-    return !order.userId && Boolean(order.guestToken) && order.guestToken === guestToken;
+    // The token keeps working after a guest order is moved into an account,
+    // so links in earlier emails don't break.
+    return Boolean(order.guestToken) && order.guestToken === guestToken;
   }
   const identity = await ctx.auth.getUserIdentity();
   if (identity && order.userId) {
