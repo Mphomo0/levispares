@@ -1,16 +1,20 @@
 'use client'
 
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
-import { Send } from 'lucide-react'
+import { CircleCheck, Send } from 'lucide-react'
 import { motion } from 'motion/react'
+import { convexSiteUrl } from '@/lib/convexSite'
 
 const schema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.email('Please enter a valid email'),
   message: z.string().min(1, 'Message cannot be empty').max(3000, 'Please keep your message under 3000 characters'),
+  // Hidden from people; bots fill it in.
+  website: z.string().optional(),
 })
 
 type FormData = z.infer<typeof schema>
@@ -20,26 +24,44 @@ export default function ContactForm() {
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
   })
+  const [sentTo, setSentTo] = useState<string | null>(null)
 
-  // Nothing is stored: this opens the visitor's email app with the message
-  // ready to send to the store. (Swap for a server-side email send later.)
-  const onSubmit = (data: FormData) => {
-    // Hidden field that only bots fill in.
-    if (document.getElementById('website')?.getAttribute('data-filled') === 'true') {
+  // Emailed to the shop (info@) with the visitor as the reply-to address.
+  const onSubmit = async (data: FormData) => {
+    try {
+      const res = await fetch(convexSiteUrl('/contact'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+      const result = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(result.error || 'Something went wrong')
+      setSentTo(data.email)
       reset()
-      return
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "We couldn't send your message.", {
+        description: 'You can also call us on 012 770 3389.',
+      })
     }
-    const subject = encodeURIComponent(`Website enquiry from ${data.name}`)
-    const body = encodeURIComponent(`${data.message}\n\nFrom: ${data.name} (${data.email})`)
-    window.location.assign(`mailto:info@levispares.co.za?subject=${subject}&body=${body}`)
-    toast.success('Opening your email app. Press send there to reach us.', {
-      description: 'Or call us on 012 770 3389.',
-    })
-    reset()
+  }
+
+  if (sentTo) {
+    return (
+      <div className="rounded-xl bg-green-50 p-6 text-green-900" role="status">
+        <p className="flex items-center gap-2 font-semibold">
+          <CircleCheck className="h-5 w-5" aria-hidden="true" />
+          Thanks, your message has been sent
+        </p>
+        <p className="mt-2 text-sm">We&apos;ll reply to {sentTo}, usually within one working day.</p>
+        <button type="button" onClick={() => setSentTo(null)} className="mt-4 text-sm font-medium text-accent hover:underline">
+          Send another message
+        </button>
+      </div>
+    )
   }
 
   return (
@@ -116,14 +138,15 @@ export default function ContactForm() {
         )}
       </motion.div>
 
-      <input name="website"
+      {/* Hidden from people; bots fill it in. */}
+      <input
         id="website"
+        {...register('website')}
         type="text"
         tabIndex={-1}
         autoComplete="off"
         aria-hidden="true"
         className="hidden"
-        onChange={(e) => e.currentTarget.setAttribute('data-filled', e.currentTarget.value ? 'true' : 'false')}
       />
 
       <motion.button
@@ -134,10 +157,11 @@ export default function ContactForm() {
         viewport={{ once: true }}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
-        className="btn-accent flex items-center gap-2 text-white"
+        disabled={isSubmitting}
+        className="btn-accent flex items-center gap-2 text-white disabled:opacity-60"
       >
         <Send className="w-5 h-5 text-white" />
-        Send Message
+        {isSubmitting ? 'Sending…' : 'Send Message'}
       </motion.button>
     </form>
   )

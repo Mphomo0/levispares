@@ -5,14 +5,12 @@ import Link from 'next/link'
 import { toast } from 'sonner'
 import { ImagePlus, X } from 'lucide-react'
 import { useMyVehicle, vehicleName } from '@/lib/myVehicle'
+import { convexSiteUrl } from '@/lib/convexSite'
 
 const MAX_PHOTOS = 3
 const MAX_SIDE = 1600
 
-// The endpoint lives on the Convex deployment's HTTP domain (.convex.site).
-const ENDPOINT = `${
-  process.env.NEXT_PUBLIC_CONVEX_SITE_URL ?? process.env.NEXT_PUBLIC_CONVEX_URL!.replace('.convex.cloud', '.convex.site')
-}/part-request`
+const ENDPOINT = convexSiteUrl('/part-request')
 
 /** Shrinks a photo to at most 1600px and re-encodes it as JPEG, so phone photos upload quickly. */
 async function shrinkPhoto(file: File): Promise<{ type: string; data: string; preview: string }> {
