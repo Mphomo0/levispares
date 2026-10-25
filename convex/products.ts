@@ -1299,3 +1299,50 @@ export const tidyNames = internalMutation({
     return { dryRun, changed: changes.length, total: products.length, changes };
   },
 });
+
+/** Everything the Google Shopping feed needs about each active product. */
+export const shoppingFeed = query({
+  args: {},
+  handler: async (ctx) => {
+    const [products, settings] = await Promise.all([
+      ctx.db.query("products").withIndex("by_active", (q) => q.eq("active", true)).collect(),
+      ctx.db.query("storeSettings").withIndex("by_key", (q) => q.eq("key", "global")).first(),
+    ]);
+    const names = new Map<string, string>();
+    const nameOf = async (id: Id<"brands"> | Id<"categories">) => {
+      if (!names.has(id)) names.set(id, (await ctx.db.get(id))?.name ?? "");
+      return names.get(id)!;
+    };
+
+    const items = [];
+    for (const product of products) {
+      const images = await ctx.db
+        .query("productImages")
+        .withIndex("by_productId", (q) => q.eq("productId", product._id))
+        .collect();
+      const imageUrls = [
+        ...(product.image ? [product.image] : []),
+        ...images.sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0)).map((image) => image.url),
+      ].filter((url, i, all) => all.indexOf(url) === i);
+      items.push({
+        id: product._id,
+        sku: product.sku,
+        slug: product.slug,
+        name: product.name,
+        description: product.description,
+        partNumber: product.partNumber,
+        price: product.price,
+        originalPrice: product.originalPrice,
+        inStock: (product.stockQty ?? 0) > 0,
+        brand: await nameOf(product.brandId),
+        category: await nameOf(product.categoryId),
+        images: imageUrls,
+      });
+    }
+    return {
+      taxRate: settings?.taxEnabled ? settings.taxRate ?? 0 : 0,
+      shippingRate: settings?.shippingRate ?? 250,
+      items,
+    };
+  },
+});
