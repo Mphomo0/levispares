@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
-import { MotionConfig } from 'motion/react'
+import { MotionProvider } from '@/components/providers/MotionProvider'
 import NavigationWrapper from '@/components/layout/NavigationWrapper'
 import { CartProvider } from '@/lib/CartContext'
 import { FavoritesProvider } from '@/lib/FavoritesContext'
@@ -59,7 +59,7 @@ export default function RootLayout({
       >
         <JsonLd data={storeJsonLd()} />
         <JsonLd data={websiteJsonLd()} />
-        <MotionConfig reducedMotion="user">
+        <MotionProvider>
           <ConvexClientProvider>
             <CartProvider>
               <FavoritesProvider>
@@ -70,7 +70,7 @@ export default function RootLayout({
               </FavoritesProvider>
             </CartProvider>
           </ConvexClientProvider>
-        </MotionConfig>
+        </MotionProvider>
         <Toaster position="top-center" richColors closeButton />
       </body>
     </html>

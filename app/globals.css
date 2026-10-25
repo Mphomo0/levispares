@@ -339,6 +339,26 @@
   .animate-marquee:hover {
     animation-play-state: paused;
   }
+
+  /* Entrance for content that is on screen at load. Done in CSS rather than
+     motion so it plays from the server HTML instead of waiting for JS.
+     Tune with --rise-from, --rise-opacity, --rise-duration, --rise-delay. */
+  @keyframes rise {
+    from {
+      opacity: var(--rise-opacity, 0);
+      transform: translateY(var(--rise-from, 20px));
+    }
+  }
+
+  @keyframes rise-fade {
+    from {
+      opacity: var(--rise-opacity, 0);
+    }
+  }
+
+  .animate-rise {
+    animation: rise var(--rise-duration, 0.4s) cubic-bezier(0.22, 1, 0.36, 1) var(--rise-delay, 0s) both;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -347,5 +367,10 @@
   .animate-float,
   .animate-marquee {
     animation: none;
+  }
+
+  /* Like MotionConfig reducedMotion="user": keep the fade, drop the movement. */
+  .animate-rise {
+    animation-name: rise-fade;
   }
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
-import { motion, AnimatePresence } from 'motion/react'
+import { m, AnimatePresence } from 'framer-motion'
 import { useUser } from '@clerk/nextjs'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '@/convex/_generated/api'
@@ -310,17 +310,17 @@ const tax = taxEnabled ? (totalPrice - discount) * (taxRatePercent / 100) : 0
       {/* Header */}
       <div className="hero-gradient text-primary-foreground py-12 md:py-16">
         <div className="container mx-auto px-4">
-          <motion.h1
+          <m.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             className="font-display text-3xl md:text-4xl lg:text-5xl tracking-wide mb-4"
           >
             CHECKOUT
-          </motion.h1>
+          </m.h1>
 
           {/* Step Indicators */}
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
@@ -367,7 +367,7 @@ const tax = taxEnabled ? (totalPrice - discount) * (taxRatePercent / 100) : 0
                 )}
               </div>
             ))}
-          </motion.div>
+          </m.div>
         </div>
       </div>
 
@@ -496,7 +496,7 @@ function AddressStep({
   })
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
@@ -544,7 +544,7 @@ function AddressStep({
       )}
 
       {showAddForm && (
-        <motion.div
+        <m.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
@@ -647,7 +647,7 @@ function AddressStep({
               )}
             </div>
           </form>
-        </motion.div>
+        </m.div>
       )}
 
       <div className="mt-8 flex flex-col lg:flex-row gap-4">
@@ -673,7 +673,7 @@ function AddressStep({
           </svg>
         </button>
       </div>
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -726,7 +726,7 @@ function ReviewStep({
   isProcessing,
 }: ReviewStepProps) {
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
@@ -848,7 +848,7 @@ function ReviewStep({
           )}
         </button>
       </div>
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -867,7 +867,7 @@ interface OrderSidebarProps {
 
 function OrderSidebar({ items, totalPrice, discount, shipping, tax, taxEnabled, taxRatePercent, grandTotal, children }: OrderSidebarProps) {
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.4, delay: 0.2 }}
@@ -926,7 +926,7 @@ function OrderSidebar({ items, totalPrice, discount, shipping, tax, taxEnabled, 
 <Link href="/cart" className="block mt-4 text-center text-sm text-accent hover:underline">
         ← Edit Cart
       </Link>
-    </motion.div>
+    </m.div>
   )
 }
 
@@ -1036,7 +1036,7 @@ function GuestDetailsStep({
   )
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
@@ -1074,7 +1074,7 @@ function GuestDetailsStep({
           </svg>
         </button>
       </form>
-    </motion.div>
+    </m.div>
   )
 }
 

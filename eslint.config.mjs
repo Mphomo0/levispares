@@ -16,6 +16,20 @@ const eslintConfig = defineConfig([
     "convex/_generated/**",
   ]),
   {
+    // `motion/react` re-exports framer-motion through a namespace import, which
+    // stops Turbopack tree-shaking it, so every page would ship the whole
+    // library. Import from framer-motion and use `m` (features load lazily
+    // through MotionProvider's LazyMotion).
+    rules: {
+      "no-restricted-imports": ["error", {
+        paths: [
+          { name: "motion/react", message: "Import from 'framer-motion' instead (see eslint.config.mjs)." },
+          { name: "framer-motion", importNames: ["motion"], message: "Use `m` — LazyMotion loads the features." },
+        ],
+      }],
+    },
+  },
+  {
     // Tests use loose types for fakes and mocks.
     files: ["tests/**/*.ts"],
     rules: { "@typescript-eslint/no-explicit-any": "off" },

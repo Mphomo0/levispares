@@ -24,7 +24,7 @@ import {
   useAuth,
   useClerk,
 } from '@clerk/nextjs'
-import { motion, AnimatePresence } from 'motion/react'
+import { m, AnimatePresence } from 'framer-motion'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { formatPrice } from '@/lib/format'
@@ -259,14 +259,14 @@ const brands = useQuery(api.brands.list, {})
                   <div className="relative">
                     <ShoppingBag className="w-6 h-6 text-slate-300 group-hover:text-brand transition-colors" />
                     {totalItems > 0 && (
-                      <motion.span
+                      <m.span
                         key={totalItems}
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         className="absolute -top-2 -right-2 min-w-5 h-5 px-1 bg-brand text-white text-xs font-bold rounded-full flex items-center justify-center"
                       >
                         {totalItems > 99 ? '99+' : totalItems}
-                      </motion.span>
+                      </m.span>
                     )}
                   </div>
                   <div className="hidden xl:block text-sm">
@@ -283,14 +283,14 @@ const brands = useQuery(api.brands.list, {})
                   <div className="relative">
                     <Heart className="w-6 h-6 text-slate-300 group-hover:text-red-500 transition-colors" />
                     {favoritesCount > 0 && (
-                      <motion.span
+                      <m.span
                         key={favoritesCount}
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         className="absolute -top-2 -right-2 min-w-5 h-5 px-1 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center"
                       >
                         {favoritesCount > 99 ? '99+' : favoritesCount}
-                      </motion.span>
+                      </m.span>
                     )}
                   </div>
                   <div className="hidden xl:block text-sm">
@@ -372,7 +372,7 @@ const brands = useQuery(api.brands.list, {})
 
       <AnimatePresence>
         {isMenuOpen && (
-          <motion.div
+          <m.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -480,7 +480,7 @@ const brands = useQuery(api.brands.list, {})
                 </Link>
               </div>
             </nav>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </header>

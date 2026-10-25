@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'motion/react'
+import { m } from 'framer-motion'
 import { MapPin, Phone, Mail, Clock } from 'lucide-react'
 
 type ContactInfoProps = {
@@ -25,7 +25,7 @@ export default function ContactInfo({ info }: ContactInfoProps) {
       {info.map(({ type = 'address', title, content, href }, index) => {
         const Icon = iconMap[type] || MapPin
         return (
-          <motion.div
+          <m.div
             key={title}
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -53,7 +53,7 @@ export default function ContactInfo({ info }: ContactInfoProps) {
                 )}
               </div>
             </div>
-          </motion.div>
+          </m.div>
         )
       })}
     </div>

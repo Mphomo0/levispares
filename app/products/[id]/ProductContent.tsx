@@ -9,7 +9,7 @@ import { useCart } from '@/lib/CartContext'
 import { useFavorites } from '@/lib/FavoritesContext'
 import SmartImage from '@/components/ui/SmartImage'
 import { useUser, SignInButton } from '@clerk/nextjs'
-import { motion, AnimatePresence } from 'motion/react'
+import { m, AnimatePresence } from 'framer-motion'
 import { 
   ShoppingBag, 
   Heart, 
@@ -185,7 +185,7 @@ export default function ProductContent({
           
           {/* Left Column: Image Gallery */}
           <div className="lg:col-span-7 space-y-4">
-            <motion.div 
+            <m.div 
               layoutId="product-image"
               className="relative aspect-square bg-white rounded-3xl overflow-hidden shadow-sm border border-slate-200 group"
             >
@@ -210,7 +210,7 @@ export default function ProductContent({
                   Quality Part
                 </span>
               </div>
-            </motion.div>
+            </m.div>
 
             {/* Thumbnails */}
             {product.images && product.images.length > 0 && (
@@ -377,7 +377,7 @@ export default function ProductContent({
               >
                 {tab}
                 {activeTab === tab && (
-                  <motion.div 
+                  <m.div 
                     layoutId="activeTab"
                     className="absolute bottom-0 left-0 right-0 h-1 bg-accent rounded-t-full"
                   />
@@ -389,7 +389,7 @@ export default function ProductContent({
           <div className="mt-10 min-h-[300px]">
             <AnimatePresence mode="wait">
               {activeTab === 'description' && (
-                <motion.div
+                <m.div
                   key="description"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -406,11 +406,11 @@ export default function ProductContent({
                       help confirming fitment.
                     </p>
                   )}
-                </motion.div>
+                </m.div>
               )}
 
               {activeTab === 'specs' && (
-                <motion.div
+                <m.div
                   key="specs"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -449,11 +449,11 @@ export default function ProductContent({
                       </tbody>
                     </table>
                   </div>
-                </motion.div>
+                </m.div>
               )}
 
               {activeTab === 'reviews' && (
-                <motion.div
+                <m.div
                   key="reviews"
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -484,7 +484,7 @@ export default function ProductContent({
                           <div key={stars} className="flex items-center gap-4">
                             <span className="text-xs font-bold text-slate-500 w-8">{stars} STAR</span>
                             <div className="h-3 flex-1 bg-slate-100 rounded-full overflow-hidden shadow-inner">
-                              <motion.div 
+                              <m.div 
                                 initial={{ width: 0 }}
                                 animate={{ width: `${percentage}%` }}
                                 transition={{ duration: 1, ease: 'easeOut' }}
@@ -509,7 +509,7 @@ export default function ProductContent({
                       <div className="space-y-6">
                         {reviews && reviews.length > 0 ? (
                           reviews.map((r) => (
-                            <motion.div 
+                            <m.div 
                               key={r._id}
                               initial={{ opacity: 0, x: -10 }}
                               animate={{ opacity: 1, x: 0 }}
@@ -541,7 +541,7 @@ export default function ProductContent({
                                   Verified Fitment
                                 </div>
                               )}
-                            </motion.div>
+                            </m.div>
                           ))
                         ) : (
                           <div className="text-center py-20 bg-slate-100/50 rounded-[2rem] border-2 border-dashed border-slate-200">
@@ -635,7 +635,7 @@ export default function ProductContent({
                       )}
                     </div>
                   </div>
-                </motion.div>
+                </m.div>
               )}
             </AnimatePresence>
           </div>

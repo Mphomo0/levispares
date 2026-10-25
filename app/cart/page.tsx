@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'motion/react'
+import { m, AnimatePresence } from 'framer-motion'
 import { useCart } from '@/lib/CartContext'
 import { useRouter } from 'next/navigation'
 import { useUser } from '@clerk/nextjs'
@@ -20,7 +20,7 @@ const OrderSummary = ({ totalPrice, taxEnabled, taxRate, shippingRate, onCheckou
   const grandTotal = totalPrice + shipping + tax
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.4, delay: 0.3 }}
@@ -84,7 +84,7 @@ const OrderSummary = ({ totalPrice, taxEnabled, taxRate, shippingRate, onCheckou
       >
         Proceed to Checkout
 </button>
-</motion.div>
+</m.div>
   )
 }
 
@@ -110,7 +110,7 @@ const handleCheckout = () => {
   if (items.length === 0) {
     return (
       <div className="container mx-auto px-4 py-16 md:py-24 text-center">
-        <motion.div
+        <m.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4 }}
@@ -129,24 +129,24 @@ const handleCheckout = () => {
               d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
             />
           </svg>
-        </motion.div>
-        <motion.h1
+        </m.div>
+        <m.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.1 }}
           className="text-2xl md:text-3xl font-bold text-foreground mb-4"
         >
           Your cart is empty
-        </motion.h1>
-        <motion.p
+        </m.h1>
+        <m.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.2 }}
           className="text-muted-foreground mb-8"
         >
           Looks like you haven&apos;t added any items to your cart yet.
-        </motion.p>
-        <motion.div
+        </m.p>
+        <m.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.3 }}
@@ -170,7 +170,7 @@ const handleCheckout = () => {
               />
             </svg>
           </Link>
-        </motion.div>
+        </m.div>
       </div>
     )
   }
@@ -179,22 +179,22 @@ const handleCheckout = () => {
     <>
       <div className="hero-gradient text-primary-foreground py-16 md:py-24">
         <div className="container mx-auto px-4">
-          <motion.h1
+          <m.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             className="font-display text-4xl md:text-5xl lg:text-6xl tracking-wide mb-6"
           >
             YOUR <span className="text-accent">CART</span>
-          </motion.h1>
-          <motion.p
+          </m.h1>
+          <m.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-lg md:text-xl text-primary-foreground/80 max-w-2xl"
           >
             {items.length} {items.length === 1 ? 'item' : 'items'} in your cart
-          </motion.p>
+          </m.p>
         </div>
       </div>
 
@@ -202,7 +202,7 @@ const handleCheckout = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-4">
             {items.map((item, index) => (
-              <motion.div
+              <m.div
                   key={item._id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -309,9 +309,9 @@ const handleCheckout = () => {
                     </span>
                   </div>
                 </div>
-              </motion.div>
+              </m.div>
             ))}
-            <motion.button
+            <m.button
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.4, delay: 0.5 }}
@@ -319,7 +319,7 @@ const handleCheckout = () => {
               className="text-muted-foreground hover:text-destructive transition-colors text-sm"
             >
               Clear all items
-            </motion.button>
+            </m.button>
           </div>
 
           <div className="lg:col-span-1">
@@ -330,7 +330,7 @@ const handleCheckout = () => {
 
       <AnimatePresence>
         {showAuth && (
-          <motion.div
+          <m.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -338,7 +338,7 @@ const handleCheckout = () => {
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
             onClick={() => setShowAuth(false)}
           >
-            <motion.div
+            <m.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
@@ -377,8 +377,8 @@ const handleCheckout = () => {
                   </button>
                 </SignUpButton>
               </div>
-            </motion.div>
-          </motion.div>
+            </m.div>
+          </m.div>
         )}
       </AnimatePresence>
     </>

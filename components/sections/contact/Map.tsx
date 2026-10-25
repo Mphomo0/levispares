@@ -1,10 +1,10 @@
 'use client'
 
-import { motion } from 'motion/react'
+import { m } from 'framer-motion'
 
 export default function Map() {
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.2 }}
@@ -18,6 +18,6 @@ export default function Map() {
         loading="lazy"
         referrerPolicy="no-referrer-when-downgrade"
       />
-    </motion.div>
+    </m.div>
   )
 }

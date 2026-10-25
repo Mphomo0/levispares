@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { ChevronDown, SlidersHorizontal, X, Check } from 'lucide-react'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
-import { motion, AnimatePresence } from 'motion/react'
+import { m, AnimatePresence } from 'framer-motion'
 import { Slider } from '@/components/ui/slider'
 import { shopUrl } from '@/lib/shopUrl'
 import { useShopFilters } from './useShopFilters'
@@ -515,7 +515,7 @@ export default function FilterSidebar() {
       <AnimatePresence>
         {mobileFiltersOpen && (
           <>
-            <motion.div
+            <m.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -523,7 +523,7 @@ export default function FilterSidebar() {
               onClick={() => setMobileFiltersOpen(false)}
               className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden"
             />
-            <motion.div
+            <m.div
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
@@ -542,7 +542,7 @@ export default function FilterSidebar() {
               <div className="p-5">
                 {filterContent}
               </div>
-            </motion.div>
+            </m.div>
           </>
         )}
       </AnimatePresence>

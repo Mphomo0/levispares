@@ -1,14 +1,14 @@
 'use client'
 
 import Image from 'next/image'
-import { motion } from 'framer-motion'
+import { m } from 'framer-motion'
 
 export default function AboutStory() {
   return (
     <section className="py-16 md:py-24">
       <div className="container mx-auto px-4">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
-          <motion.div
+          <m.div
             initial={{ opacity: 0, x: -30 }}
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
@@ -43,9 +43,9 @@ export default function AboutStory() {
                 support you deserve.
               </p>
             </div>
-          </motion.div>
+          </m.div>
 
-          <motion.div
+          <m.div
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
@@ -61,7 +61,7 @@ export default function AboutStory() {
               priority={false}
               unoptimized
             />
-          </motion.div>
+          </m.div>
         </div>
       </div>
     </section>

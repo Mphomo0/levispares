@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { motion } from 'motion/react'
+import { m } from 'framer-motion'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import type { Id } from '@/convex/_generated/dataModel'
@@ -48,7 +48,7 @@ function SuccessContent() {
       {/* Header */}
       <div className="hero-gradient text-primary-foreground py-16 md:py-20">
         <div className="container mx-auto px-4 text-center">
-          <motion.div
+          <m.div
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.1 }}
@@ -57,29 +57,29 @@ function SuccessContent() {
             <svg aria-hidden="true" className="w-10 h-10 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
             </svg>
-          </motion.div>
-          <motion.h1
+          </m.div>
+          <m.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.2 }}
             className="font-display text-3xl md:text-4xl lg:text-5xl tracking-wide mb-4"
           >
             ORDER <span className="text-accent">CONFIRMED</span>
-          </motion.h1>
-          <motion.p
+          </m.h1>
+          <m.p
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
             className="text-lg text-primary-foreground/80"
           >
             Thank you for your purchase!
-          </motion.p>
+          </m.p>
         </div>
       </div>
 
       {/* Details */}
       <div className="container mx-auto px-4 py-8 max-w-2xl">
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.4 }}
@@ -175,10 +175,10 @@ function SuccessContent() {
           ) : (
             <p className="text-center text-muted-foreground">Order details not found.</p>
           )}
-        </motion.div>
+        </m.div>
 
         {/* Actions */}
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.5 }}
@@ -195,7 +195,7 @@ function SuccessContent() {
           >
             Continue Shopping
           </Link>
-        </motion.div>
+        </m.div>
       </div>
     </>
   )

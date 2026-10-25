@@ -10,20 +10,30 @@ import { Id } from '@/convex/_generated/dataModel'
 import { ArrowRight } from 'lucide-react'
 import {
   animate,
-  motion,
+  m,
   useMotionValue,
   useReducedMotion,
   useScroll,
   useSpring,
   useTransform,
   type MotionValue,
-} from 'motion/react'
+} from 'framer-motion'
 import LoadingScene, { LoadingSteps, SceneBackdrop } from './LoadingScene'
 import { shopUrl } from '@/lib/shopUrl'
 import { setMyVehicle, useMyVehicle } from '@/lib/myVehicle'
 
-// One easing curve for all hero motion: quick start, long gentle settle.
-const EASE = [0.22, 1, 0.36, 1] as const
+/**
+ * Settings for the CSS `animate-rise` entrance (globals.css), which uses the
+ * hero's easing curve: quick start, long gentle settle.
+ */
+function rise({ from, opacity = 0, duration, delay = 0 }: { from: string; opacity?: number; duration: number; delay?: number }) {
+  return {
+    '--rise-from': from,
+    '--rise-opacity': opacity,
+    '--rise-duration': `${duration}s`,
+    '--rise-delay': `${delay}s`,
+  } as React.CSSProperties
+}
 
 const selectClass =
   'w-full rounded-lg border border-white/20 bg-white px-4 py-3 text-slate-900 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:cursor-not-allowed disabled:opacity-60'
@@ -150,43 +160,31 @@ function HeroCopy() {
           className="font-display text-3xl sm:text-5xl lg:text-6xl tracking-tight leading-[1.05] text-white mb-3 lg:mb-4"
           style={{ fontWeight: 900 }}
         >
-          {/* Each line rises out of its own mask */}
+          {/* Each line rises out of its own mask. These entrances are CSS
+              (animate-rise) so the headline paints before the page's JS runs. */}
           <span className="block overflow-hidden pb-[0.08em]">
-            <motion.span
-              className="block"
-              initial={{ y: '110%' }}
-              animate={{ y: 0 }}
-              transition={{ duration: 0.9, ease: EASE }}
-            >
+            <span className="block animate-rise" style={rise({ from: '110%', opacity: 1, duration: 0.9 })}>
               Truck spares,
-            </motion.span>
+            </span>
           </span>{' '}
           <span className="block overflow-hidden pb-[0.08em]">
-            <motion.span
-              className="block text-brand"
-              initial={{ y: '110%' }}
-              animate={{ y: 0 }}
-              transition={{ duration: 0.9, ease: EASE, delay: 0.08 }}
+            <span
+              className="block text-brand animate-rise"
+              style={rise({ from: '110%', opacity: 1, duration: 0.9, delay: 0.08 })}
             >
               delivered nationwide
-            </motion.span>
+            </span>
           </span>
         </h1>
-        <motion.p
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: EASE, delay: 0.25 }}
-          className="hidden sm:block text-base md:text-lg text-white/80 max-w-xl text-pretty"
+        <p
+          className="hidden sm:block text-base md:text-lg text-white/80 max-w-xl text-pretty animate-rise"
+          style={rise({ from: '16px', duration: 0.8, delay: 0.25 })}
         >
           Aftermarket parts for Hino, Isuzu, Fuso, Mercedes-Benz, Nissan, FAW and
           more, from brakes to batteries. Pretoria based, shipping across South Africa.
-        </motion.p>
+        </p>
       </div>
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, ease: EASE, delay: 0.35 }}
-      >
+      <div className="animate-rise" style={rise({ from: '16px', duration: 0.8, delay: 0.35 })}>
         <VehicleFinder />
         <p className="mt-3 hidden sm:block px-1 text-white/75 text-sm">
           Prefer to talk? Call{' '}
@@ -199,7 +197,7 @@ function HeroCopy() {
             Browse all parts
           </Link>
         </p>
-      </motion.div>
+      </div>
     </div>
   )
 }
@@ -275,12 +273,12 @@ export default function Hero() {
           <div className="relative flex-1">
             {/* The truck owns the whole stage; the copy sits on top of it */}
             <LoadingScene progress={progress} entry={entry} />
-            <motion.div
+            <m.div
               className="container mx-auto px-4 pt-5 lg:pt-10 relative z-10"
               style={{ opacity: contentOpacity, y: contentY, pointerEvents: contentPointer }}
             >
               <HeroCopy />
-            </motion.div>
+            </m.div>
           </div>
         )}
 

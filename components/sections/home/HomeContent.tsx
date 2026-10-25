@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'motion/react'
+import { m } from 'framer-motion'
 import Hero from '@/components/sections/home/Hero'
 import { ArrowRight } from 'lucide-react'
 import Link from 'next/link'
@@ -35,7 +35,7 @@ export default function HomeContent({ initialFeatured, initialBrands, initialCat
 
       <section className="py-16 md:py-24 bg-background">
         <div className="container mx-auto px-4">
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -51,7 +51,7 @@ export default function HomeContent({ initialFeatured, initialBrands, initialCat
             >
               View all parts <ArrowRight className="w-4 h-4" aria-hidden="true" />
             </Link>
-          </motion.div>
+          </m.div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {!featuredProducts ? (
@@ -67,7 +67,7 @@ export default function HomeContent({ initialFeatured, initialBrands, initialCat
               ))
             ) : (
               featuredProducts.map((product, index) => (
-                <motion.div
+                <m.div
                   key={product._id}
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
@@ -76,7 +76,7 @@ export default function HomeContent({ initialFeatured, initialBrands, initialCat
                   className="h-full"
                 >
                   <ProductCard product={product} />
-                </motion.div>
+                </m.div>
               ))
             )}
           </div>
@@ -86,7 +86,7 @@ export default function HomeContent({ initialFeatured, initialBrands, initialCat
       {/* Categories */}
       <section className="py-16 md:py-24 bg-slate-50">
         <div className="container mx-auto px-4">
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -95,11 +95,11 @@ export default function HomeContent({ initialFeatured, initialBrands, initialCat
           >
             <h2 className="section-title text-balance">Shop by category</h2>
             <p className="section-subtitle">Brakes, batteries and more</p>
-          </motion.div>
+          </m.div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {(categories ?? []).slice(0, 6).map((category, index) => (
-              <motion.div
+              <m.div
                 key={category._id}
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -112,7 +112,7 @@ export default function HomeContent({ initialFeatured, initialBrands, initialCat
                   name={category.name}
                   description={category.description || ''}
                 />
-              </motion.div>
+              </m.div>
             ))}
           </div>
         </div>
@@ -121,7 +121,7 @@ export default function HomeContent({ initialFeatured, initialBrands, initialCat
       {/* Brands - Marquee */}
       <section className="py-16 md:py-24 bg-white overflow-hidden">
         <div className="container mx-auto px-4 mb-12">
-          <motion.div
+          <m.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
@@ -130,7 +130,7 @@ export default function HomeContent({ initialFeatured, initialBrands, initialCat
           >
             <h2 className="section-title text-balance">Shop by brand</h2>
             <p className="section-subtitle">Choose your truck&apos;s make</p>
-          </motion.div>
+          </m.div>
         </div>
 
         <div className="relative">
@@ -158,7 +158,7 @@ export default function HomeContent({ initialFeatured, initialBrands, initialCat
       {/* CTA Section */}
       <section className="py-16 md:py-24 hero-gradient text-primary-foreground">
         <div className="container mx-auto px-4 text-center">
-          <motion.div
+          <m.div
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.5 }}
@@ -177,7 +177,7 @@ export default function HomeContent({ initialFeatured, initialBrands, initialCat
             >
               Browse all parts <ArrowRight className="w-5 h-5" aria-hidden="true" />
             </Link>
-          </motion.div>
+          </m.div>
         </div>
       </section>
     </>

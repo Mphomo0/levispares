@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { motion, useInView, useSpring, useTransform } from 'motion/react'
+import { m, useInView, useSpring, useTransform } from 'framer-motion'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 
@@ -31,7 +31,7 @@ function AnimatedNumber({ value }: { value: string }) {
     return <span>{value}</span>
   }
 
-  return <motion.span ref={ref}>{display}</motion.span>
+  return <m.span ref={ref}>{display}</m.span>
 }
 
 export default function AboutStats() {
@@ -49,7 +49,7 @@ export default function AboutStats() {
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
           {stats.map((stat, index) => (
-            <motion.div
+            <m.div
               key={stat.label}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -60,7 +60,7 @@ export default function AboutStats() {
                 <AnimatedNumber value={stat.number} />
               </div>
               <div className="text-primary-foreground/70">{stat.label}</div>
-            </motion.div>
+            </m.div>
           ))}
         </div>
       </div>

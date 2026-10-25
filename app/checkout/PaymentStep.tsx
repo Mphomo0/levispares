@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'motion/react'
+import { m } from 'framer-motion'
 import { toast } from 'sonner'
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js'
 import type { PaymentInfo } from './page'
@@ -21,7 +21,7 @@ export default function PaymentStep({ convexOrderId, guestToken, payment, onSucc
   const currency = PAYPAL_CURRENCY
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
@@ -129,6 +129,6 @@ export default function PaymentStep({ convexOrderId, guestToken, payment, onSucc
         </svg>
         Back to Review
       </button>
-    </motion.div>
+    </m.div>
   )
 }

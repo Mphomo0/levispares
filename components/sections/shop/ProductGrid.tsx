@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { motion } from 'motion/react'
+import { m } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
 import ProductCard from '@/components/sections/products/ProductCard'
 import type { Product } from '@/lib/CartContext'
@@ -18,7 +18,7 @@ export default function ProductGrid({ products, selectedCategoryName, isLoading,
   return (
     <div className="flex-1">
       {selectedCategoryName && (
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
@@ -28,7 +28,7 @@ export default function ProductGrid({ products, selectedCategoryName, isLoading,
           <span className="px-3 py-1 bg-accent/10 text-accent rounded-full text-sm font-medium capitalize">
             {selectedCategoryName}
           </span>
-        </motion.div>
+        </m.div>
       )}
 
       {isLoading && products.length === 0 && (
@@ -52,20 +52,19 @@ export default function ProductGrid({ products, selectedCategoryName, isLoading,
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {products.map((product, index) => (
-          <motion.div
+          // CSS entrance so the first page of parts shows before JS loads.
+          <div
             key={product._id}
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: index * 0.05 }}
-            className="h-full"
+            className="h-full animate-rise"
+            style={{ '--rise-from': '30px', '--rise-delay': `${index * 0.05}s` } as React.CSSProperties}
           >
             <ProductCard product={product} />
-          </motion.div>
+          </div>
         ))}
       </div>
 
       {products.length === 0 && !isLoading && (
-        <motion.div
+        <m.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
@@ -82,7 +81,7 @@ export default function ProductGrid({ products, selectedCategoryName, isLoading,
               View all products
             </Link>
           </div>
-        </motion.div>
+        </m.div>
       )}
 
       {loadMore && products.length > 0 && (

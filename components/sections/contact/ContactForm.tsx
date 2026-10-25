@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { toast } from 'sonner'
 import { CircleCheck, Send } from 'lucide-react'
-import { motion } from 'motion/react'
+import { m } from 'framer-motion'
 import { convexSiteUrl } from '@/lib/convexSite'
 
 const schema = z.object({
@@ -66,7 +66,7 @@ export default function ContactForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
@@ -88,9 +88,9 @@ export default function ContactForm() {
         {errors.name && (
           <p className="text-red-500 text-sm">{errors.name.message}</p>
         )}
-      </motion.div>
+      </m.div>
 
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.2 }}
@@ -112,9 +112,9 @@ export default function ContactForm() {
         {errors.email && (
           <p className="text-red-500 text-sm">{errors.email.message}</p>
         )}
-      </motion.div>
+      </m.div>
 
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.3 }}
@@ -136,7 +136,7 @@ export default function ContactForm() {
         {errors.message && (
           <p className="text-red-500 text-sm">{errors.message.message}</p>
         )}
-      </motion.div>
+      </m.div>
 
       {/* Hidden from people; bots fill it in. */}
       <input
@@ -149,7 +149,7 @@ export default function ContactForm() {
         className="hidden"
       />
 
-      <motion.button
+      <m.button
         type="submit"
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -162,7 +162,7 @@ export default function ContactForm() {
       >
         <Send className="w-5 h-5 text-white" />
         {isSubmitting ? 'Sending…' : 'Send Message'}
-      </motion.button>
+      </m.button>
     </form>
   )
 }

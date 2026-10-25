@@ -5,12 +5,12 @@ import Image from 'next/image'
 import {
   easeIn,
   easeOut,
-  motion,
+  m,
   useMotionValue,
   useMotionValueEvent,
   useTransform,
   type MotionValue,
-} from 'motion/react'
+} from 'framer-motion'
 
 interface SceneProps {
   /** Scroll progress through the hero, 0 to 1. */
@@ -115,7 +115,7 @@ function Part({ part, index, progress }: { part: PartConfig; index: number; prog
 
   return (
     <>
-      <motion.div
+      <m.div
         className="absolute h-[5%] rounded-[50%]"
         style={{
           left: `${part.left}%`,
@@ -126,7 +126,7 @@ function Part({ part, index, progress }: { part: PartConfig; index: number; prog
           scaleX: shadowScale,
         }}
       />
-      <motion.div
+      <m.div
         className="absolute will-change-transform"
         style={{ left: `${part.left}%`, width: `${part.size}%`, bottom, x, y, rotate, scale, transformOrigin: '50% 100%' }}
       >
@@ -139,7 +139,7 @@ function Part({ part, index, progress }: { part: PartConfig; index: number; prog
           unoptimized
           className="block h-auto w-full [filter:drop-shadow(0_6px_6px_rgba(0,0,0,0.45))]"
         />
-      </motion.div>
+      </m.div>
     </>
   )
 }
@@ -151,7 +151,7 @@ function Part({ part, index, progress }: { part: PartConfig; index: number; prog
 function Wheel({ wheel, rotate }: { wheel: (typeof WHEELS)[number]; rotate: MotionValue<number> }) {
   const d = wheel.r * 2
   return (
-    <motion.div
+    <m.div
       className="absolute rounded-full"
       style={{
         left: `${((wheel.cx - wheel.r) / PHOTO_W) * 100}%`,
@@ -241,12 +241,12 @@ export default function LoadingScene({ progress, entry }: SceneProps) {
       <div className="absolute inset-x-0 bottom-0 h-[26%] bg-gradient-to-t from-black/60 to-transparent" />
       <div className="absolute inset-x-0 bottom-[4%] h-px bg-gradient-to-r from-transparent via-white/15 to-transparent" />
 
-      <motion.div
+      <m.div
         // Phones push in on the cargo (left) rather than the middle
         className="absolute inset-x-0 bottom-[4%] flex origin-bottom-left items-end justify-center sm:origin-bottom"
         style={{ scale: push }}
       >
-        <motion.div
+        <m.div
           ref={truckRef}
           className="relative w-[min(94cqw,72cqh)] sm:w-[min(80cqw,105cqh)]"
           style={{ x: truckX }}
@@ -257,7 +257,7 @@ export default function LoadingScene({ progress, entry }: SceneProps) {
             style={{ background: 'radial-gradient(ellipse at center, rgba(0,0,0,0.65), transparent 70%)' }}
           />
 
-          <motion.div
+          <m.div
             className="relative"
             style={{ rotate: pitch, y: settle, transformOrigin: '82% 100%' }}
           >
@@ -277,9 +277,9 @@ export default function LoadingScene({ progress, entry }: SceneProps) {
             {PARTS.map((part, index) => (
               <Part key={index} part={part} index={index} progress={progress} />
             ))}
-          </motion.div>
-        </motion.div>
-      </motion.div>
+          </m.div>
+        </m.div>
+      </m.div>
     </div>
   )
 }
@@ -289,7 +289,7 @@ export function SceneBackdrop({ progress }: { progress: MotionValue<number> }) {
   const x = useTransform(progress, [0, 1], ['-2.5%', '2.5%'])
   return (
     <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
-      <motion.div className="absolute -inset-[6%]" style={{ x }}>
+      <m.div className="absolute -inset-[6%]" style={{ x }}>
         <Image
           src="/images/spares.webp"
           alt=""
@@ -299,7 +299,7 @@ export function SceneBackdrop({ progress }: { progress: MotionValue<number> }) {
           sizes="100vw"
           className="object-cover [filter:blur(2px)_brightness(0.5)_saturate(0.75)]"
         />
-      </motion.div>
+      </m.div>
       {/* Keep the copy readable and blend into the page */}
       <div className="absolute inset-0 bg-gradient-to-r from-[#141820]/95 via-[#141820]/65 to-[#141820]/25" />
       <div className="absolute inset-0 bg-gradient-to-b from-[#141820]/50 via-transparent to-[#141820]/90" />
@@ -335,19 +335,19 @@ export function LoadingSteps({ progress }: { progress: MotionValue<number> }) {
             ))}
           </ol>
           <div className="mt-2 h-px w-full bg-white/15">
-            <motion.div className="h-full origin-left bg-brand" style={{ scaleX: barScale }} />
+            <m.div className="h-full origin-left bg-brand" style={{ scaleX: barScale }} />
           </div>
         </div>
-        <motion.div className="hidden items-center gap-2 text-sm text-white/70 sm:flex" style={{ opacity: cueOpacity }}>
+        <m.div className="hidden items-center gap-2 text-sm text-white/70 sm:flex" style={{ opacity: cueOpacity }}>
           Scroll
           <span className="relative block h-8 w-px overflow-hidden bg-white/20">
-            <motion.span
+            <m.span
               className="absolute inset-x-0 top-0 h-3 bg-white"
               animate={{ y: [-12, 32] }}
               transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
             />
           </span>
-        </motion.div>
+        </m.div>
       </div>
     </div>
   )

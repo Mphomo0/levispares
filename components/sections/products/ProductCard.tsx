@@ -3,7 +3,6 @@
 import Link from 'next/link'
 import { useCart, type Product } from '@/lib/CartContext'
 import { useFavorites } from '@/lib/FavoritesContext'
-import { motion } from 'motion/react'
 import { toast } from 'sonner'
 import SmartImage from '@/components/ui/SmartImage'
 import { formatPrice } from '@/lib/format'
@@ -30,10 +29,9 @@ export default function ProductCard({ product }: ProductCardProps) {
   }
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="product-card group relative bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-shadow duration-300 h-full w-full"
+    // CSS entrance (not motion) so the card paints from the server HTML.
+    <div
+      className="animate-rise product-card group relative bg-white rounded-2xl overflow-hidden border border-slate-200 shadow-sm hover:shadow-md transition-shadow duration-300 h-full w-full"
     >
       <Link href={productPath(product)} className="block">
         <div className="relative aspect-square overflow-hidden bg-slate-50 p-6 flex items-center justify-center">
@@ -131,6 +129,6 @@ export default function ProductCard({ product }: ProductCardProps) {
           </button>
         </div>
       </div>
-    </motion.div>
+    </div>
   )
 }

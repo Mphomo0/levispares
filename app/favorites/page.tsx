@@ -9,7 +9,7 @@ import type { Id } from '@/convex/_generated/dataModel'
 import { useFavorites, Product } from '@/lib/FavoritesContext'
 import { useCart } from '@/lib/CartContext'
 import { toast } from 'sonner'
-import { motion } from 'motion/react'
+import { m } from 'framer-motion'
 import SmartImage from '@/components/ui/SmartImage'
 import { getErrorMessage } from '@/lib/errors'
 import { formatPrice } from '@/lib/format'
@@ -104,15 +104,15 @@ export default function FavoritesPage() {
     <>
       <div className="hero-gradient text-primary-foreground py-12 md:py-16">
         <div className="container mx-auto px-4">
-          <motion.h1
+          <m.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             className="font-display text-3xl md:text-4xl lg:text-5xl tracking-wide mb-2"
           >
             MY FAVORITES
-          </motion.h1>
-          <motion.p
+          </m.h1>
+          <m.p
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
@@ -121,7 +121,7 @@ export default function FavoritesPage() {
             {displayItems.length === 0
               ? 'No saved items yet'
               : `${displayItems.length} saved item${displayItems.length !== 1 ? 's' : ''}`}
-          </motion.p>
+          </m.p>
         </div>
       </div>
 
@@ -142,7 +142,7 @@ export default function FavoritesPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {displayItems.map((item) => (
-                <motion.div
+                <m.div
                   key={`${item.source}-${item.id}`}
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -198,7 +198,7 @@ export default function FavoritesPage() {
                       </div>
                     </>
                   )}
-                </motion.div>
+                </m.div>
               ))}
             </div>
           </>

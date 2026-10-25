@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'motion/react'
+import { m } from 'framer-motion'
 import { Target, Heart, Award, Users } from 'lucide-react'
 
 const values = [
@@ -34,7 +34,7 @@ export default function AboutValues() {
   return (
     <section className="py-16 md:py-24 bg-blue-50">
       <div className="container mx-auto px-4">
-        <motion.div
+        <m.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -45,11 +45,11 @@ export default function AboutValues() {
           <p className="section-subtitle">
             The principles that drive everything we do
           </p>
-        </motion.div>
+        </m.div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
           {values.map((value, index) => (
-            <motion.div
+            <m.div
               key={value.title}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -66,7 +66,7 @@ export default function AboutValues() {
               <p className="text-muted-foreground text-sm">
                 {value.description}
               </p>
-            </motion.div>
+            </m.div>
           ))}
         </div>
       </div>
