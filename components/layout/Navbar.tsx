@@ -153,7 +153,7 @@ const brands = useQuery(api.brands.list, {})
                   <Link
                     key={link.path}
                     href={link.path}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                    className={`px-3 xl:px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                       isActive(link.path)
                         ? 'text-brand bg-brand/10'
                         : 'text-slate-300 hover:text-white hover:bg-slate-800'
@@ -165,7 +165,7 @@ const brands = useQuery(api.brands.list, {})
               </nav>
             </div>
 
-            <div className="hidden md:flex flex-1 max-w-xl mx-6">
+            <div className="hidden md:flex flex-1 min-w-0 max-w-xl mx-3 xl:mx-6">
               <form onSubmit={handleSearch} className="relative w-full">
                 <div className="flex items-center bg-slate-800 rounded-lg border-2 border-transparent focus-within:border-brand focus-within:bg-slate-800 transition">
                   <input name="q" autoComplete="off" enterKeyHint="search"
@@ -173,7 +173,7 @@ const brands = useQuery(api.brands.list, {})
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search for parts, brands, vehicles…"
-                    className="flex-1 px-4 py-2.5 bg-transparent outline-none text-sm placeholder:text-slate-500 text-white"
+                    className="flex-1 min-w-0 px-4 py-2.5 bg-transparent outline-none text-sm placeholder:text-slate-500 text-white"
                   />
                   {searchQuery && (
                     <button
@@ -196,7 +196,7 @@ const brands = useQuery(api.brands.list, {})
               </form>
             </div>
 
-            <div className="flex items-center gap-2 lg:gap-4">
+            <div className="flex shrink-0 items-center gap-1 xl:gap-4">
               <a
                 href="tel:0127703389"
                 className="hidden items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-800 transition-colors"
@@ -269,7 +269,7 @@ const brands = useQuery(api.brands.list, {})
                       </motion.span>
                     )}
                   </div>
-                  <div className="hidden lg:block text-sm">
+                  <div className="hidden xl:block text-sm">
                     <p className="text-xs text-slate-400 leading-none">Cart</p>
                     <p className="font-semibold text-white">
                       {formatPrice(totalPrice)}
@@ -293,7 +293,7 @@ const brands = useQuery(api.brands.list, {})
                       </motion.span>
                     )}
                   </div>
-                  <div className="hidden lg:block text-sm">
+                  <div className="hidden xl:block text-sm">
                     <p className="text-xs text-slate-400 leading-none">Favorites</p>
                   </div>
                 </div>
