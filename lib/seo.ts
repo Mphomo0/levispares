@@ -66,6 +66,28 @@ export function collectionJsonLd(name: string, path: string, description: string
   }
 }
 
+/** The returns terms (14 days from delivery, sent back by post), as shown on the terms page. */
+export function returnPolicyJsonLd() {
+  return {
+    '@type': 'MerchantReturnPolicy',
+    applicableCountry: 'ZA',
+    returnPolicyCategory: 'https://schema.org/MerchantReturnFiniteReturnWindow',
+    merchantReturnDays: 14,
+    returnMethod: 'https://schema.org/ReturnByMail',
+    returnFees: 'https://schema.org/ReturnFeesCustomerResponsibility',
+    merchantReturnLink: `${SITE_URL}/terms-conditions#returns`,
+  }
+}
+
+/** The flat delivery charge to anywhere in South Africa. */
+export function shippingJsonLd(rate: number) {
+  return {
+    '@type': 'OfferShippingDetails',
+    shippingRate: { '@type': 'MonetaryAmount', value: rate.toFixed(2), currency: 'ZAR' },
+    shippingDestination: { '@type': 'DefinedRegion', addressCountry: 'ZA' },
+  }
+}
+
 export function storeJsonLd() {
   return {
     '@context': 'https://schema.org',
@@ -99,6 +121,7 @@ export function storeJsonLd() {
       { '@type': 'OpeningHoursSpecification', dayOfWeek: 'Saturday', opens: '08:00', closes: '13:00' },
     ],
     knowsAbout: BRAND_LIST.split(', ').map((brand) => `${brand} truck parts`),
+    hasMerchantReturnPolicy: returnPolicyJsonLd(),
   }
 }
 

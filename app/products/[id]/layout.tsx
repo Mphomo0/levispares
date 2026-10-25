@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import { categoryPath, productPath } from '@/lib/shopUrl'
 import JsonLd from '@/components/seo/JsonLd'
-import { breadcrumbJsonLd, tidyName } from '@/lib/seo'
+import { breadcrumbJsonLd, returnPolicyJsonLd, shippingJsonLd, tidyName } from '@/lib/seo'
+import { fetchQuery } from 'convex/nextjs'
+import { api } from '@/convex/_generated/api'
 import { getProductDetails, resolveProduct } from './resolve'
 import { SITE_NAME, SITE_URL } from '@/lib/site'
 
@@ -47,14 +49,20 @@ export default async function ProductLayout({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const product = await getProduct(id)
+  const [product, settings] = await Promise.all([
+    getProduct(id),
+    fetchQuery(api.settings.get, {}).catch(() => null),
+  ])
+  const images = product
+    ? [product.image, ...product.images.map((image) => image.url)].filter((url, i, all): url is string => Boolean(url) && all.indexOf(url) === i)
+    : []
 
   const jsonLd = product && {
     '@context': 'https://schema.org',
     '@type': 'Product',
     name: product.name,
     description: product.description || undefined,
-    image: product.image || undefined,
+    image: images.length ? images : undefined,
     sku: product.sku,
     mpn: product.partNumber || undefined,
     brand: product.brand ? { '@type': 'Brand', name: product.brand.name } : undefined,
@@ -63,10 +71,14 @@ export default async function ProductLayout({
       url: `${SITE_URL}${product.path}`,
       priceCurrency: 'ZAR',
       price: product.price.toFixed(2),
+      itemCondition: 'https://schema.org/NewCondition',
       availability:
         (product.stockQty ?? 0) > 0
           ? 'https://schema.org/InStock'
           : 'https://schema.org/OutOfStock',
+      seller: { '@id': `${SITE_URL}/#store` },
+      shippingDetails: shippingJsonLd(settings?.shippingRate ?? 250),
+      hasMerchantReturnPolicy: returnPolicyJsonLd(),
     },
   }
 
