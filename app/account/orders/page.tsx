@@ -8,6 +8,7 @@ import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import { isPaidOrder, orderStatusLabel } from '@/lib/orders'
 import { formatPrice } from '@/lib/format'
+import ReturnRequest from '@/components/orders/ReturnRequest'
 
 export default function OrdersPage() {
   const { isLoaded } = useUser()
@@ -134,7 +135,8 @@ export default function OrdersPage() {
           ) : (
             <div className="space-y-4">
               {orders.map((order) => (
-                <div key={order._id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors gap-4">
+                <div key={order._id} className="p-4 rounded-lg border border-border hover:bg-muted/50 transition-colors">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
                     <div className="h-14 w-14 rounded-lg bg-muted flex items-center justify-center shrink-0">
                       <svg aria-hidden="true" className="w-7 h-7 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -175,6 +177,8 @@ export default function OrdersPage() {
                       )}
                     </div>
                   </div>
+                </div>
+                <ReturnRequest orderId={order._id} />
                 </div>
               ))}
             </div>

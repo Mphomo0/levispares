@@ -1,7 +1,8 @@
 import { v, ConvexError } from "convex/values";
 import { internalMutation, mutation, query, type MutationCtx, type QueryCtx } from "./_generated/server";
-import type { Doc, Id } from "./_generated/dataModel";
+import type { Id } from "./_generated/dataModel";
 import { isAdmin, requireAdmin } from "./lib/auth";
+import { canAccessOrder } from "./lib/orderAccess";
 
 // Statuses of orders that have been paid for, and so carry an invoice.
 const INVOICED_STATUSES = new Set(["paid", "processing", "shipped", "delivered", "cancelled"]);
@@ -50,24 +51,12 @@ export const backfill = internalMutation({
   },
 });
 
-async function canSee(ctx: QueryCtx, order: Doc<"orders">, guestToken: string | undefined) {
-  if (guestToken !== undefined) {
-    return !order.userId && Boolean(order.guestToken) && order.guestToken === guestToken;
-  }
-  const identity = await ctx.auth.getUserIdentity();
-  if (identity && order.userId) {
-    const user = await ctx.db.get(order.userId);
-    if (user?.clerkId === identity.subject && user.isActive !== false) return true;
-  }
-  return await isAdmin(ctx);
-}
-
 /** Everything printed on an order's invoice, for its customer (or a guest with the token) and admins. */
 export const get = query({
   args: { orderId: v.id("orders"), guestToken: v.optional(v.string()) },
   handler: async (ctx, args) => {
     const order = await ctx.db.get(args.orderId);
-    if (!order || !order.invoiceNumber || !(await canSee(ctx, order, args.guestToken))) return null;
+    if (!order || !order.invoiceNumber || !(await canAccessOrder(ctx, order, args.guestToken))) return null;
 
     const settings = await globalSettings(ctx);
     const user = order.userId ? await ctx.db.get(order.userId) : null;

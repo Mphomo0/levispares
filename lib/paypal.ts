@@ -170,3 +170,42 @@ export async function capturePayPalOrder(paypalOrderId: string): Promise<PayPalO
 
   return response.json()
 }
+
+/** The id of the captured payment on a PayPal order, which refunds are made against. */
+export async function getCaptureId(paypalOrderId: string): Promise<string | null> {
+  const order = await getPayPalOrder(paypalOrderId)
+  const capture = order.purchase_units?.[0]?.payments?.captures?.[0] as { id?: string } | undefined
+  return capture?.id ?? null
+}
+
+/**
+ * Refunds part (or all) of a captured payment. requestId makes retries safe:
+ * PayPal returns the earlier refund instead of paying out twice.
+ */
+export async function refundCapture(params: { captureId: string; amount: number; requestId: string; note?: string }) {
+  const accessToken = await getPayPalAccessToken()
+
+  const response = await fetch(
+    `${PAYPAL_API_BASE}/v2/payments/captures/${encodeURIComponent(params.captureId)}/refund`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        'PayPal-Request-Id': params.requestId,
+      },
+      body: JSON.stringify({
+        amount: { currency_code: PAYPAL_CURRENCY, value: params.amount.toFixed(2) },
+        ...(params.note && { note_to_payer: params.note.substring(0, 255) }),
+      }),
+    },
+  )
+
+  if (!response.ok) {
+    const error = await response.text()
+    throw new Error(`PayPal refund failed: ${error}`)
+  }
+
+  const data = await response.json()
+  return { id: data.id as string, status: data.status as string }
+}

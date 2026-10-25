@@ -593,7 +593,11 @@ export const updateStatus = mutation({
       await adjustStock(ctx, args.id, "restore");
     }
 
-    await ctx.db.patch(args.id, { status: args.status, stockDeducted: shouldBeDeducted });
+    await ctx.db.patch(args.id, {
+      status: args.status,
+      stockDeducted: shouldBeDeducted,
+      ...(args.status === "delivered" && order.status !== "delivered" && { deliveredAt: Date.now() }),
+    });
     // An order marked paid by hand (e.g. an EFT) gets its invoice then.
     if (shouldBeDeducted) await assignInvoiceNumber(ctx, args.id);
 

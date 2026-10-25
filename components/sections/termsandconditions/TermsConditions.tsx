@@ -133,9 +133,16 @@ export default function TermsConditions() {
           </p>
           <ul className="list-disc pl-6 space-y-2">
             <li>Products must be unused, in original packaging, and with all tags attached</li>
-            <li>Returns must be initiated within 30 days of purchase</li>
+            <li>
+              Returns must be requested within 14 days of delivery, from My Orders in your account or from
+              the order link in your confirmation email
+            </li>
+            <li>Once we approve a return, we email you where to send the parts</li>
             <li>Certain items such as electrical parts may not be returnable</li>
-            <li>Refunds are processed within 14 business days of receiving returned items</li>
+            <li>
+              Refunds are paid to your original payment method within 14 business days of receiving the
+              returned items, and include VAT and any discount you received; delivery costs are not refunded
+            </li>
             <li>Return shipping costs may be your responsibility unless the item is defective</li>
           </ul>
         </>

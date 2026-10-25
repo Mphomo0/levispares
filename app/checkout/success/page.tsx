@@ -10,6 +10,7 @@ import Link from 'next/link'
 import { Suspense } from 'react'
 import { orderStatusLabel } from '@/lib/orders'
 import { formatPrice } from '@/lib/format'
+import ReturnRequest from '@/components/orders/ReturnRequest'
 
 function SuccessContent() {
   const searchParams = useSearchParams()
@@ -168,6 +169,7 @@ function SuccessContent() {
                     View or download invoice {order.invoiceNumber}
                   </Link>
                 )}
+                <ReturnRequest orderId={order._id} guestToken={token ?? undefined} />
               </div>
             </>
           ) : (

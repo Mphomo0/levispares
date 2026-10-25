@@ -158,6 +158,10 @@ export default defineSchema({
     // Sequential invoice number, given when the order is paid (e.g. INV-00042).
     invoiceNumber: v.optional(v.string()),
     invoicedAt: v.optional(v.number()),
+    // When the order was marked delivered; the return window counts from here.
+    deliveredAt: v.optional(v.number()),
+    // Rand refunded so far through returns.
+    refundedTotal: v.optional(v.number()),
     paypalOrderId: v.optional(v.string()),
     notes: v.optional(v.string()),
     // True while this order's items are deducted from product stock.
@@ -177,6 +181,39 @@ export default defineSchema({
     })),
   })
     .index("by_userId", ["userId"])
+    .index("by_status", ["status"]),
+
+  // A customer's request to send parts back for a refund.
+  returns: defineTable({
+    orderId: v.id("orders"),
+    items: v.array(v.object({
+      productId: v.id("products"),
+      name: v.string(),
+      price: v.number(),
+      quantity: v.number(),
+    })),
+    reason: v.union(
+      v.literal("wrong_part"),
+      v.literal("damaged"),
+      v.literal("not_needed"),
+      v.literal("other")
+    ),
+    details: v.optional(v.string()),
+    status: v.union(
+      v.literal("requested"),
+      v.literal("approved"),
+      v.literal("rejected"),
+      v.literal("refunded")
+    ),
+    // Note from the shop to the customer, e.g. why a return was turned down.
+    adminNote: v.optional(v.string()),
+    decidedAt: v.optional(v.number()),
+    refundAmount: v.optional(v.number()),
+    refundedAt: v.optional(v.number()),
+    // Set when the refund went back through PayPal.
+    paypalRefundId: v.optional(v.string()),
+  })
+    .index("by_orderId", ["orderId"])
     .index("by_status", ["status"]),
 
   orderItems: defineTable({
