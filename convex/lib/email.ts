@@ -2,6 +2,8 @@
  * Sends one email through Resend. Needs RESEND_API_KEY and EMAIL_FROM
  * (e.g. "Levi's Spares <shop@levispares.co.za>", on a domain verified in
  * Resend) set on the Convex deployment; without them nothing is sent.
+ * EMAIL_REPLY_TO (e.g. info@levispares.co.za) is where customer replies go,
+ * when the sending address has no inbox of its own.
  */
 export function emailConfigured() {
   return Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM);
@@ -19,6 +21,7 @@ export async function sendEmail(email: {
 }) {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.EMAIL_FROM;
+  const replyTo = process.env.EMAIL_REPLY_TO;
   if (!apiKey || !from) return { ok: false as const, error: "RESEND_API_KEY or EMAIL_FROM is not set" };
 
   const response = await fetch("https://api.resend.com/emails", {
@@ -31,6 +34,7 @@ export async function sendEmail(email: {
     body: JSON.stringify({
       from,
       to: [email.to],
+      ...(replyTo && { reply_to: replyTo }),
       subject: email.subject,
       html: email.html,
       text: email.text,

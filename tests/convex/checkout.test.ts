@@ -271,6 +271,7 @@ describe('order emails', () => {
     delete process.env.RESEND_API_KEY
     delete process.env.EMAIL_FROM
     delete process.env.ORDER_NOTIFY_EMAIL
+    delete process.env.EMAIL_REPLY_TO
   })
 
   async function scheduled(t: T) {
@@ -325,6 +326,22 @@ describe('order emails', () => {
     const bodies = fetchMock.mock.calls.map((call) => JSON.parse((call as unknown as [string, RequestInit])[1].body as string))
     expect(bodies[0]).toMatchObject({ to: ['a@example.com'], subject: `Thank you for your order (${orderNumber(orderId)})` })
     expect(bodies[1]).toMatchObject({ to: ['orders@example.com'], subject: expect.stringContaining('New order') })
+    expect(bodies[0]).not.toHaveProperty('reply_to')
+  })
+
+  it('sends replies to EMAIL_REPLY_TO when it is set', async () => {
+    vi.useFakeTimers()
+    const t = setup()
+    const orderId = await paidOrder(t)
+    process.env.RESEND_API_KEY = 're_test'
+    process.env.EMAIL_FROM = 'Shop <orders@example.com>'
+    process.env.EMAIL_REPLY_TO = 'info@example.com'
+    const fetchMock = vi.fn(async () => new Response('{"id":"1"}', { status: 200 }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await t.action(internal.orderEmails.send, { orderId, kind: 'shipped' })
+    const body = JSON.parse((fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].body as string)
+    expect(body.reply_to).toBe('info@example.com')
   })
 
   it('skips the shop alert without ORDER_NOTIFY_EMAIL, and everything without Resend settings', async () => {
