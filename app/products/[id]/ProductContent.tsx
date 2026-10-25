@@ -31,6 +31,7 @@ import ProductCard from '@/components/sections/products/ProductCard'
 import { getErrorMessage } from '@/lib/errors'
 import { formatPrice } from '@/lib/format'
 import { categoryPath } from '@/lib/shopUrl'
+import FitmentNote from '@/components/vehicle/FitmentNote'
 
 type ProductDetails = FunctionReturnType<typeof api.products.getWithFullHierarchy>
 
@@ -245,6 +246,8 @@ export default function ProductContent({
               <h1 className="text-3xl md:text-4xl font-display font-bold text-slate-900 leading-tight">
                 {product.name}
               </h1>
+
+              <FitmentNote product={product} />
 
               <div className="flex items-center gap-6">
                 <div className="flex items-center gap-1">

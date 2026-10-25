@@ -20,6 +20,7 @@ import {
 } from 'motion/react'
 import LoadingScene, { LoadingSteps, SceneBackdrop } from './LoadingScene'
 import { shopUrl } from '@/lib/shopUrl'
+import { setMyVehicle, useMyVehicle } from '@/lib/myVehicle'
 
 // One easing curve for all hero motion: quick start, long gentle settle.
 const EASE = [0.22, 1, 0.36, 1] as const
@@ -30,11 +31,21 @@ const selectClass =
 function VehicleFinder() {
   const router = useRouter()
   const brands = useQuery(api.brands.list)
-  const [brandId, setBrandId] = useState('')
-  const [modelId, setModelId] = useState('')
+  const saved = useMyVehicle()
+  // Start from the customer's remembered vehicle, if any.
+  const [picked, setPicked] = useState<{ brandId: string; modelId: string; variantId: string } | null>(null)
+  const brandId = picked?.brandId ?? saved?.brand.id ?? ''
+  const modelId = picked?.modelId ?? saved?.model?.id ?? ''
+  const variantId = picked?.variantId ?? saved?.variant?.id ?? ''
+  const pick = (next: Partial<{ brandId: string; modelId: string; variantId: string }>) =>
+    setPicked({ brandId, modelId, variantId, ...next })
   const models = useQuery(
     api.models.listActive,
     brandId ? { brandId: brandId as Id<'brands'> } : 'skip',
+  )
+  const variants = useQuery(
+    api.variants.listActive,
+    modelId ? { modelId: modelId as Id<'models'> } : 'skip',
   )
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -42,7 +53,13 @@ function VehicleFinder() {
     const brand = brands?.find((b) => b._id === brandId)
     if (!brand) return
     const model = models?.find((m) => m._id === modelId)
-    router.push(shopUrl({ brand: brand.slug, model: model?.slug }))
+    const variant = variants?.find((v) => v._id === variantId)
+    setMyVehicle({
+      brand: { id: brand._id, slug: brand.slug, name: brand.name },
+      model: model && { id: model._id, slug: model.slug, name: model.name },
+      variant: variant && { id: variant._id, slug: variant.slug, name: variant.variantValue },
+    })
+    router.push(shopUrl({ brand: brand.slug, model: model?.slug, variant: variant?.slug }))
   }
 
   return (
@@ -52,7 +69,7 @@ function VehicleFinder() {
     >
       <h2 className="mb-2 px-1 text-sm font-semibold text-white">Find parts for your truck</h2>
       {/* One compact row from tablet up, so the truck below gets the room */}
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_1fr_auto] sm:gap-3">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-[1fr_1fr_1fr_auto] sm:gap-3">
         <div>
           <label htmlFor="finder-make" className="sr-only">
             Make
@@ -61,10 +78,7 @@ function VehicleFinder() {
             id="finder-make"
             name="make"
             value={brandId}
-            onChange={(e) => {
-              setBrandId(e.target.value)
-              setModelId('')
-            }}
+            onChange={(e) => pick({ brandId: e.target.value, modelId: '', variantId: '' })}
             className={selectClass}
           >
             <option value="">{brands ? 'Make' : 'Loading…'}</option>
@@ -83,7 +97,7 @@ function VehicleFinder() {
             id="finder-model"
             name="model"
             value={modelId}
-            onChange={(e) => setModelId(e.target.value)}
+            onChange={(e) => pick({ modelId: e.target.value, variantId: '' })}
             disabled={!brandId || !models}
             className={selectClass}
           >
@@ -91,6 +105,26 @@ function VehicleFinder() {
             {models?.map((model) => (
               <option key={model._id} value={model._id}>
                 {model.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="col-span-2 sm:col-span-1">
+          <label htmlFor="finder-variant" className="sr-only">
+            Engine, GVM or chassis
+          </label>
+          <select
+            id="finder-variant"
+            name="variant"
+            value={variantId}
+            onChange={(e) => pick({ variantId: e.target.value })}
+            disabled={!modelId || !variants || variants.length === 0}
+            className={selectClass}
+          >
+            <option value="">{modelId && variants?.length ? 'All variants' : 'Variant'}</option>
+            {variants?.map((variant) => (
+              <option key={variant._id} value={variant._id}>
+                {variant.variantType}: {variant.variantValue}
               </option>
             ))}
           </select>

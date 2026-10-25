@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import FilterSidebar from '@/components/sections/shop/FilterSidebar'
+import MyVehicleBar from '@/components/sections/shop/MyVehicleBar'
+import type { MyVehicle } from '@/lib/myVehicle'
 import ProductGrid from '@/components/sections/shop/ProductGrid'
 import { useShopFilters } from '@/components/sections/shop/useShopFilters'
 import { useRouter } from 'next/navigation'
@@ -54,6 +56,18 @@ export default function ShopContent({ heading, intro, breadcrumb, related, initi
     () => (variantsForModel && selectedVariant ? variantsForModel.find((v) => v.slug === selectedVariant) ?? null : null),
     [variantsForModel, selectedVariant],
   )
+  // The vehicle the brand/model/variant filters describe, for "remember my vehicle".
+  const filteredVehicle = useMemo<MyVehicle | null>(() => {
+    if (!selectedBrandDoc || (selectedModel && !selectedModelDoc) || (selectedVariant && !selectedVariantDoc)) return null
+    return {
+      brand: { id: selectedBrandDoc._id, slug: selectedBrandDoc.slug, name: selectedBrandDoc.name },
+      model: selectedModelDoc ? { id: selectedModelDoc._id, slug: selectedModelDoc.slug, name: selectedModelDoc.name } : undefined,
+      variant: selectedVariantDoc
+        ? { id: selectedVariantDoc._id, slug: selectedVariantDoc.slug, name: selectedVariantDoc.variantValue }
+        : undefined,
+    }
+  }, [selectedBrandDoc, selectedModel, selectedModelDoc, selectedVariant, selectedVariantDoc])
+
   const selectedCategoryDoc = useMemo(
     () => (allCategories && selectedCategory ? allCategories.find((c) => c.slug === selectedCategory) ?? null : null),
     [allCategories, selectedCategory],
@@ -173,6 +187,7 @@ export default function ShopContent({ heading, intro, breadcrumb, related, initi
           <FilterSidebar />
 
           <div className="flex-1">
+            <MyVehicleBar filters={filters} filtered={filteredVehicle} />
             <ProductGrid products={results} selectedCategoryName="" isLoading={isLoading} />
 
             {totalPages > 1 && (

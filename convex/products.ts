@@ -418,6 +418,21 @@ export const listShopPaginated = query({
   },
 });
 
+/** Part numbers and SKUs compared without case, spaces or dashes ("8-97309-927-0" = "8973099270"). */
+const codeKey = (code: string) => code.replace(/[\s-]/g, "").toUpperCase();
+
+/** Active products whose SKU or part number is the search, however it was typed. */
+async function exactCodeMatches(ctx: QueryCtx, search: string) {
+  const key = codeKey(search);
+  if (key.length < 3 || key.length > 64) return [];
+  const products = await ctx.db
+    .query("products")
+    .withIndex("by_active", (q) => q.eq("active", true))
+    .collect();
+  return products.filter((product) =>
+    codeKey(product.sku) === key || (product.partNumber !== undefined && codeKey(product.partNumber) === key));
+}
+
 export const listShopNumbered = query({
   args: {
     page: v.number(),
@@ -529,7 +544,23 @@ export const listShopNumbered = query({
     // Since we need "Numbered Pagination" with page jumps, and Convex paginate is cursor-based:
     // We fetch all matching items for now to calculate totalCount and slice.
     // For extreme performance, we would need to maintain cursors per page or use a search index.
-    const allMatching = await resultsQuery.collect();
+    let allMatching = await resultsQuery.collect();
+
+    // A search for an exact SKU or part number puts that product first, even
+    // though the text search only looks at names.
+    if (args.searchQuery) {
+      const exact = (await exactCodeMatches(ctx, args.searchQuery)).filter((product) =>
+        product.active !== false &&
+        (!categoryIds || categoryIds.includes(product.categoryId)) &&
+        (!args.brandId || product.brandId === args.brandId) &&
+        (!args.modelId || product.modelId === args.modelId) &&
+        (!args.variantId || product.variantId === args.variantId || (args.modelId && !product.variantId)) &&
+        (args.minPrice === undefined || product.price >= args.minPrice) &&
+        (args.maxPrice === undefined || product.price <= args.maxPrice) &&
+        (!args.inStock || (product.stockQty ?? 0) > 0));
+      const exactIds = new Set(exact.map((product) => product._id));
+      allMatching = [...exact, ...allMatching.filter((product) => !exactIds.has(product._id))];
+    }
 
     // Map images
     const productsWithImages = allMatching.map((product) => ({
