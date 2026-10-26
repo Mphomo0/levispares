@@ -22,6 +22,7 @@ import type * as imageActions from "../imageActions.js";
 import type * as invoices from "../invoices.js";
 import type * as lib_auth from "../lib/auth.js";
 import type * as lib_cartEmail from "../lib/cartEmail.js";
+import type * as lib_contactMessage from "../lib/contactMessage.js";
 import type * as lib_email from "../lib/email.js";
 import type * as lib_names from "../lib/names.js";
 import type * as lib_orderAccess from "../lib/orderAccess.js";
@@ -65,6 +66,7 @@ declare const fullApi: ApiFromModules<{
   invoices: typeof invoices;
   "lib/auth": typeof lib_auth;
   "lib/cartEmail": typeof lib_cartEmail;
+  "lib/contactMessage": typeof lib_contactMessage;
   "lib/email": typeof lib_email;
   "lib/names": typeof lib_names;
   "lib/orderAccess": typeof lib_orderAccess;
