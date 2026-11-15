@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { m, AnimatePresence } from 'framer-motion'
 import { useUser } from '@clerk/nextjs'
 import { useQuery, useMutation } from 'convex/react'
@@ -113,11 +113,12 @@ const tax = taxEnabled ? (totalPrice - discount) * (taxRatePercent / 100) : 0
   const grandTotal = totalPrice - discount + shipping + tax
 
   // Ozow sends the customer back here when they cancel or the payment fails.
-  const paymentResult = useSearchParams().get('payment')
+  // Read from the address bar after loading, so the page can still be prerendered.
   useEffect(() => {
+    const paymentResult = new URLSearchParams(window.location.search).get('payment')
     if (paymentResult === 'cancelled') toast('Payment cancelled', { description: 'You can try again when ready.' })
     else if (paymentResult === 'failed') toast.error('Your payment did not go through. Please try again.')
-  }, [paymentResult])
+  }, [])
 
   // Redirect if cart is empty
   useEffect(() => {

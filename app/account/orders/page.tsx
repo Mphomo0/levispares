@@ -166,6 +166,12 @@ export default function OrdersPage() {
                       >
                         {orderStatusLabel(order.status)}
                       </span>
+                      {(order.courier || order.trackingNumber) && (
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {order.courier ? `Sent with ${order.courier}` : 'Sent'}
+                          {order.trackingNumber && <> · Tracking <span className="font-mono text-foreground">{order.trackingNumber}</span></>}
+                        </p>
+                      )}
                       {order.invoiceNumber && (
                         <Link
                           href={`/invoice/${order._id}`}

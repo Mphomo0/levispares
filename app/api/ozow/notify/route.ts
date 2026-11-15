@@ -28,20 +28,45 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid notification" }, { status: 400 });
     }
 
-    // Cancelled, abandoned and failed attempts need nothing from us.
-    if (field("Status") !== "Complete") return NextResponse.json({ ok: true });
+    const orderId = field("TransactionReference") as Id<"orders">;
+    const serverSecret = process.env.PAYMENT_SERVER_SECRET!;
+    const status = field("Status");
+    const flag = (note: string) => convexServer.mutation(api.orders.flagPayment, { id: orderId, note, serverSecret });
 
-    const orderId = field("TransactionReference");
-    const order = await convexServer.query(api.orders.getForPayment, {
-      id: orderId as Id<"orders">,
-      serverSecret: process.env.PAYMENT_SERVER_SECRET!,
-    }).catch(() => null);
+    const order = await convexServer.query(api.orders.getForPayment, { id: orderId, serverSecret }).catch(() => null);
     if (!order) {
-      console.error("Ozow: payment for an unknown order", { orderId });
+      console.error("Ozow: notification for an unknown order", { orderId, status });
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
-    // Ozow retries notifications, so a second one for a paid order is fine.
-    if (order.status !== "pending") return NextResponse.json({ ok: true });
+
+    if (status === "Cancelled" || status === "Error" || status === "Abandoned") {
+      // Nothing was paid: put the held parts back on sale.
+      await convexServer.mutation(api.orders.releasePayment, { id: orderId, serverSecret });
+      return NextResponse.json({ ok: true });
+    }
+    if (status === "PendingInvestigation") {
+      // The bank gave no clear answer and no update is coming: a person has to check.
+      if (order.status === "pending") {
+        await flag(`Ozow could not confirm this payment (transaction ${field("TransactionId")}). Check your bank statement: if the money arrived, mark the order paid; if not, cancel it.`);
+      }
+      return NextResponse.json({ ok: true });
+    }
+    // Pending is not an outcome, and a status we do not know is not acted on.
+    if (status !== "Complete") {
+      if (status !== "Pending") console.error("Ozow: unknown status", { orderId, status });
+      return NextResponse.json({ ok: true });
+    }
+
+    if (order.status !== "pending") {
+      // Ozow repeats notifications, so the same payment again is fine. Money
+      // for an order that is no longer waiting for it needs a person.
+      if (order.paymentReference !== field("TransactionId")) {
+        await flag(order.status === "cancelled"
+          ? `Ozow payment ${field("TransactionId")} of R${field("Amount")} arrived after this order was cancelled. Refund the customer or reinstate the order.`
+          : `A second Ozow payment (${field("TransactionId")}, R${field("Amount")}) arrived for this order. Refund the extra payment.`);
+      }
+      return NextResponse.json({ ok: true });
+    }
 
     const expectedAmount = order.total.toFixed(2);
     if (
@@ -50,6 +75,7 @@ export async function POST(request: NextRequest) {
       (field("IsTest").toLowerCase() === "true") !== isOzowTest()
     ) {
       console.error("Ozow payment does not match order", { orderId, body });
+      await flag(`Ozow payment ${field("TransactionId")} of R${field("Amount")} does not match this order's total of R${expectedAmount}${field("IsTest").toLowerCase() === "true" ? " (test payment)" : ""}. The order was not marked paid: check it with Ozow.`);
       return NextResponse.json({ error: "Payment does not match order" }, { status: 400 });
     }
 
@@ -66,9 +92,9 @@ export async function POST(request: NextRequest) {
     }
 
     await convexServer.mutation(api.orders.markPaid, {
-      id: orderId as Id<"orders">,
+      id: orderId,
       paymentReference: field("TransactionId") || transaction.id,
-      serverSecret: process.env.PAYMENT_SERVER_SECRET!,
+      serverSecret,
     });
     return NextResponse.json({ ok: true });
   } catch (error) {

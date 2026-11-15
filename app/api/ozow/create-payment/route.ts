@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { buildEmbeddedPayment } from "@/lib/ozow";
 import { getConvexAsUser } from "@/lib/serverConvex";
 import { ConvexHttpClient } from "convex/browser";
+import { ConvexError } from "convex/values";
+import { getErrorMessage } from "@/lib/errors";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 
@@ -43,10 +45,18 @@ export async function POST(request: NextRequest) {
     }
 
     // From here money may move, so the order must not be reused or cleared.
-    await convexServer.mutation(api.orders.attachPayment, {
-      id: convexOrderId as Id<"orders">,
-      serverSecret: process.env.PAYMENT_SERVER_SECRET!,
-    });
+    // This also holds the parts, and refuses if one has just sold out.
+    try {
+      await convexServer.mutation(api.orders.attachPayment, {
+        id: convexOrderId as Id<"orders">,
+        serverSecret: process.env.PAYMENT_SERVER_SECRET!,
+      });
+    } catch (error) {
+      if (error instanceof ConvexError) {
+        return NextResponse.json({ error: getErrorMessage(error, "This order can no longer be paid") }, { status: 409 });
+      }
+      throw error;
+    }
 
     return NextResponse.json(
       buildEmbeddedPayment({

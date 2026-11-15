@@ -1,5 +1,6 @@
 import { v, ConvexError } from "convex/values";
-import { mutation, query, QueryCtx, MutationCtx } from "./_generated/server";
+import { internalMutation, mutation, query, QueryCtx, MutationCtx } from "./_generated/server";
+import type { Doc } from "./_generated/dataModel";
 import type { Id } from "./_generated/dataModel";
 import { isAdmin, requireAdmin } from "./lib/auth";
 import { clearCartAfterPayment } from "./carts";
@@ -44,6 +45,43 @@ async function adjustStock(ctx: MutationCtx, orderId: Id<"orders">, direction: "
   }
 }
 
+/** An order as its customer may see it: notes meant for staff are left out. */
+function forCustomer<T extends Doc<"orders">>(order: T) {
+  const { adminAlert: _alert, ...rest } = order;
+  void _alert;
+  return rest;
+}
+
+/** Throws when any item on the order can no longer be supplied in full. */
+async function assertInStock(ctx: QueryCtx, orderId: Id<"orders">) {
+  const items = await ctx.db
+    .query("orderItems")
+    .withIndex("by_orderId", (q) => q.eq("orderId", orderId))
+    .collect();
+  for (const item of items) {
+    const product = await ctx.db.get(item.productId);
+    const stock = product && product.active !== false ? product.stockQty ?? 0 : 0;
+    if (stock < item.quantity) {
+      throw new ConvexError(`Sorry, "${item.name}" has just sold out. Available: ${stock}, in your order: ${item.quantity}. Please update your cart.`);
+    }
+  }
+}
+
+/** Items on the order that stock cannot cover, as "name (short by n)". */
+async function shortfalls(ctx: QueryCtx, orderId: Id<"orders">) {
+  const items = await ctx.db
+    .query("orderItems")
+    .withIndex("by_orderId", (q) => q.eq("orderId", orderId))
+    .collect();
+  const short = [];
+  for (const item of items) {
+    const product = await ctx.db.get(item.productId);
+    const stock = product?.stockQty ?? 0;
+    if (stock < item.quantity) short.push(`${item.name} (short by ${item.quantity - stock})`);
+  }
+  return short;
+}
+
 async function getUserIdFromAuth(ctx: QueryCtx) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) return null;
@@ -72,7 +110,7 @@ export const listByUser = query({
           .query("orderItems")
           .withIndex("by_orderId", (q) => q.eq("orderId", order._id))
           .collect();
-        return { ...order, items };
+        return { ...forCustomer(order), items };
       })
     );
   },
@@ -159,7 +197,7 @@ export const getById = query({
       : null;
 
     return {
-      ...order,
+      ...forCustomer(order),
       items,
       shippingAddress,
       billingAddress,
@@ -488,7 +526,7 @@ export const getGuest = query({
       .query("orderItems")
       .withIndex("by_orderId", (q) => q.eq("orderId", args.id))
       .collect();
-    const { guestToken: _token, ...rest } = order;
+    const { guestToken: _token, ...rest } = forCustomer(order);
     void _token;
     return { ...rest, items, shippingAddress: order.shippingSnapshot ?? null };
   },
@@ -538,7 +576,7 @@ export const getOwned = query({
       .query("orderItems")
       .withIndex("by_orderId", (q) => q.eq("orderId", args.id))
       .collect();
-    return { ...order, items };
+    return { ...forCustomer(order), items };
   },
 });
 
@@ -558,7 +596,93 @@ export const attachPayment = mutation({
     if (!order) throw new ConvexError("Order not found");
     if (order.status !== "pending") throw new ConvexError("Order is not awaiting payment");
 
-    await ctx.db.patch(args.id, { paymentStartedAt: Date.now() });
+    // Hold the parts while the customer pays, so two people cannot both pay
+    // for the last one. The hold is dropped if the payment fails or is left.
+    if (!isStockDeducted(order)) {
+      await assertInStock(ctx, args.id);
+      await adjustStock(ctx, args.id, "deduct");
+    }
+    await ctx.db.patch(args.id, { paymentStartedAt: Date.now(), stockDeducted: true });
+  },
+});
+
+/**
+ * Called by the payment notification when a payment was cancelled, failed or
+ * abandoned: puts the held parts back on sale. The order stays, so the
+ * customer can try again.
+ */
+export const releasePayment = mutation({
+  args: { id: v.id("orders"), serverSecret: v.string() },
+  handler: async (ctx, args) => {
+    assertServerSecret(args.serverSecret);
+    const order = await ctx.db.get(args.id);
+    if (!order || order.status !== "pending" || !isStockDeducted(order)) return;
+    await adjustStock(ctx, args.id, "restore");
+    await ctx.db.patch(args.id, { stockDeducted: false });
+  },
+});
+
+/**
+ * Called by the payment notification when something needs a person: money
+ * arrived for a cancelled order, the bank could not confirm a payment, or
+ * the amount did not match. Shown to admins on the order.
+ */
+export const flagPayment = mutation({
+  args: { id: v.id("orders"), note: v.string(), serverSecret: v.string() },
+  handler: async (ctx, args) => {
+    assertServerSecret(args.serverSecret);
+    const order = await ctx.db.get(args.id);
+    if (!order) return;
+    await ctx.db.patch(args.id, { adminAlert: args.note.slice(0, 500) });
+  },
+});
+
+/** An admin has dealt with the alert on an order. */
+export const clearAlert = mutation({
+  args: { id: v.id("orders") },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    await ctx.db.patch(args.id, { adminAlert: undefined });
+  },
+});
+
+// How long parts are held for a payment that never finishes.
+const HOLD_MS = 2 * 60 * 60 * 1000;
+// Checkouts that never reached payment are cleared after a day.
+const UNSTARTED_TTL_MS = 24 * 60 * 60 * 1000;
+// Unpaid orders with a payment attempt are kept a week, in case the money turns up late.
+const STARTED_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
+/** Hourly: drops stale stock holds and clears out abandoned checkouts. */
+export const cleanUpUnpaid = internalMutation({
+  args: {},
+  handler: async (ctx) => {
+    const now = Date.now();
+    const pending = await ctx.db
+      .query("orders")
+      .withIndex("by_status", (q) => q.eq("status", "pending"))
+      .take(500);
+    let released = 0;
+    let deleted = 0;
+    for (const order of pending) {
+      // An order waiting on a person (e.g. the bank could not confirm) is left alone.
+      if (order.adminAlert) continue;
+      const started = order.paymentStartedAt;
+      if (started !== undefined && order.stockDeducted && now - started > HOLD_MS) {
+        await adjustStock(ctx, order._id, "restore");
+        await ctx.db.patch(order._id, { stockDeducted: false });
+        released++;
+      }
+      const expired = started === undefined
+        ? now - order._creationTime > UNSTARTED_TTL_MS
+        : now - started > STARTED_TTL_MS;
+      if (expired) {
+        await deleteOrderItems(ctx, order._id);
+        await ctx.db.delete(order._id);
+        deleted++;
+      }
+    }
+    return { released, deleted };
   },
 });
 
@@ -568,7 +692,7 @@ export const getForPayment = query({
   handler: async (ctx, args) => {
     assertServerSecret(args.serverSecret);
     const order = await ctx.db.get(args.id);
-    return order ? { _id: order._id, status: order.status, total: order.total } : null;
+    return order ? { _id: order._id, status: order.status, total: order.total, paymentReference: order.paymentReference } : null;
   },
 });
 
@@ -587,12 +711,19 @@ export const markPaid = mutation({
     if (!order) throw new ConvexError("Order not found");
     if (order.status !== "pending") throw new ConvexError("Order is not awaiting payment");
 
+    // Normally the parts were held when payment started. If the hold had
+    // lapsed and they have since sold, the money is still the customer's:
+    // take the order and tell the shop it is short.
+    let adminAlert: string | undefined;
     if (!isStockDeducted(order)) {
+      const short = await shortfalls(ctx, args.id);
+      if (short.length > 0) adminAlert = `Paid, but stock is short: ${short.join(", ")}. Source the parts or refund the customer.`;
       await adjustStock(ctx, args.id, "deduct");
     }
 
     await ctx.db.patch(args.id, {
       status: "paid",
+      adminAlert,
       paymentReference: args.paymentReference,
       stockDeducted: true,
     });
@@ -615,12 +746,20 @@ export const updateStatus = mutation({
       v.literal("delivered"),
       v.literal("cancelled")
     ),
+    // Given when marking an order shipped; passed on to the customer.
+    courier: v.optional(v.string()),
+    trackingNumber: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
 
     const order = await ctx.db.get(args.id);
     if (!order) throw new ConvexError("Order not found");
+    const courier = args.courier?.trim() || undefined;
+    const trackingNumber = args.trackingNumber?.trim() || undefined;
+    if ((courier?.length ?? 0) > 60 || (trackingNumber?.length ?? 0) > 80) {
+      throw new ConvexError("The courier or tracking number is too long");
+    }
 
     // Keep stock in step with the status: cancelling (or moving back to
     // pending) returns the items, and moving a cancelled order forward again
@@ -636,6 +775,8 @@ export const updateStatus = mutation({
     await ctx.db.patch(args.id, {
       status: args.status,
       stockDeducted: shouldBeDeducted,
+      ...(courier && { courier }),
+      ...(trackingNumber && { trackingNumber }),
       ...(args.status === "delivered" && order.status !== "delivered" && { deliveredAt: Date.now() }),
     });
     // An order marked paid by hand (e.g. an EFT) gets its invoice then.
@@ -645,5 +786,21 @@ export const updateStatus = mutation({
     // that was never paid for is not worth an email.
     const kind = statusEmail(order.status, args.status);
     if (kind) await ctx.scheduler.runAfter(0, internal.orderEmails.send, { orderId: args.id, kind });
+  },
+});
+
+/** Adds or corrects the courier details on an order already sent. */
+export const setTracking = mutation({
+  args: { id: v.id("orders"), courier: v.optional(v.string()), trackingNumber: v.optional(v.string()) },
+  handler: async (ctx, args) => {
+    await requireAdmin(ctx);
+    const order = await ctx.db.get(args.id);
+    if (!order) throw new ConvexError("Order not found");
+    const courier = args.courier?.trim() || undefined;
+    const trackingNumber = args.trackingNumber?.trim() || undefined;
+    if ((courier?.length ?? 0) > 60 || (trackingNumber?.length ?? 0) > 80) {
+      throw new ConvexError("The courier or tracking number is too long");
+    }
+    await ctx.db.patch(args.id, { courier, trackingNumber });
   },
 });

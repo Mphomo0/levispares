@@ -27,6 +27,9 @@ export interface OrderEmailData {
     phone?: string;
   };
   notes?: string;
+  /** Who is delivering the order and their reference, when the shop gave them. */
+  courier?: string;
+  trackingNumber?: string;
 }
 
 /** Short order reference, the same one the admin order list shows. */
@@ -135,7 +138,11 @@ ${summaryHtml(data)}
     };
   }
 
-  const copy = CUSTOMER_COPY[kind];
+  const base = CUSTOMER_COPY[kind];
+  const tracking = kind === "shipped" && (data.courier || data.trackingNumber)
+    ? ` ${data.courier ? `It is with ${data.courier}` : "It has been handed to the courier"}${data.trackingNumber ? `, tracking number ${data.trackingNumber}` : ""}.`
+    : "";
+  const copy = { ...base, message: base.message + tracking };
   const firstName = data.customerName?.trim().split(/\s+/)[0];
   const greeting = firstName ? `Hi ${firstName},` : "Hi there,";
   const link = orderLink(data);

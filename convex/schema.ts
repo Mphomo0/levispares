@@ -166,6 +166,11 @@ export default defineSchema({
     paymentReference: v.optional(v.string()),
     // Set when the customer is sent to pay, so the order is not reused or cleared.
     paymentStartedAt: v.optional(v.number()),
+    // A payment problem staff must look at; never shown to the customer.
+    adminAlert: v.optional(v.string()),
+    // Who is delivering the order and their reference, set when it is shipped.
+    courier: v.optional(v.string()),
+    trackingNumber: v.optional(v.string()),
     // Orders paid through PayPal before the switch to Ozow.
     paypalOrderId: v.optional(v.string()),
     notes: v.optional(v.string()),
@@ -323,6 +328,14 @@ export default defineSchema({
     .index("by_promotionId", ["promotionId"])
     .index("by_productId", ["productId"])
     .index("by_categoryId", ["categoryId"]),
+
+  // Counts requests to the public forms so they cannot be flooded.
+  rateLimits: defineTable({
+    key: v.string(),
+    windowStart: v.number(),
+    count: v.number(),
+  })
+    .index("by_key", ["key"]),
 
   // Settings table
   storeSettings: defineTable({

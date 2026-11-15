@@ -177,6 +177,12 @@ function SuccessContent() {
                     {orderStatusLabel(order.status)}
                   </span>
                 </div>
+                {(order.courier || order.trackingNumber) && (
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {order.courier ? `Sent with ${order.courier}` : 'Sent'}
+                    {order.trackingNumber && <> · Tracking <span className="font-mono text-foreground">{order.trackingNumber}</span></>}
+                  </p>
+                )}
                 {order.invoiceNumber && (
                   <Link
                     href={`/invoice/${order._id}${token ? `?token=${encodeURIComponent(token)}` : ''}`}

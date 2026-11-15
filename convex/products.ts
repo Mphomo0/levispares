@@ -3,7 +3,7 @@ import { query, mutation, internalMutation, type MutationCtx, type QueryCtx } fr
 import { paginationOptsValidator } from "convex/server";
 import type { Doc, Id } from "./_generated/dataModel";
 
-import { requireAdmin } from "./lib/auth";
+import { isAdmin, requireAdmin } from "./lib/auth";
 import { ensureProductSlug, insertProduct } from "./lib/productSlug";
 import { tidyProductName } from "./lib/names";
 
@@ -93,6 +93,8 @@ export const listAdmin = query({
     search: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    // Includes inactive products, so staff only.
+    if (!(await isAdmin(ctx))) return [];
     let products = await ctx.db.query("products").order("desc").collect();
 
     if (args.search) {
@@ -649,6 +651,7 @@ export const listBestSellers = query({
 export const listLowStock = query({
   args: { threshold: v.optional(v.number()) },
   handler: async (ctx, args) => {
+    if (!(await isAdmin(ctx))) return [];
     const threshold = args.threshold ?? 10;
     const allProducts = await ctx.db.query("products").collect();
 
@@ -663,6 +666,7 @@ export const listLowStock = query({
 
 export const listOutOfStock = query({
   handler: async (ctx) => {
+    if (!(await isAdmin(ctx))) return [];
     const allProducts = await ctx.db.query("products").collect();
 
     return allProducts
@@ -689,6 +693,7 @@ export const listNewArrivals = query({
 export const getStats = query({
   args: { id: v.id("products") },
   handler: async (ctx, args) => {
+    if (!(await isAdmin(ctx))) return null;
     const product = await ctx.db.get(args.id);
     if (!product) return null;
 

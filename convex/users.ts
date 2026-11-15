@@ -1,6 +1,6 @@
 import { v, ConvexError } from "convex/values";
 import { internalQuery, mutation, query } from "./_generated/server";
-import { isAdmin, requireAdmin } from "./lib/auth";
+import { isAdmin, requireAdmin, roleFromClaims } from "./lib/auth";
 import { deleteCart } from "./carts";
 
 /**
@@ -14,10 +14,9 @@ export const store = mutation({
       throw new ConvexError("Called storeUser without authentication identity");
     }
 
-    // Role detection: 
-    // 1. Try to get role from Clerk JWT claims (if user added it to the template)
-    // 2. Fallback to "user"
-    const role = (identity as { role?: string }).role || "user";
+    // Roles are set in Clerk and read off the signed token, the same way
+    // the admin check reads them.
+    const role = roleFromClaims(identity) || "user";
 
     // Check if we've already stored this user.
     const user = await ctx.db
@@ -103,26 +102,6 @@ export const getCurrent = query({
       .query("users")
       .withIndex("by_clerkId", (q) => q.eq("clerkId", identity.subject))
       .unique();
-  },
-});
-
-export const setAdmin = mutation({
-  args: { clerkId: v.string() },
-  handler: async (ctx, args) => {
-    await requireAdmin(ctx);
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerkId", (q) => q.eq("clerkId", args.clerkId))
-      .unique();
-
-    if (user) {
-      await ctx.db.patch(user._id, { role: "admin" });
-    } else {
-      // Don't create phantom users — the user must sign in first to sync
-      throw new ConvexError(
-        "User not found in Convex. The user must sign in at least once before being promoted to admin."
-      );
-    }
   },
 });
 

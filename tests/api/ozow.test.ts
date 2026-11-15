@@ -121,14 +121,28 @@ describe('notify', () => {
     expect(mutation).not.toHaveBeenCalled()
   })
 
-  it('rejects a tampered amount even with a valid hash', async () => {
+  it('rejects a mismatched amount, flags the order for staff and does not mark it paid', async () => {
     const res = await notifyRoute.POST(notification({ Amount: '1.00' }))
     expect(res.status).toBe(400)
-    expect(mutation).not.toHaveBeenCalled()
+    expect(mutation).toHaveBeenCalledTimes(1)
+    expect(mutation.mock.calls[0][1]).toMatchObject({ id: 'order1', note: expect.stringContaining('does not match') })
   })
 
-  it('does nothing for cancelled payments', async () => {
-    const res = await notifyRoute.POST(notification({ Status: 'Cancelled' }))
+  it.each(['Cancelled', 'Error', 'Abandoned'])('releases the held stock when a payment is %s', async (Status) => {
+    const res = await notifyRoute.POST(notification({ Status }))
+    expect(res.status).toBe(200)
+    expect(mutation).toHaveBeenCalledTimes(1)
+    expect(mutation.mock.calls[0][1]).toEqual({ id: 'order1', serverSecret: 'server-secret' })
+  })
+
+  it('flags the order when the bank could not confirm the payment', async () => {
+    const res = await notifyRoute.POST(notification({ Status: 'PendingInvestigation' }))
+    expect(res.status).toBe(200)
+    expect(mutation.mock.calls[0][1]).toMatchObject({ note: expect.stringContaining('could not confirm') })
+  })
+
+  it('leaves the order alone while a payment is still Pending', async () => {
+    const res = await notifyRoute.POST(notification({ Status: 'Pending' }))
     expect(res.status).toBe(200)
     expect(mutation).not.toHaveBeenCalled()
   })
@@ -141,9 +155,17 @@ describe('notify', () => {
   })
 
   it('accepts a repeated notification for an already paid order', async () => {
-    serverQuery.mockResolvedValue({ ...ORDER, status: 'paid' })
+    serverQuery.mockResolvedValue({ ...ORDER, status: 'paid', paymentReference: 'oz-tx-1' })
     const res = await notifyRoute.POST(notification())
     expect(res.status).toBe(200)
     expect(mutation).not.toHaveBeenCalled()
+  })
+
+  it('flags money that arrives for a cancelled order', async () => {
+    serverQuery.mockResolvedValue({ ...ORDER, status: 'cancelled' })
+    const res = await notifyRoute.POST(notification())
+    expect(res.status).toBe(200)
+    expect(mutation).toHaveBeenCalledTimes(1)
+    expect(mutation.mock.calls[0][1]).toMatchObject({ note: expect.stringContaining('after this order was cancelled') })
   })
 })

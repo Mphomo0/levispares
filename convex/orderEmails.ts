@@ -43,6 +43,8 @@ export const emailData = internalQuery({
       total: order.total,
       address: order.shippingSnapshot,
       notes: order.notes,
+      courier: order.courier,
+      trackingNumber: order.trackingNumber,
     };
   },
 });
