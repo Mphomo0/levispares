@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createPayPalOrder, PAYPAL_CURRENCY } from "@/lib/paypal";
-import { toPayPalAmounts } from "@/lib/currency";
+import { buildEmbeddedPayment } from "@/lib/ozow";
 import { getConvexAsUser } from "@/lib/serverConvex";
 import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
@@ -9,8 +8,8 @@ import type { Id } from "@/convex/_generated/dataModel";
 const convexServer = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 /**
- * Starts a PayPal payment for an order the customer already created. The
- * amounts come from the stored order, never from the request.
+ * Signs an Ozow payment (the data the SDK modal needs) for an order the customer already created. The amount
+ * comes from the stored order, never from the request.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -43,30 +42,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "This order is not awaiting payment" }, { status: 409 });
     }
 
-    const amounts = toPayPalAmounts(order, PAYPAL_CURRENCY);
-    if (!amounts) {
-      console.error("PayPal: no exchange rate set, cannot convert the order to", PAYPAL_CURRENCY);
-      return NextResponse.json(
-        { error: "Online payment is temporarily unavailable. Please contact us to complete your order." },
-        { status: 503 }
-      );
-    }
-
-    const paypalOrderId = await createPayPalOrder({
-      referenceId: order._id,
-      items: amounts.items,
-      shipping: amounts.shipping,
-      tax: amounts.tax,
-      discount: amounts.discount,
-      totalAmount: amounts.total,
+    // From here money may move, so the order must not be reused or cleared.
+    await convexServer.mutation(api.orders.attachPayment, {
+      id: convexOrderId as Id<"orders">,
+      serverSecret: process.env.PAYMENT_SERVER_SECRET!,
     });
 
-    return NextResponse.json({ id: paypalOrderId });
-  } catch (error) {
-    console.error("PayPal create order error:", error);
     return NextResponse.json(
-      { error: "Failed to create PayPal order" },
-      { status: 500 }
+      buildEmbeddedPayment({
+        orderId: order._id,
+        total: order.total,
+        guestToken: typeof guestToken === "string" ? guestToken : undefined,
+      }),
     );
+  } catch (error) {
+    console.error("Ozow create payment error:", error);
+    return NextResponse.json({ error: "Failed to start the payment" }, { status: 500 });
   }
 }

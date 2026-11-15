@@ -303,7 +303,6 @@ async function priceOrder(
   return {
     lines,
     fields: {
-      exchangeRate: settings?.zarPerUsd,
       subtotal,
       shipping,
       tax,
@@ -332,7 +331,6 @@ function priced(orderId: Id<"orders">, { lines, fields }: Awaited<ReturnType<typ
     shipping: fields.shipping,
     tax: fields.tax,
     total: fields.total,
-    exchangeRate: fields.exchangeRate,
     items: lines.map((line) => ({ name: line.name, price: line.price, quantity: line.quantity })),
   };
 }
@@ -382,7 +380,7 @@ export const create = mutation({
         .withIndex("by_userId", (q) => q.eq("userId", userId))
         .order("desc")
         .collect()
-    ).filter((o) => o.status === "pending" && !o.paypalOrderId);
+    ).filter((o) => o.status === "pending" && !o.paymentStartedAt);
     const [reusable, ...duplicates] = openOrders;
 
     for (const duplicate of duplicates) {
@@ -461,7 +459,7 @@ export const createGuest = mutation({
 
     const previous = args.previous ? await ctx.db.get(args.previous.id) : null;
     const reusable = previous && !previous.userId && previous.guestToken === args.previous!.token &&
-      previous.status === "pending" && !previous.paypalOrderId;
+      previous.status === "pending" && !previous.paymentStartedAt;
 
     let orderId: Id<"orders">;
     let guestToken: string;
@@ -545,13 +543,12 @@ export const getOwned = query({
 });
 
 /**
- * Called by the payment route just before it captures a PayPal payment, so
+ * Called by the payment route just before it sends the customer to Ozow, so
  * the order is never reused or cleared once money may have moved.
  */
-export const attachPayPal = mutation({
+export const attachPayment = mutation({
   args: {
     id: v.id("orders"),
-    paypalOrderId: v.string(),
     serverSecret: v.string(),
   },
   handler: async (ctx, args) => {
@@ -561,14 +558,25 @@ export const attachPayPal = mutation({
     if (!order) throw new ConvexError("Order not found");
     if (order.status !== "pending") throw new ConvexError("Order is not awaiting payment");
 
-    await ctx.db.patch(args.id, { paypalOrderId: args.paypalOrderId });
+    await ctx.db.patch(args.id, { paymentStartedAt: Date.now() });
+  },
+});
+
+/** What the payment notification is checked against. Server-only. */
+export const getForPayment = query({
+  args: { id: v.id("orders"), serverSecret: v.string() },
+  handler: async (ctx, args) => {
+    assertServerSecret(args.serverSecret);
+    const order = await ctx.db.get(args.id);
+    return order ? { _id: order._id, status: order.status, total: order.total } : null;
   },
 });
 
 export const markPaid = mutation({
   args: {
     id: v.id("orders"),
-    paypalOrderId: v.string(),
+    // Ozow's TransactionId for the payment.
+    paymentReference: v.string(),
     // Shared with the payment API route so only the server can confirm payment.
     serverSecret: v.string(),
   },
@@ -585,7 +593,7 @@ export const markPaid = mutation({
 
     await ctx.db.patch(args.id, {
       status: "paid",
-      paypalOrderId: args.paypalOrderId,
+      paymentReference: args.paymentReference,
       stockDeducted: true,
     });
     await assignInvoiceNumber(ctx, args.id);

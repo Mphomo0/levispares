@@ -14,7 +14,6 @@ describe('orders.create: the server prices the order', () => {
     expect(result.shipping).toBe(250)
     expect(result.tax).toBeCloseTo(37.5, 2)
     expect(result.total).toBeCloseTo(537.49, 2)
-    expect(result.exchangeRate).toBe(18)
     expect(result.items).toEqual([
       { name: 'Brake pad', price: 100, quantity: 2 },
       { name: 'Oil filter', price: 49.99, quantity: 1 },
@@ -42,7 +41,6 @@ describe('orders.create: the server prices the order', () => {
       items: [{ productId: s.p1, quantity: 1 }],
     })
     expect(result.shipping).toBe(250)
-    expect(result.exchangeRate).toBeUndefined()
   })
 
   it('rejects bad quantities, empty carts, unknown stock and inactive products', async () => {
@@ -136,7 +134,7 @@ describe('orders.create: one open checkout per customer', () => {
     const s = await seed(t)
     const a = asUser(t, 'user_a')
     const first = await a.mutation(api.orders.create, { items: [{ productId: s.p1, quantity: 1 }] })
-    await t.mutation(api.orders.attachPayPal, { id: first.orderId, paypalOrderId: 'PP-1', serverSecret: 'test-secret' })
+    await t.mutation(api.orders.attachPayment, { id: first.orderId, serverSecret: 'test-secret' })
     const second = await a.mutation(api.orders.create, { items: [{ productId: s.p1, quantity: 1 }] })
     expect(second.orderId).not.toBe(first.orderId)
     // the attempted order is still there
@@ -155,8 +153,8 @@ describe('payment confirmation', () => {
     const t = setup()
     const s = await seed(t)
     const id = await pendingOrder(t, s)
-    await expect(t.mutation(api.orders.markPaid, { id, paypalOrderId: 'PP', serverSecret: 'wrong' })).rejects.toThrow(/Not authorized/)
-    await expect(asUser(t, 'user_a').mutation(api.orders.markPaid, { id, paypalOrderId: 'PP', serverSecret: '' })).rejects.toThrow(/Not authorized/)
+    await expect(t.mutation(api.orders.markPaid, { id, paymentReference: 'PP', serverSecret: 'wrong' })).rejects.toThrow(/Not authorized/)
+    await expect(asUser(t, 'user_a').mutation(api.orders.markPaid, { id, paymentReference: 'PP', serverSecret: '' })).rejects.toThrow(/Not authorized/)
     expect((await t.run((ctx) => ctx.db.get(id)))?.status).toBe('pending')
   })
 
@@ -164,12 +162,12 @@ describe('payment confirmation', () => {
     const t = setup()
     const s = await seed(t)
     const id = await pendingOrder(t, s)
-    await t.mutation(api.orders.markPaid, { id, paypalOrderId: 'PP-1', serverSecret: 'test-secret' })
+    await t.mutation(api.orders.markPaid, { id, paymentReference: 'PP-1', serverSecret: 'test-secret' })
     const product = await t.run((ctx) => ctx.db.get(s.p1))
     expect(product).toMatchObject({ stockQty: 7, totalSold: 3 })
     expect((await t.run((ctx) => ctx.db.get(id)))?.status).toBe('paid')
     // a second confirmation is refused, so stock cannot be deducted twice
-    await expect(t.mutation(api.orders.markPaid, { id, paypalOrderId: 'PP-1', serverSecret: 'test-secret' })).rejects.toThrow(/not awaiting payment/)
+    await expect(t.mutation(api.orders.markPaid, { id, paymentReference: 'PP-1', serverSecret: 'test-secret' })).rejects.toThrow(/not awaiting payment/)
     expect((await t.run((ctx) => ctx.db.get(s.p1)))?.stockQty).toBe(7)
   })
 
@@ -178,7 +176,7 @@ describe('payment confirmation', () => {
     const s = await seed(t)
     const id = await pendingOrder(t, s)
     await asAdmin(t).mutation(api.orders.updateStatus, { id, status: 'cancelled' })
-    await expect(t.mutation(api.orders.markPaid, { id, paypalOrderId: 'PP', serverSecret: 'test-secret' })).rejects.toThrow(/not awaiting payment/)
+    await expect(t.mutation(api.orders.markPaid, { id, paymentReference: 'PP', serverSecret: 'test-secret' })).rejects.toThrow(/not awaiting payment/)
   })
 })
 
@@ -187,7 +185,7 @@ describe('order status and stock', () => {
     const { orderId } = await asUser(t, 'user_a').mutation(api.orders.create, {
       items: [{ productId: s.p1, quantity: 3 }],
     })
-    await t.mutation(api.orders.markPaid, { id: orderId, paypalOrderId: 'PP', serverSecret: 'test-secret' })
+    await t.mutation(api.orders.markPaid, { id: orderId, paymentReference: 'PP', serverSecret: 'test-secret' })
     return orderId
   }
   const stock = (t: ReturnType<typeof setup>, id: any) => t.run(async (ctx) => (await ctx.db.get(id))!)
@@ -287,7 +285,7 @@ describe('who can read orders', () => {
     const { orderId } = await asUser(t, 'user_a').mutation(api.orders.create, { items: [{ productId: s.p1, quantity: 1 }] })
     const admin = asAdmin(t)
     expect(await admin.query(api.orders.listRecent, {})).toHaveLength(0)
-    await t.mutation(api.orders.markPaid, { id: orderId, paypalOrderId: 'PP', serverSecret: 'test-secret' })
+    await t.mutation(api.orders.markPaid, { id: orderId, paymentReference: 'PP', serverSecret: 'test-secret' })
     expect(await admin.query(api.orders.listRecent, {})).toHaveLength(1)
   })
 })

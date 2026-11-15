@@ -43,7 +43,7 @@ export const backfill = internalMutation({
     for (const order of orders) {
       if (order.invoiceNumber || !INVOICED_STATUSES.has(order.status)) continue;
       // Cancelled orders that were never paid get no number.
-      if (order.status === "cancelled" && !order.paypalOrderId) continue;
+      if (order.status === "cancelled" && !order.paymentReference && !order.paypalOrderId) continue;
       await assignInvoiceNumber(ctx, order._id);
       numbered++;
     }

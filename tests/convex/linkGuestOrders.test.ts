@@ -9,7 +9,7 @@ const ADDRESS = { name: 'Alice', street: '1 Main Road', city: 'Pretoria', postal
 
 async function guestOrder(t: T, productId: Awaited<ReturnType<typeof seed>>['p1'], email: string, paid = true) {
   const created = await t.mutation(api.orders.createGuest, { items: [{ productId, quantity: 1 }], email, address: ADDRESS })
-  if (paid) await t.mutation(api.orders.markPaid, { id: created.orderId, paypalOrderId: `PP-${created.orderId}`, serverSecret: 'test-secret' })
+  if (paid) await t.mutation(api.orders.markPaid, { id: created.orderId, paymentReference: `PP-${created.orderId}`, serverSecret: 'test-secret' })
   return created
 }
 

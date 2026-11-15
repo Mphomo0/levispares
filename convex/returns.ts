@@ -182,7 +182,6 @@ export const listAll = query({
         customerEmail: user?.email ?? order?.guestEmail ?? null,
         suggestedRefund: order ? Math.min(refundValue(order, ret.items), refundLeft(order)) : 0,
         maxRefund: order ? refundLeft(order) : 0,
-        paidWithPayPal: Boolean(order?.paypalOrderId),
       };
     }));
   },
@@ -213,24 +212,6 @@ export const reject = mutation({
   },
 });
 
-/** What the refund route needs before paying money back. */
-export const refundQuote = query({
-  args: { id: v.id("returns") },
-  handler: async (ctx, args) => {
-    await requireAdmin(ctx);
-    const ret = await ctx.db.get(args.id);
-    if (!ret) return null;
-    const order = await withOrder(ctx, ret);
-    return {
-      status: ret.status,
-      orderId: order._id,
-      paypalOrderId: order.paypalOrderId,
-      exchangeRate: order.exchangeRate,
-      maxRefund: refundLeft(order),
-    };
-  },
-});
-
 async function restock(ctx: MutationCtx, items: Doc<"returns">["items"]) {
   for (const item of items) {
     const product = await ctx.db.get(item.productId);
@@ -245,11 +226,11 @@ async function restock(ctx: MutationCtx, items: Doc<"returns">["items"]) {
 /**
  * Records that a return's parts came back and the money was refunded:
  * puts the parts back in stock and adds the amount to the order's refunds.
- * Called by the refund route after PayPal has paid out, or directly for
- * orders that were paid some other way and refunded by hand.
+ * Ozow has no refund button here, so the admin pays the customer back
+ * themselves first (EFT or from the Ozow dashboard) and then records it.
  */
 export const markRefunded = mutation({
-  args: { id: v.id("returns"), amount: v.number(), paypalRefundId: v.optional(v.string()) },
+  args: { id: v.id("returns"), amount: v.number() },
   handler: async (ctx, args) => {
     await requireAdmin(ctx);
     const ret = await ctx.db.get(args.id);
@@ -260,14 +241,10 @@ export const markRefunded = mutation({
     if (!(amount > 0) || amount > refundLeft(order)) {
       throw new ConvexError(`The refund must be between R0.01 and R${refundLeft(order).toFixed(2)}`);
     }
-    if (!args.paypalRefundId && order.paypalOrderId) {
-      // Money paid through PayPal goes back through PayPal (the refund route).
-      throw new ConvexError("This order was paid with PayPal; refund it through PayPal");
-    }
 
     const now = Date.now();
     await restock(ctx, ret.items);
-    await ctx.db.patch(args.id, { status: "refunded", refundAmount: amount, refundedAt: now, paypalRefundId: args.paypalRefundId });
+    await ctx.db.patch(args.id, { status: "refunded", refundAmount: amount, refundedAt: now });
     await ctx.db.patch(order._id, { refundedTotal: round2((order.refundedTotal ?? 0) + amount) });
     await ctx.scheduler.runAfter(0, internal.returnEmails.send, { returnId: args.id, kind: "refunded" });
   },

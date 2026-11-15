@@ -10,10 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { toPayPalAmounts } from '@/lib/currency'
 import { formatPrice } from '@/lib/format'
-
-const PAYPAL_CURRENCY = process.env.NEXT_PUBLIC_PAYPAL_CURRENCY || 'USD'
 
 const money = (n: number) =>
   `${formatPrice(n)}`
@@ -26,12 +23,6 @@ export default function OrderDetailsDialog({
   onClose: () => void
 }) {
   const order = useQuery(api.orders.getAdminDetail, orderId ? { id: orderId } : 'skip')
-  const charged = order
-    ? toPayPalAmounts(
-        { items: order.items, shipping: order.shipping, tax: order.tax, discount: order.discount, exchangeRate: order.exchangeRate },
-        PAYPAL_CURRENCY,
-      )
-    : null
 
   return (
     <Dialog open={!!orderId} onOpenChange={(open) => !open && onClose()}>
@@ -118,14 +109,14 @@ export default function OrderDetailsDialog({
 
             <section>
               <h4 className="font-semibold mb-1">Payment</h4>
-              {order.paypalOrderId ? (
+              {order.paymentReference ? (
+                <p className="text-muted-foreground">
+                  Ozow reference <span className="font-mono">{order.paymentReference}</span>
+                </p>
+              ) : order.paypalOrderId ? (
                 <p className="text-muted-foreground">
                   PayPal reference <span className="font-mono">{order.paypalOrderId}</span>
-                  {charged && PAYPAL_CURRENCY !== 'ZAR' && (
-                    <>
-                      {' '}· charged {PAYPAL_CURRENCY} {charged.total.toFixed(2)} at {formatPrice(order.exchangeRate)} per {PAYPAL_CURRENCY}
-                    </>
-                  )}
+                  {order.exchangeRate ? <> · charged in US$ at {formatPrice(order.exchangeRate)} per US$1</> : null}
                 </p>
               ) : (
                 <p className="text-muted-foreground">Not paid yet.</p>

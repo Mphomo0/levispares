@@ -186,7 +186,7 @@ describe('promo codes: on an order', () => {
       items: [{ productId: s.p1, quantity: 1 }], promoCode: 'SAVE10',
     })
     expect((await t.run((ctx) => ctx.db.get(promoId)))?.usedCount).toBe(0)
-    await t.mutation(api.orders.markPaid, { id: orderId, paypalOrderId: 'PP-1', serverSecret: 'test-secret' })
+    await t.mutation(api.orders.markPaid, { id: orderId, paymentReference: 'PP-1', serverSecret: 'test-secret' })
     expect((await t.run((ctx) => ctx.db.get(promoId)))?.usedCount).toBe(1)
     vi.useRealTimers()
   })
@@ -253,7 +253,7 @@ describe('guest checkout', () => {
     const { orderId } = await t.mutation(api.orders.createGuest, {
       items: [{ productId: s.p1, quantity: 1 }], email: 'g@example.com', address: GUEST_ADDRESS,
     })
-    await t.mutation(api.orders.markPaid, { id: orderId, paypalOrderId: 'PP-1', serverSecret: 'test-secret' })
+    await t.mutation(api.orders.markPaid, { id: orderId, paymentReference: 'PP-1', serverSecret: 'test-secret' })
 
     const [listed] = await asAdmin(t).query(api.orders.listAll, {})
     expect(listed).toMatchObject({ status: 'paid', customerName: 'Gina Guest', customerEmail: 'g@example.com' })
@@ -284,7 +284,7 @@ describe('order emails', () => {
     const { orderId } = await asUser(t, 'user_a').mutation(api.orders.create, {
       items: [{ productId: s.p1, quantity: 1 }], shippingAddressId: s.addrA,
     })
-    await t.mutation(api.orders.markPaid, { id: orderId, paypalOrderId: 'PP-1', serverSecret: 'test-secret' })
+    await t.mutation(api.orders.markPaid, { id: orderId, paymentReference: 'PP-1', serverSecret: 'test-secret' })
     return orderId
   }
 

@@ -37,7 +37,7 @@ export const FAQS: { question: string; answer: string }[] = [
   {
     question: 'How can I pay?',
     answer:
-      'You pay securely online through PayPal at checkout. Prices are in South African rand and include VAT where applicable. Orders are processed once payment is received.',
+      'You pay securely online by instant EFT through Ozow at checkout. Prices are in South African rand and include VAT where applicable. Orders are processed once payment is received.',
   },
   {
     question: 'Can I return a part?',

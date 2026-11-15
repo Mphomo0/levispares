@@ -108,22 +108,9 @@ function ReturnCard({ ret }: { ret: Return }) {
       toast.error(`Enter an amount between R0.01 and ${formatPrice(ret.maxRefund)}.`)
       return
     }
-    const how = ret.paidWithPayPal ? 'through PayPal' : 'as refunded by hand'
-    if (!(await confirm(`Refund ${formatPrice(value)} ${how} and put the parts back in stock? The customer is emailed.`))) return
+    if (!(await confirm(`Mark ${formatPrice(value)} as refunded and put the parts back in stock? The customer is emailed.`))) return
 
-    if (ret.paidWithPayPal) {
-      await run(async () => {
-        const res = await fetch('/api/admin/returns/refund', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ returnId: ret._id, amount: value }),
-        })
-        const data = await res.json()
-        if (!res.ok) throw new Error(data.error || 'The refund failed')
-      }, `${formatPrice(value)} refunded through PayPal`)
-    } else {
-      await run(() => markRefunded({ id: ret._id, amount: value }), `Marked ${formatPrice(value)} as refunded`)
-    }
+    await run(() => markRefunded({ id: ret._id, amount: value }), `Marked ${formatPrice(value)} as refunded`)
   }
 
   return (
@@ -142,7 +129,7 @@ function ReturnCard({ ret }: { ret: Return }) {
             </p>
           </div>
           {ret.status === 'refunded' && ret.refundAmount !== undefined && (
-            <p className="text-sm font-medium">{formatPrice(ret.refundAmount)} refunded{ret.paypalRefundId ? ' via PayPal' : ''}</p>
+            <p className="text-sm font-medium">{formatPrice(ret.refundAmount)} refunded</p>
           )}
         </div>
 
@@ -210,12 +197,10 @@ function ReturnCard({ ret }: { ret: Return }) {
                 className="sm:w-36"
               />
               <Button disabled={busy} onClick={refund} className="bg-accent text-white hover:bg-accent/90">
-                {ret.paidWithPayPal ? 'Parts received: refund via PayPal' : 'Parts received: mark refunded'}
+                Parts received: mark refunded
               </Button>
             </div>
-            {!ret.paidWithPayPal && (
-              <p className="text-xs text-muted-foreground">This order wasn&apos;t paid through PayPal, so pay the refund yourself first.</p>
-            )}
+            <p className="text-xs text-muted-foreground">Pay the customer back yourself first (EFT, or from your Ozow dashboard), then mark it refunded here.</p>
           </div>
         )}
       </CardContent>

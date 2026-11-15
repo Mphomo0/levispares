@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { m, AnimatePresence } from 'framer-motion'
 import { useUser } from '@clerk/nextjs'
 import { useQuery, useMutation } from 'convex/react'
@@ -16,13 +16,10 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import SmartImage from '@/components/ui/SmartImage'
-import { toPayPalAmounts, type PayPalAmounts } from '@/lib/currency'
 import { getErrorMessage } from '@/lib/errors'
 import { formatPrice } from '@/lib/format'
 
-const PAYPAL_CURRENCY = process.env.NEXT_PUBLIC_PAYPAL_CURRENCY || 'USD'
-
-// The PayPal SDK is only needed on the final step, so it's kept out of the
+// The payment step is only needed at the end, so it's kept out of the
 // checkout page's initial bundle and fetched when the user reaches Payment.
 const PaymentStep = dynamic(() => import('./PaymentStep'), {
   ssr: false,
@@ -32,15 +29,6 @@ const PaymentStep = dynamic(() => import('./PaymentStep'), {
     </div>
   ),
 })
-
-export interface PaymentInfo {
-  /** Order total in rand. */
-  total: number
-  /** Rand per US$1 frozen onto the order. */
-  rate?: number
-  /** What PayPal will charge, or null when no exchange rate is set. */
-  amounts: PayPalAmounts | null
-}
 
 const STEPS = ['Address', 'Review', 'Payment'] as const
 type Step = (typeof STEPS)[number]
@@ -78,7 +66,7 @@ const defaultAddressValues: AddressFormData = {
 export default function CheckoutPage() {
   const router = useRouter()
   const { user, isLoaded: isUserLoaded } = useUser()
-  const { items, totalPrice, clearCart } = useCart()
+  const { items, totalPrice } = useCart()
   const addresses = useQuery(api.addresses.listByUser)
   const addAddress = useMutation(api.addresses.add)
   const createOrder = useMutation(api.orders.create)
@@ -93,7 +81,8 @@ const [currentStep, setCurrentStep] = useState<Step>('Address')
   const [showAddForm, setShowAddForm] = useState(false)
   const [savingAddress, setSavingAddress] = useState(false)
   const [convexOrderId, setConvexOrderId] = useState<string | null>(null)
-  const [payment, setPayment] = useState<PaymentInfo | null>(null)
+  /** What the order was priced at when it was created (rand). */
+  const [orderTotal, setOrderTotal] = useState(0)
   const [isProcessing, setIsProcessing] = useState(false)
   // Checking out without an account: their details, and the order and token
   // once it is created (so going back and forth reuses the same order).
@@ -122,6 +111,13 @@ const [currentStep, setCurrentStep] = useState<Step>('Address')
 const shipping = shippingRateSetting
 const tax = taxEnabled ? (totalPrice - discount) * (taxRatePercent / 100) : 0
   const grandTotal = totalPrice - discount + shipping + tax
+
+  // Ozow sends the customer back here when they cancel or the payment fails.
+  const paymentResult = useSearchParams().get('payment')
+  useEffect(() => {
+    if (paymentResult === 'cancelled') toast('Payment cancelled', { description: 'You can try again when ready.' })
+    else if (paymentResult === 'failed') toast.error('Your payment did not go through. Please try again.')
+  }, [paymentResult])
 
   // Redirect if cart is empty
   useEffect(() => {
@@ -216,20 +212,7 @@ const tax = taxEnabled ? (totalPrice - discount) * (taxRatePercent / 100) : 0
         )
       }
       setConvexOrderId(created.orderId)
-      setPayment({
-        total: created.total,
-        rate: created.exchangeRate,
-        amounts: toPayPalAmounts(
-          {
-            items: created.items,
-            shipping: created.shipping,
-            tax: created.tax,
-            discount: created.discount,
-            exchangeRate: created.exchangeRate,
-          },
-          PAYPAL_CURRENCY,
-        ),
-      })
+      setOrderTotal(created.total)
       setCurrentStep('Payment')
     } catch (err) {
       toast.error(getErrorMessage(err, 'Failed to create order'))
@@ -423,12 +406,7 @@ const tax = taxEnabled ? (totalPrice - discount) * (taxRatePercent / 100) : 0
                   key="payment"
                   convexOrderId={convexOrderId!}
                   guestToken={isGuest ? guestOrder?.token : undefined}
-                  payment={payment}
-                  onSuccess={() => {
-                    clearCart()
-                    const token = isGuest && guestOrder ? `&token=${encodeURIComponent(guestOrder.token)}` : ''
-                    router.push(`/checkout/success?orderId=${convexOrderId}${token}`)
-                  }}
+                  total={orderTotal}
                   onBack={() => setCurrentStep('Review')}
                 />
               )}

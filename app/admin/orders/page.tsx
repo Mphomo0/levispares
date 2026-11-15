@@ -93,7 +93,7 @@ export default function AdminOrdersPage() {
     if (
       newStatus === 'cancelled' &&
       !window.confirm(
-        'Cancel this order? The items go back into stock. This does not refund the customer: if they already paid, refund them in your PayPal account.',
+        'Cancel this order? The items go back into stock. This does not refund the customer: if they already paid, refund them through Ozow or by EFT.',
       )
     ) return
 
