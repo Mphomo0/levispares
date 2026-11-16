@@ -2,86 +2,111 @@ import { createHash, timingSafeEqual } from 'node:crypto'
 import { SITE_URL } from '@/lib/site'
 
 /**
- * Ozow Payments API (instant EFT), shown in a modal over our checkout through
- * the Ozow SDK. Ozow tells us the outcome by POSTing to our notify URL, and
- * that notification (not the SDK, not the browser landing on the success URL)
- * is what marks an order paid.
+ * Ozow Hosted Checkout on One API (instant EFT). We ask Ozow for a payment
+ * request, send the customer to the page it gives us, and Ozow tells us the
+ * outcome by POSTing to our notify URL. That notification (not the customer
+ * landing back on our site) is what marks an order paid.
  */
 
 /** Ozow only charges rand. */
 export const OZOW_CURRENCY = 'ZAR'
-const OZOW_COUNTRY = 'ZA'
-
-/** Ozow runs sandbox payments through the same site code with IsTest=true. */
-export const isOzowTest = () => process.env.OZOW_IS_TEST !== 'false'
 
 /** Staging is a separate environment with its own credentials; production otherwise. */
-const apiBase = () => (process.env.OZOW_ENV === 'staging' ? 'https://stagingapi.ozow.com' : 'https://api.ozow.com')
+const apiBase = () => (process.env.OZOW_ENV === 'staging' ? 'https://stagingone.ozow.com/v1' : 'https://one.ozow.com/v1')
 
-function config() {
-  const siteCode = process.env.OZOW_SITE_CODE
-  const privateKey = process.env.OZOW_PRIVATE_KEY
-  if (!siteCode || !privateKey) throw new Error('Ozow credentials not configured')
-  return { siteCode, privateKey }
+/** How long a customer has to finish paying. Stock is held for the same time. */
+export const PAYMENT_EXPIRY_MS = 2 * 60 * 60 * 1000
+
+function privateKey() {
+  const key = process.env.OZOW_PRIVATE_KEY
+  if (!key) throw new Error('Ozow private key not configured')
+  return key
+}
+
+function siteCode() {
+  const code = process.env.OZOW_SITE_CODE
+  if (!code) throw new Error('Ozow site code not configured')
+  return code
 }
 
 /** Where Ozow sends the customer back to and calls us: the live site unless overridden. */
 export const callbackBase = () => process.env.OZOW_CALLBACK_BASE_URL || SITE_URL
 
 /** SHA512 of the values joined together plus the private key, lowercased, as Ozow requires. */
-export function ozowHash(values: string[], privateKey: string): string {
-  return createHash('sha512').update((values.join('') + privateKey).toLowerCase()).digest('hex')
+export function ozowHash(values: string[], key: string): string {
+  return createHash('sha512').update((values.join('') + key).toLowerCase()).digest('hex')
+}
+
+// The access token is good for hours, so it is kept between requests.
+let cachedToken: { value: string; expiresAt: number } | null = null
+
+/** For tests: forget the kept access token. */
+export const resetOzowToken = () => { cachedToken = null }
+
+/** An OAuth access token for One API (client credentials), reused until shortly before it expires. */
+async function accessToken(): Promise<string> {
+  if (cachedToken && Date.now() < cachedToken.expiresAt) return cachedToken.value
+  const clientId = process.env.OZOW_CLIENT_ID
+  const clientSecret = process.env.OZOW_CLIENT_SECRET
+  if (!clientId || !clientSecret) throw new Error('Ozow One API client not configured')
+
+  const response = await fetch(`${apiBase()}/token`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      scope: 'payments',
+      grant_type: 'client_credentials',
+    }),
+  })
+  if (!response.ok) throw new Error(`Ozow token request failed: ${response.status}`)
+  const data = await response.json()
+  // expires_in is seconds, sent as a string. Refresh a minute early.
+  cachedToken = { value: data.access_token, expiresAt: Date.now() + (Number(data.expires_in) - 60) * 1000 }
+  return cachedToken.value
 }
 
 export interface OzowOrderInput {
-  /** Our order id; Ozow echoes it back as TransactionReference. */
+  /** Our order id; sent as merchantReference. */
   orderId: string
   /** Order total in rand. */
   total: number
-  /** Shown to the customer on their bank statement (Ozow allows 20 characters). */
-  customer?: string
-  /** Appended to the success URL so guests can open their order afterwards. */
+  /** Appended to the return URL so guests can open their order afterwards. */
   guestToken?: string
 }
 
-/** The payment page the Ozow SDK loads: its own host, not the API's. */
-const sdkPaymentUrl = () => (process.env.OZOW_ENV === 'staging' ? 'https://stagingpay.ozow.com/' : 'https://pay.ozow.com/')
-
 /**
- * What the browser hands the Ozow SDK (createPaymentModal) to open the payment
- * page in a modal. Built server-side, because the hash is made with the
- * private key. Field names and their casing are Ozow's.
+ * Creates the payment request (POST /payments) and returns its id and the
+ * Ozow page to send the customer to. That URL is Ozow's to choose: never build it.
  */
-export function buildEmbeddedPayment(order: OzowOrderInput): { paymentUrl: string; postData: Record<string, string> } {
-  const { siteCode, privateKey } = config()
+export async function createPayment(order: OzowOrderInput): Promise<{ id: string; redirectUrl: string }> {
   const base = callbackBase()
-  const success = new URL('/checkout/success', base)
-  success.searchParams.set('orderId', order.orderId)
-  if (order.guestToken) success.searchParams.set('token', order.guestToken)
+  const returnUrl = new URL('/checkout/success', base)
+  returnUrl.searchParams.set('orderId', order.orderId)
+  if (order.guestToken) returnUrl.searchParams.set('token', order.guestToken)
 
-  // Insertion order is the order the hash is built in (the documented request order).
-  const fields = {
-    SiteCode: siteCode,
-    CountryCode: OZOW_COUNTRY,
-    CurrencyCode: OZOW_CURRENCY,
-    Amount: order.total.toFixed(2),
-    TransactionReference: order.orderId,
-    // Alphanumerics, spaces and dashes only, 20 characters at most.
-    BankReference: `LS-${order.orderId.slice(-8).toUpperCase()}`,
-    CancelUrl: `${base}/checkout?payment=cancelled`,
-    ErrorUrl: `${base}/checkout?payment=failed`,
-    SuccessUrl: success.toString(),
-    NotifyUrl: `${base}/api/ozow/notify`,
-    IsTest: String(isOzowTest()),
+  const response = await fetch(`${apiBase()}/payments`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${await accessToken()}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      siteCode: siteCode(),
+      amount: { currency: OZOW_CURRENCY, value: Math.round(order.total * 100) / 100 },
+      merchantReference: order.orderId,
+      // On the shop's bank statement. Letters and numbers only, 20 at most.
+      beneficiaryReference: `LS${order.orderId.slice(-8).toUpperCase()}`,
+      expireAt: new Date(Date.now() + PAYMENT_EXPIRY_MS).toISOString(),
+      returnUrl: returnUrl.toString(),
+      // The stable way to be told the outcome: the hashed notification.
+      notifyUrl: `${base}/api/ozow/notify`,
+    }),
+  })
+  const data = await response.json().catch(() => null)
+  if (!response.ok) {
+    throw new Error(`Ozow payment request failed: ${response.status} ${data?.code ?? ''} ${data?.detail ?? ''}`.trim())
   }
-  // Ozow caps each URL at 150 characters.
-  for (const key of ['CancelUrl', 'ErrorUrl', 'SuccessUrl', 'NotifyUrl'] as const) {
-    if (fields[key].length > 150) throw new Error(`Ozow ${key} is longer than 150 characters`)
-  }
-  return {
-    paymentUrl: sdkPaymentUrl(),
-    postData: { ...fields, HashCheck: ozowHash(Object.values(fields), privateKey) },
-  }
+  if (!data?.id || !data.redirectUrl) throw new Error('Ozow returned no redirectUrl for the payment')
+  return { id: data.id, redirectUrl: data.redirectUrl }
 }
 
 /**
@@ -107,46 +132,42 @@ const NOTIFICATION_HASH_FIELDS = [
 
 /** Checks a notification really came from Ozow. */
 export function verifyNotification(body: Record<string, string>): boolean {
-  const { privateKey } = config()
   const received = body.Hash
   if (!received) return false
   const parts = NOTIFICATION_HASH_FIELDS.map((field) => body[field] ?? '').filter((value) => value !== '')
-  const expected = ozowHash(parts, privateKey)
+  const expected = ozowHash(parts, privateKey())
   const a = Buffer.from(expected)
   const b = Buffer.from(received.toLowerCase())
   return a.length === b.length && timingSafeEqual(a, b)
 }
 
-/** The parts of Ozow's TransactionModel we use. */
+/** The parts of a One API Transaction we use. */
 export interface OzowTransaction {
   id: string
-  transactionReference: string
-  amount: number
   status: string
+  amount?: number
 }
 
-/** Asks Ozow directly for a payment's state, so a forged notification cannot mark an order paid. */
-export async function getTransactionByReference(reference: string): Promise<OzowTransaction | null> {
-  const { siteCode } = config()
-  const apiKey = process.env.OZOW_API_KEY
-  if (!apiKey) throw new Error('Ozow API key not configured')
+/**
+ * Asks Ozow for the transactions on a payment request (GET
+ * /payments/{id}/transactions). An unknown id gives an empty list, not a 404.
+ */
+export async function getPaymentTransactions(paymentId: string, since: number): Promise<OzowTransaction[]> {
+  const day = (ms: number) => new Date(ms).toISOString().slice(0, 10)
+  const url = new URL(`${apiBase()}/payments/${encodeURIComponent(paymentId)}/transactions`)
+  // Both dates are required and count whole days; a day either side covers time zones.
+  url.searchParams.set('fromDate', day(since - 24 * 60 * 60 * 1000))
+  url.searchParams.set('toDate', day(Date.now() + 24 * 60 * 60 * 1000))
 
-  const url = new URL(`${apiBase()}/GetTransactionByReference`)
-  url.searchParams.set('siteCode', siteCode)
-  url.searchParams.set('transactionReference', reference)
-  url.searchParams.set('isTest', String(isOzowTest()))
-
-  const response = await fetch(url, { headers: { ApiKey: apiKey, Accept: 'application/json' } })
+  const response = await fetch(url, { headers: { Authorization: `Bearer ${await accessToken()}` } })
   if (!response.ok) throw new Error(`Ozow transaction lookup failed: ${response.status}`)
-  // An array, because a reference can be used more than once (at most 10 come back).
-  const list: Array<Record<string, unknown>> = await response.json()
-  // Prefer a completed attempt if the customer tried more than once.
-  const row = list.find((t) => t.status === 'Complete') ?? list[0]
-  if (!row) return null
-  return {
+  const data = await response.json()
+  const results: Array<Record<string, unknown>> = Array.isArray(data?.results) ? data.results : []
+  return results.map((row) => ({
     id: String(row.id ?? ''),
-    transactionReference: String(row.transactionReference ?? ''),
-    amount: Number(row.amount),
     status: String(row.status ?? ''),
-  }
+    amount: typeof (row.amount as { value?: unknown } | undefined)?.value === 'number'
+      ? (row.amount as { value: number }).value
+      : undefined,
+  }))
 }

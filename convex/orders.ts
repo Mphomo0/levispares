@@ -606,6 +606,17 @@ export const attachPayment = mutation({
   },
 });
 
+/** Remembers Ozow's id for the payment request the customer was just sent to. */
+export const recordPaymentRequest = mutation({
+  args: { id: v.id("orders"), paymentRequestId: v.string(), serverSecret: v.string() },
+  handler: async (ctx, args) => {
+    assertServerSecret(args.serverSecret);
+    const order = await ctx.db.get(args.id);
+    if (!order || order.status !== "pending") return;
+    await ctx.db.patch(args.id, { paymentRequestId: args.paymentRequestId });
+  },
+});
+
 /**
  * Called by the payment notification when a payment was cancelled, failed or
  * abandoned: puts the held parts back on sale. The order stays, so the
@@ -646,7 +657,8 @@ export const clearAlert = mutation({
   },
 });
 
-// How long parts are held for a payment that never finishes.
+// How long parts are held for a payment that never finishes. The Ozow
+// payment request expires after the same time (PAYMENT_EXPIRY_MS in lib/ozow).
 const HOLD_MS = 2 * 60 * 60 * 1000;
 // Checkouts that never reached payment are cleared after a day.
 const UNSTARTED_TTL_MS = 24 * 60 * 60 * 1000;
@@ -692,7 +704,7 @@ export const getForPayment = query({
   handler: async (ctx, args) => {
     assertServerSecret(args.serverSecret);
     const order = await ctx.db.get(args.id);
-    return order ? { _id: order._id, status: order.status, total: order.total, paymentReference: order.paymentReference } : null;
+    return order ? { _id: order._id, status: order.status, total: order.total, paymentReference: order.paymentReference, paymentRequestId: order.paymentRequestId, paymentStartedAt: order.paymentStartedAt } : null;
   },
 });
 

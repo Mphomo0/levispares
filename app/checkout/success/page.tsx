@@ -91,6 +91,13 @@ function SuccessContent() {
               ? 'Waiting for your bank to confirm the payment. This page updates by itself.'
               : 'Thank you for your purchase!'}
           </m.p>
+          {awaitingPayment && (
+            // Ozow brings the customer back here whatever happened, including a cancelled payment.
+            <p className="mt-4 text-sm text-primary-foreground/80">
+              Cancelled, or the payment didn&apos;t go through?{' '}
+              <Link href="/checkout" className="font-semibold text-accent underline">Go back to checkout</Link> to try again.
+            </p>
+          )}
         </div>
       </div>
 

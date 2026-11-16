@@ -112,14 +112,6 @@ const shipping = shippingRateSetting
 const tax = taxEnabled ? (totalPrice - discount) * (taxRatePercent / 100) : 0
   const grandTotal = totalPrice - discount + shipping + tax
 
-  // Ozow sends the customer back here when they cancel or the payment fails.
-  // Read from the address bar after loading, so the page can still be prerendered.
-  useEffect(() => {
-    const paymentResult = new URLSearchParams(window.location.search).get('payment')
-    if (paymentResult === 'cancelled') toast('Payment cancelled', { description: 'You can try again when ready.' })
-    else if (paymentResult === 'failed') toast.error('Your payment did not go through. Please try again.')
-  }, [])
-
   // Redirect if cart is empty
   useEffect(() => {
     if (items.length === 0 && isUserLoaded) {

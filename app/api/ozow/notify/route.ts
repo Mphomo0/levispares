@@ -3,8 +3,7 @@ import { ConvexHttpClient } from "convex/browser";
 import { api } from "@/convex/_generated/api";
 import type { Id } from "@/convex/_generated/dataModel";
 import {
-  getTransactionByReference,
-  isOzowTest,
+  getPaymentTransactions,
   OZOW_CURRENCY,
   verifyNotification,
 } from "@/lib/ozow";
@@ -69,31 +68,38 @@ export async function POST(request: NextRequest) {
     }
 
     const expectedAmount = order.total.toFixed(2);
+    const isTest = field("IsTest").toLowerCase() === "true";
     if (
       Number(field("Amount")).toFixed(2) !== expectedAmount ||
       field("CurrencyCode") !== OZOW_CURRENCY ||
-      (field("IsTest").toLowerCase() === "true") !== isOzowTest()
+      // A test payment moves no money, so it only counts where tests are allowed.
+      (isTest && process.env.OZOW_ALLOW_TEST_PAYMENTS !== "true")
     ) {
       console.error("Ozow payment does not match order", { orderId, body });
-      await flag(`Ozow payment ${field("TransactionId")} of R${field("Amount")} does not match this order's total of R${expectedAmount}${field("IsTest").toLowerCase() === "true" ? " (test payment)" : ""}. The order was not marked paid: check it with Ozow.`);
+      await flag(`Ozow payment ${field("TransactionId")} of R${field("Amount")} does not match this order's total of R${expectedAmount}${isTest ? " (test payment)" : ""}. The order was not marked paid: check it with Ozow.`);
       return NextResponse.json({ error: "Payment does not match order" }, { status: 400 });
     }
 
-    // Ask Ozow directly as well, so the order is only released on a payment
-    // Ozow itself reports as complete.
-    const transaction = await getTransactionByReference(orderId);
-    if (
-      !transaction ||
-      transaction.status !== "Complete" ||
-      transaction.amount.toFixed(2) !== expectedAmount
-    ) {
-      console.error("Ozow lookup does not confirm payment", { orderId, transaction });
-      return NextResponse.json({ error: "Payment not confirmed" }, { status: 400 });
+    // The hash already proves this came from Ozow. As a second check, ask
+    // Ozow for its own record of the payment and refuse if it disagrees. If
+    // the lookup itself cannot be done, the verified notification stands.
+    if (order.paymentRequestId) {
+      try {
+        const transactions = await getPaymentTransactions(order.paymentRequestId, order.paymentStartedAt ?? Date.now());
+        const transaction = transactions.find((t) => t.id.toLowerCase() === field("TransactionId").toLowerCase());
+        if (transaction && transaction.status.toLowerCase() !== "successful") {
+          console.error("Ozow lookup does not confirm payment", { orderId, transaction });
+          return NextResponse.json({ error: "Payment not confirmed" }, { status: 400 });
+        }
+        if (!transaction) console.warn("Ozow lookup did not list this transaction; relying on the verified notification", { orderId });
+      } catch (error) {
+        console.warn("Ozow lookup failed; relying on the verified notification", { orderId, error });
+      }
     }
 
     await convexServer.mutation(api.orders.markPaid, {
       id: orderId,
-      paymentReference: field("TransactionId") || transaction.id,
+      paymentReference: field("TransactionId"),
       serverSecret,
     });
     return NextResponse.json({ ok: true });

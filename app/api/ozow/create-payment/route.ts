@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { buildEmbeddedPayment } from "@/lib/ozow";
+import { createPayment } from "@/lib/ozow";
 import { getConvexAsUser } from "@/lib/serverConvex";
 import { ConvexHttpClient } from "convex/browser";
 import { ConvexError } from "convex/values";
@@ -10,7 +10,7 @@ import type { Id } from "@/convex/_generated/dataModel";
 const convexServer = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 /**
- * Signs an Ozow payment (the data the SDK modal needs) for an order the customer already created. The amount
+ * Creates an Ozow payment request for an order the customer already created. The amount
  * comes from the stored order, never from the request.
  */
 export async function POST(request: NextRequest) {
@@ -58,13 +58,19 @@ export async function POST(request: NextRequest) {
       throw error;
     }
 
-    return NextResponse.json(
-      buildEmbeddedPayment({
-        orderId: order._id,
-        total: order.total,
-        guestToken: typeof guestToken === "string" ? guestToken : undefined,
-      }),
-    );
+    const payment = await createPayment({
+      orderId: order._id,
+      total: order.total,
+      guestToken: typeof guestToken === "string" ? guestToken : undefined,
+    });
+    // Kept so the notification can be checked against Ozow's own record.
+    await convexServer.mutation(api.orders.recordPaymentRequest, {
+      id: convexOrderId as Id<"orders">,
+      paymentRequestId: payment.id,
+      serverSecret: process.env.PAYMENT_SERVER_SECRET!,
+    });
+
+    return NextResponse.json({ redirectUrl: payment.redirectUrl });
   } catch (error) {
     console.error("Ozow create payment error:", error);
     return NextResponse.json({ error: "Failed to start the payment" }, { status: 500 });

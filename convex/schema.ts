@@ -164,6 +164,8 @@ export default defineSchema({
     refundedTotal: v.optional(v.number()),
     // Ozow's TransactionId, set when the payment is confirmed.
     paymentReference: v.optional(v.string()),
+    // Ozow's id for the latest payment request made for this order.
+    paymentRequestId: v.optional(v.string()),
     // Set when the customer is sent to pay, so the order is not reused or cleared.
     paymentStartedAt: v.optional(v.number()),
     // A payment problem staff must look at; never shown to the customer.
