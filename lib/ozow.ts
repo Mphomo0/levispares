@@ -23,6 +23,13 @@ function privateKey() {
   return key
 }
 
+/**
+ * Whether notifications can be checked against the hash. Ozow's staging One
+ * API credentials come without a private key; without one, a notification is
+ * only a prompt to look the payment up, never proof on its own.
+ */
+export const canVerifyNotifications = () => Boolean(process.env.OZOW_PRIVATE_KEY)
+
 function siteCode() {
   const code = process.env.OZOW_SITE_CODE
   if (!code) throw new Error('Ozow site code not configured')

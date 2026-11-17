@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const getOwned = vi.fn()
 const mutation = vi.fn()
@@ -233,5 +233,63 @@ describe('notify', () => {
     expect(res.status).toBe(200)
     expect(mutation).toHaveBeenCalledTimes(1)
     expect(mutation.mock.calls[0][1]).toMatchObject({ note: expect.stringContaining('after this order was cancelled') })
+  })
+})
+
+describe('notify without a private key (Ozow staging)', () => {
+  beforeEach(() => { delete process.env.OZOW_PRIVATE_KEY })
+  afterEach(() => { process.env.OZOW_PRIVATE_KEY = 'Private-Key' })
+
+  it('marks paid when Ozow\'s own record shows the transaction succeeded', async () => {
+    const res = await notifyRoute.POST(notification({}, false))
+    expect(res.status).toBe(200)
+    expect(mutation).toHaveBeenCalledWith(expect.anything(), { id: 'order1', paymentReference: 'oz-tx-1', serverSecret: 'server-secret' })
+  })
+
+  it('does nothing when Ozow does not list the transaction, so Ozow retries', async () => {
+    stubOzow({ transactions: [] })
+    const res = await notifyRoute.POST(notification({}, false))
+    expect(res.status).toBe(503)
+    expect(mutation).not.toHaveBeenCalled()
+  })
+
+  it('does nothing when the lookup cannot be done', async () => {
+    stubOzow({ transactions: 'fail' })
+    const res = await notifyRoute.POST(notification({}, false))
+    expect(res.status).toBe(503)
+    expect(mutation).not.toHaveBeenCalled()
+  })
+
+  it('refuses when Ozow\'s record says the transaction did not succeed', async () => {
+    stubOzow({ transactions: [{ id: 'oz-tx-1', status: 'Error', amount: { currency: 'ZAR', value: 537.49 } }] })
+    const res = await notifyRoute.POST(notification({}, false))
+    expect(res.status).toBe(400)
+    expect(mutation).not.toHaveBeenCalled()
+  })
+
+  it('checks the amount on Ozow\'s record, not just the notification', async () => {
+    stubOzow({ transactions: [{ id: 'oz-tx-1', status: 'Successful', amount: { currency: 'ZAR', value: 1 } }] })
+    const res = await notifyRoute.POST(notification({}, false))
+    expect(res.status).toBe(400)
+    expect(mutation.mock.calls[0][1]).toMatchObject({ note: expect.stringContaining('does not match') })
+  })
+
+  it.each(['Cancelled', 'Error', 'Abandoned', 'PendingInvestigation'])('ignores an unproven %s notification', async (Status) => {
+    const res = await notifyRoute.POST(notification({ Status }, false))
+    expect(res.status).toBe(200)
+    expect(mutation).not.toHaveBeenCalled()
+  })
+
+  it('does not flag an unproven second payment on a paid order', async () => {
+    serverQuery.mockResolvedValue({ ...ORDER, status: 'paid', paymentReference: 'oz-tx-0' })
+    const res = await notifyRoute.POST(notification({}, false))
+    expect(res.status).toBe(200)
+    expect(mutation).not.toHaveBeenCalled()
+  })
+
+  it('still checks the site code', async () => {
+    const res = await notifyRoute.POST(notification({ SiteCode: 'OTHER' }, false))
+    expect(res.status).toBe(400)
+    expect(mutation).not.toHaveBeenCalled()
   })
 })
