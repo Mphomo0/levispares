@@ -1,6 +1,8 @@
 'use client'
 
-import { useQuery } from 'convex/react'
+import { useState } from 'react'
+import { useMutation, useQuery } from 'convex/react'
+import { toast } from 'sonner'
 import { api } from '@/convex/_generated/api'
 import type { Id } from '@/convex/_generated/dataModel'
 import {
@@ -10,10 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { toPayPalAmounts } from '@/lib/currency'
 import { formatPrice } from '@/lib/format'
-
-const PAYPAL_CURRENCY = process.env.NEXT_PUBLIC_PAYPAL_CURRENCY || 'USD'
 
 const money = (n: number) =>
   `${formatPrice(n)}`
@@ -26,12 +25,7 @@ export default function OrderDetailsDialog({
   onClose: () => void
 }) {
   const order = useQuery(api.orders.getAdminDetail, orderId ? { id: orderId } : 'skip')
-  const charged = order
-    ? toPayPalAmounts(
-        { items: order.items, shipping: order.shipping, tax: order.tax, discount: order.discount, exchangeRate: order.exchangeRate },
-        PAYPAL_CURRENCY,
-      )
-    : null
+  const clearAlert = useMutation(api.orders.clearAlert)
 
   return (
     <Dialog open={!!orderId} onOpenChange={(open) => !open && onClose()}>
@@ -52,6 +46,19 @@ export default function OrderDetailsDialog({
 
         {order && (
           <div className="space-y-5 text-sm">
+            {order.adminAlert && (
+              <section className="rounded-lg border border-red-200 bg-red-50 p-3 text-red-800">
+                <h4 className="font-semibold mb-1">Needs attention</h4>
+                <p>{order.adminAlert}</p>
+                <button
+                  onClick={() => clearAlert({ id: order._id }).catch(() => toast.error('Could not clear the alert'))}
+                  className="mt-2 text-xs font-semibold underline"
+                >
+                  I&apos;ve dealt with this
+                </button>
+              </section>
+            )}
+
             <section>
               <h4 className="font-semibold mb-1">Customer</h4>
               <p>{order.customer?.name || 'Unknown'}</p>
@@ -88,6 +95,10 @@ export default function OrderDetailsDialog({
               )}
             </section>
 
+            {(order.status === 'shipped' || order.status === 'delivered' || order.courier || order.trackingNumber) && (
+              <Tracking key={order._id} id={order._id} courier={order.courier} trackingNumber={order.trackingNumber} />
+            )}
+
             <section>
               <h4 className="font-semibold mb-2">Items</h4>
               <div className="rounded-lg border divide-y">
@@ -118,14 +129,14 @@ export default function OrderDetailsDialog({
 
             <section>
               <h4 className="font-semibold mb-1">Payment</h4>
-              {order.paypalOrderId ? (
+              {order.paymentReference ? (
+                <p className="text-muted-foreground">
+                  Ozow reference <span className="font-mono">{order.paymentReference}</span>
+                </p>
+              ) : order.paypalOrderId ? (
                 <p className="text-muted-foreground">
                   PayPal reference <span className="font-mono">{order.paypalOrderId}</span>
-                  {charged && PAYPAL_CURRENCY !== 'ZAR' && (
-                    <>
-                      {' '}· charged {PAYPAL_CURRENCY} {charged.total.toFixed(2)} at {formatPrice(order.exchangeRate)} per {PAYPAL_CURRENCY}
-                    </>
-                  )}
+                  {order.exchangeRate ? <> · charged in US$ at {formatPrice(order.exchangeRate)} per US$1</> : null}
                 </p>
               ) : (
                 <p className="text-muted-foreground">Not paid yet.</p>
@@ -147,5 +158,40 @@ export default function OrderDetailsDialog({
         )}
       </DialogContent>
     </Dialog>
+  )
+}
+
+/** Courier details, editable so staff can add or correct them after sending. */
+function Tracking({ id, courier, trackingNumber }: { id: Id<'orders'>; courier?: string; trackingNumber?: string }) {
+  const setTracking = useMutation(api.orders.setTracking)
+  const [courierValue, setCourierValue] = useState(courier ?? '')
+  const [trackingValue, setTrackingValue] = useState(trackingNumber ?? '')
+  const [saving, setSaving] = useState(false)
+  const inputClass = 'w-full rounded-md border border-border bg-background px-3 py-2 text-sm'
+
+  const save = async () => {
+    setSaving(true)
+    try {
+      await setTracking({ id, courier: courierValue, trackingNumber: trackingValue })
+      toast.success('Delivery details saved')
+    } catch {
+      toast.error('Could not save the delivery details')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <section>
+      <h4 className="font-semibold mb-2">Delivery tracking</h4>
+      <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
+        <input aria-label="Courier" placeholder="Courier" maxLength={60} value={courierValue} onChange={(e) => setCourierValue(e.target.value)} className={inputClass} />
+        <input aria-label="Tracking number" placeholder="Tracking number" maxLength={80} value={trackingValue} onChange={(e) => setTrackingValue(e.target.value)} className={inputClass} />
+        <button onClick={save} disabled={saving} className="rounded-md bg-accent px-4 py-2 text-sm font-medium text-white disabled:opacity-60">
+          {saving ? 'Saving…' : 'Save'}
+        </button>
+      </div>
+      <p className="mt-1 text-xs text-muted-foreground">Customers see this on their order page. It is emailed when the order is marked shipped.</p>
+    </section>
   )
 }

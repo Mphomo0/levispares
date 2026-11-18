@@ -162,11 +162,23 @@ export default defineSchema({
     deliveredAt: v.optional(v.number()),
     // Rand refunded so far through returns.
     refundedTotal: v.optional(v.number()),
+    // Ozow's TransactionId, set when the payment is confirmed.
+    paymentReference: v.optional(v.string()),
+    // Ozow's id for the latest payment request made for this order.
+    paymentRequestId: v.optional(v.string()),
+    // Set when the customer is sent to pay, so the order is not reused or cleared.
+    paymentStartedAt: v.optional(v.number()),
+    // A payment problem staff must look at; never shown to the customer.
+    adminAlert: v.optional(v.string()),
+    // Who is delivering the order and their reference, set when it is shipped.
+    courier: v.optional(v.string()),
+    trackingNumber: v.optional(v.string()),
+    // Orders paid through PayPal before the switch to Ozow.
     paypalOrderId: v.optional(v.string()),
     notes: v.optional(v.string()),
     // True while this order's items are deducted from product stock.
     stockDeducted: v.optional(v.boolean()),
-    // Rand per US$1 when the order was created (PayPal charges in dollars).
+    // Legacy: rand per US$1 for orders paid through PayPal.
     exchangeRate: v.optional(v.number()),
     // Delivery details as they were when the order was placed, so later edits
     // or deletions of the saved address cannot change where it is sent.
@@ -211,7 +223,7 @@ export default defineSchema({
     decidedAt: v.optional(v.number()),
     refundAmount: v.optional(v.number()),
     refundedAt: v.optional(v.number()),
-    // Set when the refund went back through PayPal.
+    // Legacy: set when the refund went back through PayPal.
     paypalRefundId: v.optional(v.string()),
   })
     .index("by_orderId", ["orderId"])
@@ -319,13 +331,21 @@ export default defineSchema({
     .index("by_productId", ["productId"])
     .index("by_categoryId", ["categoryId"]),
 
+  // Counts requests to the public forms so they cannot be flooded.
+  rateLimits: defineTable({
+    key: v.string(),
+    windowStart: v.number(),
+    count: v.number(),
+  })
+    .index("by_key", ["key"]),
+
   // Settings table
   storeSettings: defineTable({
     key: v.string(),
     taxEnabled: v.optional(v.boolean()),
     taxRate: v.optional(v.number()),
     shippingRate: v.optional(v.number()),
-    // Rand per US$1, used to convert the order total for PayPal.
+    // Legacy: was used to convert totals for PayPal.
     zarPerUsd: v.optional(v.number()),
     statsYearsBusiness: v.optional(v.string()),
     statsPartsStock: v.optional(v.string()),

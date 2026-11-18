@@ -2,8 +2,10 @@ import { v, ConvexError } from "convex/values";
 import { internalAction, internalMutation, internalQuery, mutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 import type { Id } from "./_generated/dataModel";
+import { hitRateLimit } from "./rateLimits";
 import { SITE_NAME, SITE_URL, emailButton, emailConfigured, emailLayout, escapeHtml, formatPrice, sendEmail } from "./lib/email";
 
+const DAY = 24 * 60 * 60 * 1000;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // Most alerts sent in one run of the cron job.
 const BATCH_SIZE = 100;
@@ -23,6 +25,10 @@ export const subscribe = mutation({
       .withIndex("by_productId", (q) => q.eq("productId", args.productId))
       .collect();
     if (waiting.some((alert) => alert.email === email && alert.notifiedAt === undefined)) return;
+    // Each sign-up later sends an email, so cap them: per address and overall.
+    if (!(await hitRateLimit(ctx, `stock-alert:${email}`, 10, DAY)) || !(await hitRateLimit(ctx, "stock-alert:all", 200, DAY / 24))) {
+      throw new ConvexError("Too many alerts requested just now. Please try again later.");
+    }
     await ctx.db.insert("stockAlerts", { productId: args.productId, email });
   },
 });

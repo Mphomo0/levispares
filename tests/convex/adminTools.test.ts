@@ -69,7 +69,7 @@ describe('sales report', () => {
     const { orderId } = await asUser(t, 'user_a').mutation(api.orders.create, {
       items: [{ productId: s.p1, quantity: 2 }, { productId: s.p2, quantity: 1 }],
     })
-    await t.mutation(api.orders.markPaid, { id: orderId, paypalOrderId: 'PP-1', serverSecret: 'test-secret' })
+    await t.mutation(api.orders.markPaid, { id: orderId, paymentReference: 'PP-1', serverSecret: 'test-secret' })
     await asUser(t, 'user_b').mutation(api.orders.create, { items: [{ productId: s.p1, quantity: 1 }] }) // unpaid
 
     const now = Date.now()

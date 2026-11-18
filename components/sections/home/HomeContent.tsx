@@ -10,7 +10,6 @@ import type { FunctionReturnType } from 'convex/server'
 import ProductCard from '@/components/sections/products/ProductCard'
 import CategoryCard from '@/components/sections/products/CategoryCard'
 import BrandCard from '@/components/sections/products/BrandCard'
-// import SeedData from '@/components/SeedData'
 
 type Featured = FunctionReturnType<typeof api.products.listFeatured>
 type Brands = FunctionReturnType<typeof api.brands.list>
@@ -30,7 +29,6 @@ export default function HomeContent({ initialFeatured, initialBrands, initialCat
 
   return (
     <>
-      {/* <SeedData /> */}
       <Hero />
 
       <section className="py-16 md:py-24 bg-background">

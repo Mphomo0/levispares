@@ -2,21 +2,27 @@ import { ConvexError } from "convex/values";
 import type { QueryCtx } from "../_generated/server";
 
 /**
+ * The role on the signed Clerk token: a top-level `role` claim, or one inside
+ * the metadata claims. Clerk is the one place roles are set.
+ */
+export function roleFromClaims(identity: object): string | undefined {
+  const claims = identity as Record<string, unknown>;
+  const metadata = (claims.metadata ?? claims.publicMetadata) as { role?: string } | undefined;
+  return (claims.role as string | undefined) ?? metadata?.role;
+}
+
+/**
  * Throws unless the caller is a signed-in, active admin.
  *
  * Admin is decided by the signed Clerk token (a `role` / public-metadata role
  * claim) or by the stored user record, which is only ever written from that
- * claim or by an admin-gated mutation.
+ * claim when the user signs in.
  */
 export async function requireAdmin(ctx: QueryCtx) {
   const identity = await ctx.auth.getUserIdentity();
   if (!identity) throw new ConvexError("Not authenticated");
 
-  const claims = identity as Record<string, unknown>;
-  const metadata = (claims.metadata ?? claims.publicMetadata) as
-    | { role?: string }
-    | undefined;
-  const claimRole = (claims.role as string | undefined) ?? metadata?.role;
+  const claimRole = roleFromClaims(identity);
 
   const user = await ctx.db
     .query("users")

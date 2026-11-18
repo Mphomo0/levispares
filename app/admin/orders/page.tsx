@@ -93,12 +93,24 @@ export default function AdminOrdersPage() {
     if (
       newStatus === 'cancelled' &&
       !window.confirm(
-        'Cancel this order? The items go back into stock. This does not refund the customer: if they already paid, refund them in your PayPal account.',
+        'Cancel this order? The items go back into stock. This does not refund the customer: if they already paid, refund them through Ozow or by EFT.',
       )
     ) return
 
+    // The customer's "on its way" email carries these, so ask before sending it.
+    let courier: string | undefined
+    let trackingNumber: string | undefined
+    if (newStatus === 'shipped') {
+      const courierAnswer = window.prompt('Which courier is delivering this order? (Leave blank if none)')
+      if (courierAnswer === null) return
+      const trackingAnswer = window.prompt('Tracking or waybill number? (Leave blank if none)')
+      if (trackingAnswer === null) return
+      courier = courierAnswer.trim() || undefined
+      trackingNumber = trackingAnswer.trim() || undefined
+    }
+
     try {
-      await updateStatus({ id: orderId, status: newStatus })
+      await updateStatus({ id: orderId, status: newStatus, courier, trackingNumber })
       toast.success(`Order status updated to ${newStatus}`)
     } catch {
       toast.error('Failed to update order status')
@@ -271,6 +283,7 @@ export default function AdminOrdersPage() {
                   <div key={order._id} className="rounded-lg border border-border p-4 space-y-3">
                     <div className="flex items-center justify-between">
                       <button onClick={() => setDetailsId(order._id)} className="font-mono text-xs text-brand hover:underline">{order._id.slice(-8).toUpperCase()}</button>
+                      {order.adminAlert && <span title={order.adminAlert} className="ml-2 inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-semibold text-red-700">Needs attention</span>}
                       <span className="text-xs text-muted-foreground">
                         {new Date(order._creationTime).toLocaleDateString('en-ZA')}
                       </span>
@@ -371,6 +384,7 @@ export default function AdminOrdersPage() {
                       <TableCell className="font-mono text-xs">
                         <button onClick={() => setDetailsId(order._id)} className="text-brand hover:underline">
                           {order._id.slice(-8).toUpperCase()}
+                          {order.adminAlert && <span title={order.adminAlert} className="ml-2 inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-semibold text-red-700">Needs attention</span>}
                         </button>
                       </TableCell>
                       <TableCell>

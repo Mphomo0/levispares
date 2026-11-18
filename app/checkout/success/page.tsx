@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { useCart } from '@/lib/CartContext'
 import { useSearchParams } from 'next/navigation'
 import { m } from 'framer-motion'
 import { useQuery } from 'convex/react'
@@ -26,6 +27,16 @@ function SuccessContent() {
     orderId && token ? { id: orderId as Id<'orders'>, token } : 'skip'
   )
   const order = token ? guestOrder : ownOrder
+
+  const { clearCart } = useCart()
+  // Ozow confirms payment to our server a moment after the customer comes
+  // back, so the order can still be pending here; this page updates live.
+  const awaitingPayment = order?.status === 'pending'
+  const paid = order !== undefined && order !== null && !awaitingPayment
+  // Guests keep their cart in the browser: empty it once the payment is confirmed.
+  useEffect(() => {
+    if (paid) clearCart()
+  }, [paid, clearCart])
 
   // Scroll to top on mount
   useEffect(() => {
@@ -64,7 +75,11 @@ function SuccessContent() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="font-display text-3xl md:text-4xl lg:text-5xl tracking-wide mb-4"
           >
-            ORDER <span className="text-accent">CONFIRMED</span>
+            {awaitingPayment ? (
+              <>CONFIRMING <span className="text-accent">PAYMENT</span></>
+            ) : (
+              <>ORDER <span className="text-accent">CONFIRMED</span></>
+            )}
           </m.h1>
           <m.p
             initial={{ opacity: 0, y: 20 }}
@@ -72,8 +87,17 @@ function SuccessContent() {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="text-lg text-primary-foreground/80"
           >
-            Thank you for your purchase!
+            {awaitingPayment
+              ? 'Waiting for your bank to confirm the payment. This page updates by itself.'
+              : 'Thank you for your purchase!'}
           </m.p>
+          {awaitingPayment && (
+            // Ozow brings the customer back here whatever happened, including a cancelled payment.
+            <p className="mt-4 text-sm text-primary-foreground/80">
+              Cancelled, or the payment didn&apos;t go through?{' '}
+              <Link href="/checkout" className="font-semibold text-accent underline">Go back to checkout</Link> to try again.
+            </p>
+          )}
         </div>
       </div>
 
@@ -160,6 +184,12 @@ function SuccessContent() {
                     {orderStatusLabel(order.status)}
                   </span>
                 </div>
+                {(order.courier || order.trackingNumber) && (
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    {order.courier ? `Sent with ${order.courier}` : 'Sent'}
+                    {order.trackingNumber && <> · Tracking <span className="font-mono text-foreground">{order.trackingNumber}</span></>}
+                  </p>
+                )}
                 {order.invoiceNumber && (
                   <Link
                     href={`/invoice/${order._id}${token ? `?token=${encodeURIComponent(token)}` : ''}`}

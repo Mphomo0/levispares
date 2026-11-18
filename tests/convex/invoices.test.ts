@@ -8,7 +8,7 @@ beforeEach(() => { vi.useFakeTimers() })
 afterEach(() => { vi.useRealTimers() })
 
 const pay = (t: T, id: Id<'orders'>) =>
-  t.mutation(api.orders.markPaid, { id, paypalOrderId: `PP-${id}`, serverSecret: 'test-secret' })
+  t.mutation(api.orders.markPaid, { id, paymentReference: `PP-${id}`, serverSecret: 'test-secret' })
 
 async function order(t: T, s: Awaited<ReturnType<typeof seed>>, extra: Record<string, unknown> = {}) {
   const { orderId } = await asUser(t, 'user_a').mutation(api.orders.create, {

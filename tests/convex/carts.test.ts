@@ -191,7 +191,7 @@ describe('unsubscribing and paying', () => {
     const orderId = await t.run((ctx) => ctx.db.insert('orders', {
       userId: s.userA, status: 'pending', subtotal: 100, shipping: 0, tax: 0, total: 100,
     }))
-    await t.mutation(api.orders.markPaid, { id: orderId, paypalOrderId: 'PP-1', serverSecret: 'test-secret' })
+    await t.mutation(api.orders.markPaid, { id: orderId, paymentReference: 'PP-1', serverSecret: 'test-secret' })
 
     const cart = await cartOf(t, s.userA)
     expect(cart?.items).toEqual([])

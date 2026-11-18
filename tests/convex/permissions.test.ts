@@ -36,11 +36,14 @@ describe('admin-only catalogue and settings', () => {
     expect(await t.run((ctx) => ctx.db.query('products').collect())).toHaveLength(0)
   })
 
-  it('a customer cannot make themselves an admin', async () => {
+  it('a customer cannot make themselves an admin: roles only come from the signed token', async () => {
     const t = setup()
-    await seed(t)
-    await expect(asUser(t, 'user_a').mutation(api.users.setAdmin, { clerkId: 'user_a' })).rejects.toThrow(/Admin access required/)
-    await expect(t.mutation(api.users.setAdmin, { clerkId: 'user_a' })).rejects.toThrow()
+    const s = await seed(t)
+    await asUser(t, 'user_a').mutation(api.users.store, {})
+    expect((await t.run((ctx) => ctx.db.get(s.userA)))!.role).toBe('user')
+    // A role in the token's metadata claim counts, the same as for the admin check.
+    await t.withIdentity({ subject: 'user_a', email: 'a@example.com', name: 'Alice', metadata: { role: 'admin' } }).mutation(api.users.store, {})
+    expect((await t.run((ctx) => ctx.db.get(s.userA)))!.role).toBe('admin')
   })
 
   it('an admin is recognised by the token claim or the stored role', async () => {
@@ -182,7 +185,7 @@ describe('customers can only touch their own saved data', () => {
     expect((await t.run((ctx) => ctx.db.get(first)))?.verifiedPurchase).toBe(false)
 
     const { orderId } = await a.mutation(api.orders.create, { items: [{ productId: s.p2, quantity: 1 }] })
-    await t.mutation(api.orders.markPaid, { id: orderId, paypalOrderId: 'PP', serverSecret: 'test-secret' })
+    await t.mutation(api.orders.markPaid, { id: orderId, paymentReference: 'PP', serverSecret: 'test-secret' })
     const second = await a.mutation(api.reviews.add, { productId: s.p2, rating: 4 })
     expect((await t.run((ctx) => ctx.db.get(second)))?.verifiedPurchase).toBe(true)
 

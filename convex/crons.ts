@@ -10,4 +10,8 @@ crons.interval("send back-in-stock alerts", { hours: 1 }, internal.stockAlerts.s
 // 06:00 UTC is 08:00 in South Africa.
 crons.daily("email low stock report", { hourUTC: 6, minuteUTC: 0 }, internal.adminTools.sendLowStockReport, {});
 
+crons.interval("clean up unpaid orders", { hours: 1 }, internal.orders.cleanUpUnpaid, {});
+
+crons.daily("prune rate limit counters", { hourUTC: 1, minuteUTC: 0 }, internal.rateLimits.prune, {});
+
 export default crons;

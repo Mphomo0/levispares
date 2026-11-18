@@ -1,14 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import { m, AnimatePresence } from 'framer-motion'
+import { m } from 'framer-motion'
 import { useCart } from '@/lib/CartContext'
 import { useRouter } from 'next/navigation'
-import { useUser } from '@clerk/nextjs'
 import { useQuery } from 'convex/react'
 import { api } from '@/convex/_generated/api'
 import Link from 'next/link'
-import { SignInButton, SignUpButton } from '@clerk/nextjs'
 import SmartImage from '@/components/ui/SmartImage'
 import { formatPrice } from '@/lib/format'
 import { productPath } from '@/lib/shopUrl'
@@ -92,20 +90,13 @@ export default function CartPage() {
   const { items, totalPrice, clearCart, removeFromCart, updateQuantity } =
     useCart()
   const router = useRouter()
-  const { user } = useUser()
-  const [showAuth, setShowAuth] = useState(false)
   const storeSettings = useQuery(api.settings.get)
 const taxEnabled = storeSettings?.taxEnabled ?? false
 const taxRate = storeSettings?.taxRate ?? 0
 const shippingRate = storeSettings?.shippingRate ?? 250
 
-const handleCheckout = () => {
-    if (!user) {
-      setShowAuth(true)
-      return
-    }
-    router.push('/checkout')
-  }
+// The checkout page itself offers sign in, create account or guest checkout.
+const handleCheckout = () => router.push('/checkout')
 
   if (items.length === 0) {
     return (
@@ -328,59 +319,6 @@ const handleCheckout = () => {
         </div>
       </div>
 
-      <AnimatePresence>
-        {showAuth && (
-          <m.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-            onClick={() => setShowAuth(false)}
-          >
-            <m.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-xl border border-slate-200 shadow-xl p-8 max-w-md w-full mx-4 relative"
-            >
-              <button aria-label="Close"
-                onClick={() => setShowAuth(false)}
-                className="absolute top-4 right-4 inline-flex min-h-11 min-w-11 items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <svg aria-hidden="true" className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              <div className="text-center mb-6">
-                <div className="w-14 h-14 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <svg aria-hidden="true" className="w-7 h-7 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
-                <h2 className="text-xl font-bold text-foreground">Sign in to checkout</h2>
-                <p className="text-muted-foreground mt-1 text-sm">
-                  Create an account or sign in to complete your purchase.
-                </p>
-              </div>
-              <div className="flex flex-col gap-3">
-                <SignInButton mode="modal" forceRedirectUrl="/checkout">
-                  <button className="w-full bg-accent text-white px-6 py-3 rounded-lg font-medium transition hover:brightness-110">
-                    Sign In
-                  </button>
-                </SignInButton>
-                <SignUpButton mode="modal" forceRedirectUrl="/checkout">
-                  <button className="w-full border border-accent text-accent px-6 py-3 rounded-lg font-medium transition hover:bg-accent/5">
-                    Create Account
-                  </button>
-                </SignUpButton>
-              </div>
-            </m.div>
-          </m.div>
-        )}
-      </AnimatePresence>
     </>
   )
 }

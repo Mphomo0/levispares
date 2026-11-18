@@ -1,5 +1,6 @@
 import { httpRouter } from "convex/server";
 import { httpAction } from "./_generated/server";
+import { internal } from "./_generated/api";
 import { emailConfigured, sendEmail } from "./lib/email";
 import { parsePartRequest, partRequestEmail } from "./lib/partRequest";
 import { contactEmail, parseContactMessage } from "./lib/contactMessage";
@@ -16,6 +17,9 @@ const CORS = {
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...CORS, "Content-Type": "application/json" } });
 
+const HOUR = 60 * 60 * 1000;
+const TOO_MANY = "We've had a lot of messages just now. Please try again later, email info@levispares.co.za or call 012 770 3389.";
+
 const FALLBACK = "We couldn't send your message. Please email info@levispares.co.za or call 012 770 3389 instead.";
 
 /**
@@ -24,10 +28,22 @@ const FALLBACK = "We couldn't send your message. Please email info@levispares.co
  */
 function formToShop<T extends { email: string }>(
   kind: string,
+  /** Most messages per hour: from one visitor, and from everyone together. */
+  limits: { perVisitor: number; overall: number },
   parse: (body: unknown) => { error: string } | T,
   build: (form: T) => { subject: string; html: string; text: string; attachments?: Array<{ filename: string; content: string }> },
 ) {
-  return httpAction(async (_ctx, request) => {
+  return httpAction(async (ctx, request) => {
+    // Each message becomes an email to the shop, so cap how many can be sent.
+    const visitor = request.headers.get("x-forwarded-for")?.split(",")[0].trim().slice(0, 64);
+    const allowed = await ctx.runMutation(internal.rateLimits.hit, {
+      limits: [
+        ...(visitor ? [{ key: `${kind}:${visitor}`, limit: limits.perVisitor, windowMs: HOUR }] : []),
+        { key: `${kind}:all`, limit: limits.overall, windowMs: HOUR },
+      ],
+    });
+    if (!allowed) return json({ error: TOO_MANY }, 429);
+
     let body: unknown;
     try {
       body = await request.json();
@@ -70,6 +86,7 @@ http.route({
   method: "POST",
   handler: formToShop(
     "part-request",
+    { perVisitor: 5, overall: 40 },
     (body) => { const r = parsePartRequest(body); return "error" in r ? r : r.request; },
     partRequestEmail,
   ),
@@ -82,6 +99,7 @@ http.route({
   method: "POST",
   handler: formToShop(
     "contact",
+    { perVisitor: 5, overall: 60 },
     (body) => { const r = parseContactMessage(body); return "error" in r ? r : r.message; },
     contactEmail,
   ),

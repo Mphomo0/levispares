@@ -41,6 +41,21 @@ const nextConfig: NextConfig = {
     // time so pulling one icon/primitive doesn't bundle the whole library.
     optimizePackageImports: ['lucide-react', 'radix-ui'],
   },
+  async headers() {
+    return [
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          // Other sites may not put this one in a frame (clickjacking).
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' },
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+        ],
+      },
+    ]
+  },
   async redirects() {
     return [
       ...Object.entries(MOVED_CATEGORIES).map(([from, to]) => ({
