@@ -102,6 +102,7 @@ describe('create payment', () => {
     const body = JSON.parse(String(payment.init.body))
     expect(body).toMatchObject({
       siteCode: 'SITE-1',
+      region: 'ZA',
       amount: { currency: 'ZAR', value: 537.49 },
       merchantReference: 'order1',
       returnUrl: 'https://www.levispares.co.za/checkout/success?orderId=order1',
