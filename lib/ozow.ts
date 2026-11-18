@@ -98,6 +98,9 @@ export async function createPayment(order: OzowOrderInput): Promise<{ id: string
     headers: { Authorization: `Bearer ${await accessToken()}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
       siteCode: siteCode(),
+      // Without it Ozow guesses the country from the caller's IP, and our
+      // server is not in South Africa: production then rejects the payment.
+      region: 'ZA',
       amount: { currency: OZOW_CURRENCY, value: Math.round(order.total * 100) / 100 },
       merchantReference: order.orderId,
       // On the shop's bank statement. Letters and numbers only, 20 at most.
